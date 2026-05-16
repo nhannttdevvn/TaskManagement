@@ -1,7 +1,10 @@
 from django.db import models
-
-# Create your models here.
+from django.db import models
+from django.contrib.auth.models import User
 class Task(models.Model):
+    # Thêm trường user
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')
+# Create your models here.
     STATUS_CHOICES = [
         ('todo', 'To Do'),
         ('in_progress', 'In Progress'),
@@ -23,3 +26,9 @@ class Task(models.Model):
         return self.title
     class Meta:
         ordering = ['-priority', 'due_date', '-created_at']
+
+class Project(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects')
+    created_at = models.DateTimeField(auto_now_add=True)
