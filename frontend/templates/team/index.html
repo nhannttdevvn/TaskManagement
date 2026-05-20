@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Team Collaboration | TaskFlow{% endblock %}
+
+{% block vendor_styles %}
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    safelist: [
+      "translate-x-0", "-translate-x-full", "hidden", "grid", "bg-emerald-400",
+      "bg-amber-400", "bg-slate-500", "text-emerald-200", "text-amber-200",
+      "text-slate-300", "flex", "opacity-0", "opacity-100", "scale-95", "scale-100"
+    ],
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        },
+        boxShadow: {
+          glass: "0 16px 44px rgba(15, 23, 42, 0.26)",
+        },
+        keyframes: {
+          modalIn: {
+            "0%": { opacity: "0", transform: "translateY(10px) scale(0.98)" },
+            "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+          },
+        },
+        animation: {
+          modalIn: "modalIn 180ms ease both",
+        },
+      },
+    },
+  };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block body_class %}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %}
+
+{% block page_shell %}
+<div
+  id="teamApp"
+  class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(59,42,143,0.36),transparent_32%),linear-gradient(225deg,rgba(91,61,245,0.22),transparent_34%),linear-gradient(180deg,#050816_0%,#0d1326_54%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
+>
+  <div
+    class="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.84),transparent)]"
+    aria-hidden="true"
+  ></div>
+
+  <div id="teamSidebarOverlay" class="fixed inset-0 z-30 hidden bg-slate-950/60 backdrop-blur-sm lg:hidden"></div>
+
+  <aside
+    id="teamSidebar"
+    class="fixed inset-y-0 left-0 z-40 flex w-60 -translate-x-full flex-col border-r border-white/10 bg-[linear-gradient(160deg,rgba(59,42,143,0.94),rgba(91,61,245,0.78))] px-4 py-5 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
+    aria-label="Team navigation"
+  >
+    <div class="flex items-center gap-3 px-2">
+      <div class="grid h-10 w-10 place-items-center rounded-2xl bg-white/15 text-base font-black text-white shadow-glass">TF</div>
+      <div>
+        <p class="text-xs font-semibold uppercase text-cyan-200/80">TaskFlow</p>
+        <h1 class="text-base font-bold text-white">Project Hub</h1>
+      </div>
+    </div>
+
+    <nav class="mt-7 space-y-1.5">
+      <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'dashboard' %}">
+        <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+        <span>Dashboard</span>
+      </a>
+      <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'timeline' %}">
+        <i data-lucide="folder-kanban" class="h-4 w-4"></i>
+        <span>Projects</span>
+      </a>
+      <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="#teamWorkspace">
+        <i data-lucide="users-round" class="h-4 w-4"></i>
+        <span>Team</span>
+      </a>
+      <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#settings">
+        <i data-lucide="settings" class="h-4 w-4"></i>
+        <span>Settings</span>
+      </a>
+      <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#files">
+        <i data-lucide="files" class="h-4 w-4"></i>
+        <span>Files</span>
+      </a>
+      <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#updates">
+        <i data-lucide="radio" class="h-4 w-4"></i>
+        <span>All Updates</span>
+      </a>
+    </nav>
+
+    <section class="mt-4 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
+      <p class="text-xs font-extrabold uppercase text-cyan-200">Workspace</p>
+      <p class="mt-1 text-sm font-bold text-white">Design Sprint</p>
+      <div class="mt-3 space-y-1.5">
+        <a class="block rounded-2xl bg-white/10 px-3 py-1.5 text-sm font-semibold text-white" href="#teamWorkspace">Core Team</a>
+        <a class="block rounded-2xl px-3 py-1.5 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white" href="#teamWorkspace">Product Squad</a>
+      </div>
+    </section>
+
+    <div class="mt-auto rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
+      <div class="flex items-center gap-3">
+        <img class="h-9 w-9 rounded-xl border border-white/20 object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80" alt="Mostafa profile">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-semibold text-white">Mostafa</p>
+          <p class="truncate text-xs text-slate-300">Design Lead</p>
+        </div>
+      </div>
+      <button class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20" type="button">
+        <i data-lucide="log-out" class="h-4 w-4"></i>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <div class="min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-60">
+    <header class="sticky top-0 z-20 h-[72px] border-b border-white/10 bg-slate-950/30 px-4 backdrop-blur-2xl sm:px-5 lg:shrink-0">
+      <div class="flex h-full items-center justify-between gap-5">
+        <div class="flex shrink-0 items-center gap-3">
+          <button id="teamSidebarToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 lg:hidden motion-reduce:transform-none" type="button" aria-label="Open sidebar">
+            <i data-lucide="menu" class="h-5 w-5"></i>
+          </button>
+          <p class="text-xs font-semibold text-cyan-200">Hi , Mostafa</p>
+        </div>
+
+        <div class="flex shrink-0 items-center justify-end gap-3">
+          <div class="relative">
+            <button id="teamNotificationToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_30px_rgba(34,211,238,0.16)] motion-reduce:transform-none" type="button" aria-label="Open notifications">
+              <i data-lucide="bell" class="h-4 w-4"></i>
+              <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-fuchsia-400 ring-2 ring-slate-950"></span>
+            </button>
+            <div id="teamNotificationDropdown" class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-slate-950/90 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-bold text-white">Notifications</h3>
+                <span class="rounded-full bg-cyan-400/15 px-2 py-1 text-xs font-semibold text-cyan-200">2 new</span>
+              </div>
+              <div id="teamNotificationList" class="space-y-3"></div>
+            </div>
+          </div>
+
+          <button class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_30px_rgba(34,211,238,0.16)] motion-reduce:transform-none" type="button" aria-label="Help">
+            <i data-lucide="circle-help" class="h-4 w-4"></i>
+          </button>
+
+          <button id="teamThemeToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_30px_rgba(34,211,238,0.16)] motion-reduce:transform-none" type="button" aria-label="Toggle dark mode">
+            <i data-lucide="moon" class="h-4 w-4"></i>
+          </button>
+
+          <img class="h-9 w-9 rounded-xl border border-white/20 object-cover shadow-glass" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80" alt="Mostafa avatar">
+        </div>
+      </div>
+    </header>
+
+    <main id="teamWorkspace" class="flex h-[calc(100vh-72px)] min-h-0 flex-1 flex-col gap-5 overflow-hidden px-5 py-5">
+      <div class="flex shrink-0 items-center justify-between gap-5">
+        <div>
+          <p class="text-xs font-extrabold uppercase text-cyan-200">Workspace Chat</p>
+          <h1 class="text-xl font-black text-white">Team Collaboration</h1>
+        </div>
+        <button id="inviteMemberButton" class="gradient-button inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600/90 via-blue-600/90 to-cyan-600/90 px-4 text-sm font-bold text-white shadow-[0_12px_30px_rgba(37,99,235,0.2)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
+          <i data-lucide="user-plus" class="h-4 w-4"></i>
+          Invite Member
+        </button>
+      </div>
+
+      <section class="flex h-full min-h-0 flex-1 flex-col gap-6 overflow-hidden lg:flex-row">
+        <aside class="glass-panel flex min-h-0 w-full flex-col rounded-[22px] border border-white/[0.06] bg-white/[0.04] p-4 shadow-glass backdrop-blur-2xl lg:h-full lg:w-[340px] lg:min-w-[340px] lg:max-w-[340px]">
+          <label class="flex h-10 shrink-0 items-center gap-2.5 rounded-2xl border border-white/10 bg-slate-950/35 px-3 transition focus-within:border-cyan-300/40 focus-within:shadow-[0_0_24px_rgba(34,211,238,0.1)]">
+            <i data-lucide="search" class="h-4 w-4 text-slate-400"></i>
+            <input id="memberSearch" class="min-w-0 flex-1 border-0 bg-transparent text-sm text-white outline-none placeholder:text-slate-500" type="search" placeholder="Search members..." autocomplete="off">
+          </label>
+
+          <div id="memberList" class="mt-4 grid min-h-0 flex-1 gap-2 overflow-y-auto pr-1"></div>
+        </aside>
+
+        <section class="glass-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-[22px] border border-white/[0.06] bg-white/[0.04] shadow-glass backdrop-blur-2xl lg:h-full">
+          <header class="flex h-[72px] shrink-0 items-center justify-between border-b border-white/10 px-4">
+            <div class="flex min-w-0 items-center gap-3">
+              <img id="selectedMemberAvatar" class="h-10 w-10 rounded-xl border border-white/20 object-cover" src="" alt="">
+              <div class="min-w-0">
+                <h2 id="selectedMemberName" class="truncate text-base font-black text-white"></h2>
+                <p id="selectedMemberStatus" class="text-xs font-semibold text-emerald-200"></p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white transition hover:bg-white/15" type="button" aria-label="Start call">
+                <i data-lucide="phone" class="h-4 w-4"></i>
+              </button>
+              <button class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white transition hover:bg-white/15" type="button" aria-label="More options">
+                <i data-lucide="more-horizontal" class="h-4 w-4"></i>
+              </button>
+            </div>
+          </header>
+
+          <div id="chatMessages" class="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4"></div>
+
+          <form id="messageForm" class="sticky bottom-0 flex shrink-0 items-center gap-3 border-t border-white/10 bg-slate-950/30 p-4 backdrop-blur-xl">
+            <input id="messageInput" class="h-11 min-w-0 flex-1 rounded-2xl border border-white/10 bg-slate-950/35 px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40 focus:shadow-[0_0_24px_rgba(34,211,238,0.1)]" type="text" placeholder="Write a message..." autocomplete="off">
+            <button class="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600/90 via-blue-600/90 to-cyan-600/90 px-4 text-sm font-bold text-white shadow-[0_12px_30px_rgba(37,99,235,0.2)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="submit">
+              <i data-lucide="send" class="h-4 w-4"></i>
+              Send
+            </button>
+          </form>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="inviteMemberModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/55 px-4 opacity-0 backdrop-blur-sm transition-opacity duration-200 ease-out" aria-hidden="true">
+    <div id="inviteMemberDialog" class="relative w-full max-w-md scale-95 rounded-2xl border border-white/10 bg-slate-900/95 p-6 text-white opacity-0 shadow-[0_24px_90px_rgba(2,6,23,0.55)] transition-all duration-200 ease-out" role="dialog" aria-modal="true" aria-labelledby="inviteMemberTitle">
+      <div class="flex items-center justify-between">
+        <h2 id="inviteMemberTitle" class="text-xl font-semibold text-white">Invite Team Member</h2>
+        <button id="inviteMemberClose" class="grid h-9 w-9 place-items-center rounded-lg text-slate-300 transition-all hover:bg-white/10 hover:text-white" type="button" aria-label="Close invite modal">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <form id="inviteMemberForm" class="mt-5 space-y-4">
+        <label class="block">
+          <span class="text-sm font-medium text-gray-300">Email Address</span>
+          <input class="mt-2 w-full rounded-xl border border-slate-600/50 bg-slate-800/90 px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-400 focus:border-cyan-400/40 focus:ring-2 focus:ring-purple-500/40" type="email" placeholder="colleague@example.com" required>
+        </label>
+
+        <label class="block">
+          <span class="text-sm font-medium text-gray-300">Role</span>
+          <select class="mt-2 w-full rounded-xl border border-slate-600/50 bg-slate-800/90 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400/40 focus:ring-2 focus:ring-purple-500/40">
+            <option>Member</option>
+            <option>Admin</option>
+            <option>Viewer</option>
+          </select>
+        </label>
+
+        <div>
+          <p class="text-sm font-medium text-gray-300">Projects</p>
+          <div class="mt-2 max-h-32 space-y-2 overflow-y-auto rounded-xl border border-white/5 bg-slate-950/80 p-3">
+            <label class="flex items-center gap-2 text-sm text-gray-300">
+              <input class="h-4 w-4 rounded border-white/10 bg-slate-800 accent-purple-500" type="checkbox" checked>
+              Website Redesign
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-300">
+              <input class="h-4 w-4 rounded border-white/10 bg-slate-800 accent-purple-500" type="checkbox">
+              Mobile App Development
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-300">
+              <input class="h-4 w-4 rounded border-white/10 bg-slate-800 accent-purple-500" type="checkbox">
+              Marketing Campaign
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-300">
+              <input class="h-4 w-4 rounded border-white/10 bg-slate-800 accent-purple-500" type="checkbox">
+              User Research
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-300">
+              <input class="h-4 w-4 rounded border-white/10 bg-slate-800 accent-purple-500" type="checkbox">
+              Content Strategy
+            </label>
+          </div>
+        </div>
+
+        <label class="block">
+          <span class="text-sm font-medium text-gray-300">Personal Message (Optional)</span>
+          <textarea class="mt-2 min-h-[90px] w-full resize-none rounded-xl border border-slate-600/50 bg-slate-800/90 px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-400 focus:border-cyan-400/40 focus:ring-2 focus:ring-purple-500/40" placeholder="Write a message to include in the invitation email..."></textarea>
+        </label>
+
+        <div class="mt-6 flex items-center justify-between gap-3">
+          <button id="inviteMemberCancel" class="rounded-xl bg-slate-950 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-slate-800" type="button">Cancel</button>
+          <button class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#7C4DFF] to-[#4F9CF9] px-5 py-2 text-sm font-medium text-white shadow-lg shadow-purple-500/20 transition hover:brightness-110" type="submit">
+            <i data-lucide="mail" class="h-4 w-4"></i>
+            Send Invitation
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="teamToast" class="fixed bottom-5 right-5 z-[80] hidden rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white shadow-[0_20px_70px_rgba(2,6,23,0.34)] backdrop-blur-2xl"></div>
+</div>
+{% endblock %}
+
+{% block vendor_scripts %}
+<script src="https://unpkg.com/lucide@latest"></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/team.js' %}?v=20260520-2"></script>
+{% endblock %}
