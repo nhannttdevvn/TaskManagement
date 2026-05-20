@@ -135,16 +135,68 @@
   };
 
   const statusData = [
-    { label: "To Do", value: 34, color: "#60a5fa", dotClass: "bg-blue-400" },
-    { label: "In Progress", value: 46, color: "#a78bfa", dotClass: "bg-violet-400" },
-    { label: "Done", value: 128, color: "#34d399", dotClass: "bg-emerald-400" },
+    { label: "To Do", value: 18, color: "#60a5fa", dotClass: "bg-blue-400" },
+    { label: "In Progress", value: 18, color: "#a78bfa", dotClass: "bg-violet-400" },
+    { label: "Done", value: 18, color: "#34d399", dotClass: "bg-emerald-400" },
   ];
+
+  const statusLabelPlugin = {
+    id: "statusLabelPlugin",
+    afterDatasetsDraw(chart) {
+      const { ctx, chartArea } = chart;
+      const meta = chart.getDatasetMeta(0);
+      const total = statusData.reduce((sum, item) => sum + item.value, 0);
+
+      if (!meta?.data?.length || !total) return;
+
+      ctx.save();
+      ctx.font = "700 9px Inter, system-ui, sans-serif";
+      ctx.textBaseline = "middle";
+
+      meta.data.forEach((arc, index) => {
+        const item = statusData[index];
+        const percent = Math.round((item.value / total) * 100);
+        const label = `${item.label}: ${percent}%`;
+        const angle = (arc.startAngle + arc.endAngle) / 2;
+        const edgeX = arc.x + Math.cos(angle) * arc.outerRadius;
+        const edgeY = arc.y + Math.sin(angle) * arc.outerRadius;
+        const bendX = arc.x + Math.cos(angle) * (arc.outerRadius + 10);
+        const bendY = arc.y + Math.sin(angle) * (arc.outerRadius + 10);
+        const labelToRight = Math.cos(angle) >= 0;
+        const labelWidth = ctx.measureText(label).width;
+        const labelX = labelToRight
+          ? Math.min(bendX + 12, chartArea.right - labelWidth - 4)
+          : Math.max(bendX - 12, chartArea.left + labelWidth + 4);
+        const labelY = Math.min(Math.max(bendY, chartArea.top + 10), chartArea.bottom - 10);
+
+        ctx.strokeStyle = item.color;
+        ctx.fillStyle = item.color;
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        ctx.moveTo(edgeX, edgeY);
+        ctx.lineTo(bendX, bendY);
+        ctx.lineTo(labelX, labelY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(edgeX, edgeY, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.textAlign = labelToRight ? "left" : "right";
+        ctx.fillText(label, labelX + (labelToRight ? 3 : -3), labelY);
+      });
+
+      ctx.restore();
+    },
+  };
 
   const state = {
     taskDoneChart: null,
     statusChart: null,
     currentRange: "daily",
     filteredProjects: projects.slice(),
+    projectStart: 0,
+    projectPageSize: 3,
   };
 
   const selectors = {
@@ -154,6 +206,8 @@
     projectGrid: document.getElementById("projectGrid"),
     projectSkeleton: document.getElementById("projectSkeleton"),
     projectSummary: document.getElementById("projectSummary"),
+    projectPrev: document.getElementById("projectPrev"),
+    projectNext: document.getElementById("projectNext"),
     searchInput: document.getElementById("dashboardSearch"),
     searchResultCount: document.getElementById("searchResultCount"),
     upcomingTasks: document.getElementById("upcomingTasks"),
@@ -202,34 +256,38 @@
   }
 
   function renderProjects(items) {
-    const visibleItems = items.slice(0, 3);
+    state.projectPageSize = getProjectPageSize();
+    const maxStart = getLastProjectGroupStart(items.length);
+    state.projectStart = Math.min(Math.max(state.projectStart, 0), maxStart);
+
+    const visibleItems = items.slice(state.projectStart, state.projectStart + state.projectPageSize);
     selectors.projectGrid.innerHTML = visibleItems
       .map((project) => {
         const avatars = project.members
           .slice(0, 4)
-          .map((member, index) => `<span class="grid h-6 w-6 place-items-center rounded-full border-2 border-slate-950 bg-gradient-to-br from-cyan-400 to-violet-500 text-[0.6rem] font-black text-white ${index ? "-ml-2" : ""}">${escapeHtml(member)}</span>`)
+          .map((member, index) => `<span class="grid h-5 w-5 place-items-center rounded-full border-2 border-slate-950 bg-gradient-to-br from-cyan-400 to-violet-500 text-[0.52rem] font-black text-white ${index ? "-ml-1.5" : ""}">${escapeHtml(member)}</span>`)
           .join("");
 
         return `
-          <button class="js-reveal flex min-h-0 flex-col rounded-2xl border border-white/[0.06] bg-white/[0.04] p-3 text-left opacity-0 shadow-glass backdrop-blur-2xl transition duration-500 hover:-translate-y-1 hover:border-cyan-300/35 hover:bg-white/[0.07] motion-reduce:transform-none" type="button" data-project-id="${project.id}">
-            <div class="mb-3 flex items-start justify-between gap-3">
-              <span class="grid h-10 w-10 place-items-center rounded-xl ${project.gradientClass} text-sm font-black text-white">${project.initials}</span>
-              <span class="inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-extrabold ${statusClass(project.status)}">${project.status}</span>
+          <button class="js-reveal flex h-[118px] flex-col overflow-hidden rounded-2xl border border-white/[0.1] bg-slate-950/45 p-3 text-left opacity-0 shadow-glass backdrop-blur-2xl transition duration-500 hover:-translate-y-0.5 hover:border-cyan-300/35 hover:bg-slate-900/75 motion-reduce:transform-none" type="button" data-project-id="${project.id}">
+            <div class="mb-2 flex items-start justify-between gap-3">
+              <span class="grid h-8 w-8 place-items-center rounded-xl ${project.gradientClass} text-xs font-black text-white">${project.initials}</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-[0.64rem] font-extrabold ${statusClass(project.status)}">${project.status}</span>
             </div>
-            <h3 class="truncate text-sm font-black text-white">${escapeHtml(project.title)}</h3>
-            <p class="mt-1 max-h-10 overflow-hidden text-xs leading-5 text-slate-400">${escapeHtml(project.description)}</p>
-            <div class="mt-auto pt-3">
-              <div class="mb-1.5 flex items-center justify-between text-xs">
-                <span class="font-semibold text-slate-300">Progress</span>
+            <h3 class="truncate text-sm font-black leading-tight text-white" title="${escapeHtml(project.title)}">${escapeHtml(project.title)}</h3>
+            <p class="mt-1 line-clamp-1 overflow-hidden text-xs leading-4 text-slate-200/80">${escapeHtml(project.description)}</p>
+            <div class="mt-auto pt-2">
+              <div class="mb-1 flex items-center justify-between text-[0.68rem]">
+                <span class="font-semibold text-slate-200">Progress</span>
                 <span class="font-black text-white">${project.progress}%</span>
               </div>
-              <div class="h-1.5 overflow-hidden rounded-full bg-slate-500/20">
+              <div class="h-1 overflow-hidden rounded-full bg-slate-500/20">
                 <div class="js-progress h-full rounded-full bg-gradient-to-r from-cyan-300 via-violet-500 to-fuchsia-500 transition-[width] duration-1000 ease-out" data-progress="${project.progress}" style="width: 0"></div>
               </div>
             </div>
-            <div class="mt-3 flex items-center justify-between gap-3">
+            <div class="mt-2 flex items-center justify-between gap-3">
               <div class="flex items-center" aria-label="${project.members.length} members">${avatars}</div>
-              <span class="text-xs font-semibold text-slate-400">${project.members.length} members</span>
+              <span class="text-[0.68rem] font-semibold text-slate-300">${project.members.length} members</span>
             </div>
           </button>
         `;
@@ -237,9 +295,10 @@
       .join("");
 
     selectors.projectSummary.textContent = items.length
-      ? `Showing ${visibleItems.length} of ${items.length}`
+      ? `${state.projectStart + 1}-${state.projectStart + visibleItems.length} of ${items.length}`
       : "No projects match your search";
     selectors.searchResultCount.textContent = `${items.length} result${items.length === 1 ? "" : "s"}`;
+    updateProjectControls(items.length);
 
     requestAnimationFrame(() => {
       document.querySelectorAll(".js-progress").forEach((bar) => {
@@ -248,6 +307,43 @@
       revealCards();
       refreshIcons();
     });
+  }
+
+  function updateProjectControls(total) {
+    const maxStart = getLastProjectGroupStart(total);
+    if (selectors.projectPrev) {
+      selectors.projectPrev.disabled = state.projectStart <= 0;
+    }
+    if (selectors.projectNext) {
+      selectors.projectNext.disabled = state.projectStart >= maxStart;
+    }
+  }
+
+  function shiftProjects(direction) {
+    const maxStart = getLastProjectGroupStart(state.filteredProjects.length);
+    const nextStart = state.projectStart + direction * state.projectPageSize;
+    state.projectStart = Math.min(Math.max(nextStart, 0), maxStart);
+    renderProjects(state.filteredProjects);
+  }
+
+  function getLastProjectGroupStart(total) {
+    if (total <= state.projectPageSize) return 0;
+    return Math.floor((total - 1) / state.projectPageSize) * state.projectPageSize;
+  }
+
+  function getProjectPageSize() {
+    if (window.matchMedia("(min-width: 1024px)").matches) return 3;
+    if (window.matchMedia("(min-width: 768px)").matches) return 2;
+    return 1;
+  }
+
+  function syncProjectPageSize() {
+    const nextPageSize = getProjectPageSize();
+    if (nextPageSize === state.projectPageSize) return;
+
+    state.projectPageSize = nextPageSize;
+    state.projectStart = Math.floor(state.projectStart / nextPageSize) * nextPageSize;
+    renderProjects(state.filteredProjects);
   }
 
   function renderUpcomingTasks(tasks) {
@@ -276,12 +372,12 @@
       .map((item) => {
         const percent = Math.round((item.value / total) * 100);
         return `
-          <div class="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-2">
-            <div class="flex items-center gap-2">
-              <span class="h-2.5 w-2.5 rounded-full ${item.dotClass}"></span>
-              <span class="text-xs font-bold text-white">${item.label}</span>
+          <div class="min-w-0 rounded-xl border border-white/10 bg-white/5 px-1.5 py-1 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <span class="h-2 w-2 shrink-0 rounded-full ${item.dotClass}"></span>
+              <span class="text-[0.55rem] font-bold leading-tight text-white xl:text-[0.6rem]">${item.label}: ${percent}%</span>
             </div>
-            <span class="text-xs font-semibold text-slate-400">${item.value} - ${percent}%</span>
+            <p class="mt-0.5 text-[0.62rem] font-bold text-slate-300">${item.value} tasks</p>
           </div>
         `;
       })
@@ -392,21 +488,22 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: "68%",
+        cutout: "62%",
+        layout: {
+          padding: {
+            top: 14,
+            right: 58,
+            bottom: 14,
+            left: 58,
+          },
+        },
         animation: {
           animateRotate: true,
           duration: 950,
         },
         plugins: {
           legend: {
-            position: "bottom",
-            labels: {
-              color: getTextColor(),
-              boxWidth: 10,
-              usePointStyle: true,
-              padding: 10,
-              font: { size: 11 },
-            },
+            display: false,
           },
           tooltip: {
             backgroundColor: "rgba(15, 23, 42, 0.92)",
@@ -415,6 +512,7 @@
           },
         },
       },
+      plugins: [statusLabelPlugin],
     });
   }
 
@@ -471,11 +569,9 @@
   function filterDashboard(query) {
     const normalized = query.trim().toLowerCase();
     state.filteredProjects = projects.filter((project) => {
-      const taskMatch = upcomingTasks.some((task) => {
-        return `${task.title} ${task.project} ${task.priority}`.toLowerCase().includes(normalized);
-      });
-      return `${project.title} ${project.description} ${project.status}`.toLowerCase().includes(normalized) || taskMatch;
+      return `${project.title} ${project.description} ${project.status}`.toLowerCase().includes(normalized);
     });
+    state.projectStart = 0;
 
     renderProjects(state.filteredProjects);
   }
@@ -658,6 +754,8 @@
     });
 
     selectors.themeToggle.addEventListener("click", toggleTheme);
+    selectors.projectPrev.addEventListener("click", () => shiftProjects(-1));
+    selectors.projectNext.addEventListener("click", () => shiftProjects(1));
     if (selectors.newProjectButton) {
       selectors.newProjectButton.addEventListener("click", () => openModal(selectors.createProjectModal));
     }
@@ -680,6 +778,7 @@
     });
 
     selectors.searchInput.addEventListener("input", (event) => filterDashboard(event.target.value));
+    window.addEventListener("resize", syncProjectPageSize);
 
     document.querySelectorAll(".js-chart-tab").forEach((tab) => {
       tab.addEventListener("click", () => {

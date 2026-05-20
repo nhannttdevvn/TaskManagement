@@ -1,51 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Project Dashboard | TMDS{% endblock %}
+{% block title %}Project Dashboard | TaskFlow{% endblock %}
 
 {% block vendor_styles %}
-<script>
-  tailwind.config = {
-    darkMode: "class",
-    safelist: [
-      "bg-gradient-to-br", "from-cyan-400", "to-blue-600", "from-violet-500", "to-fuchsia-500",
-      "from-emerald-500", "to-green-500", "from-amber-500", "to-rose-500", "from-cyan-500",
-      "to-violet-500", "from-violet-600", "to-cyan-400", "bg-cyan-400/15", "text-cyan-200",
-      "bg-emerald-400/15", "text-emerald-200", "bg-amber-400/15", "text-amber-200",
-      "bg-rose-400/15", "text-rose-200", "bg-violet-400/15", "text-violet-200",
-      "bg-slate-400/15", "text-slate-200", "bg-blue-400", "bg-violet-400", "bg-emerald-400",
-      "h-[3.25rem]", "w-[3.25rem]", "transition-[width]", "-ml-2", "translate-x-0",
-      "-translate-x-full", "grid", "opacity-100", "translate-y-0"
-    ],
-    theme: {
-      extend: {
-        fontFamily: {
-          sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        },
-        boxShadow: {
-          glass: "0 16px 44px rgba(15, 23, 42, 0.26)",
-        },
-        keyframes: {
-          shimmer: {
-            "100%": { backgroundPosition: "-220% 0" },
-          },
-          modalIn: {
-            "0%": { opacity: "0", transform: "translateY(12px) scale(0.98)" },
-            "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
-          },
-        },
-        animation: {
-          shimmer: "shimmer 1.25s ease-in-out infinite",
-          modalIn: "modalIn 180ms ease both",
-        },
-      },
-    },
-  };
-</script>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{% include "includes/app_design_tokens.html" %}
 {% endblock %}
 
 {% block body_class %}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %}
@@ -56,7 +15,7 @@
   class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(59,42,143,0.36),transparent_32%),linear-gradient(225deg,rgba(91,61,245,0.22),transparent_34%),linear-gradient(180deg,#050816_0%,#0d1326_54%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
 >
   <div
-    class="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.84),transparent)]"
+    class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,rgba(124,77,255,0.24),transparent_26%),radial-gradient(circle_at_80%_0%,rgba(34,211,238,0.14),transparent_24%),linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:auto,auto,56px_56px,56px_56px] [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9),transparent)]"
     aria-hidden="true"
   ></div>
 
@@ -64,23 +23,24 @@
 
   <aside
     id="sidebar"
-    class="fixed inset-y-0 left-0 z-40 flex w-60 -translate-x-full flex-col border-r border-white/10 bg-[linear-gradient(160deg,rgba(59,42,143,0.94),rgba(91,61,245,0.78))] px-4 py-5 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
+    class="fixed inset-y-0 left-0 z-40 flex w-48 -translate-x-full flex-col border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
     aria-label="Main navigation"
   >
-    <div class="flex items-center gap-3 px-2">
-      <div class="grid h-10 w-10 place-items-center rounded-2xl bg-white/15 text-base font-black text-white shadow-glass">TM</div>
+    <div class="flex items-center gap-2 px-2">
+      <div class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-sm font-black text-white shadow-[0_16px_40px_rgba(124,77,255,0.35)]">TF</div>
       <div>
-        <p class="text-xs font-semibold uppercase text-cyan-200/80">TMDS</p>
-        <h1 class="text-base font-bold text-white">Project Hub</h1>
+        <p class="text-xs font-semibold uppercase text-cyan-200/80">TaskFlow</p>
+        <h1 class="text-sm font-bold text-white">Project Hub</h1>
       </div>
     </div>
 
     <nav class="mt-7 space-y-1.5">
-      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="#overview">
+      <a class="js-sidebar-link relative flex h-10 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="{% url 'dashboard' %}">
+        <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
         <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
         <span>Dashboard</span>
       </a>
-      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#projects">
+      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'timeline' %}">
         <i data-lucide="folder-kanban" class="h-4 w-4"></i>
         <span>Projects</span>
       </a>
@@ -121,8 +81,8 @@
     </div>
   </aside>
 
-  <div class="min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-60">
-    <header class="sticky top-0 z-20 border-b border-white/10 bg-slate-950/30 px-4 py-4 backdrop-blur-2xl sm:px-5 lg:shrink-0">
+  <div class="min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-48">
+    <header class="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-2.5 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-5 lg:shrink-0">
       <div class="flex items-center justify-between gap-5">
         <div class="flex shrink-0 items-center gap-3">
           <button id="sidebarToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 lg:hidden motion-reduce:transform-none" type="button" aria-label="Open sidebar">
@@ -165,15 +125,18 @@
         </div>
       </div>
 
-      <div class="mt-4 flex items-center justify-between gap-5">
-        <h1 class="shrink-0 text-xl font-black text-white">Project Dashboard</h1>
-        <div class="flex shrink-0 items-center gap-3">
-          <label class="flex h-10 w-[420px] items-center gap-2.5 rounded-2xl border border-white/10 bg-white/[0.04] px-3 shadow-glass backdrop-blur-xl">
+      <div class="mt-2 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 class="text-xl font-black tracking-tight text-white">Project Dashboard</h1>
+          <p class="mt-0.5 text-xs font-medium text-slate-300">Projects, analytics, and status overview</p>
+        </div>
+        <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:w-auto lg:shrink-0">
+          <label class="flex h-10 w-full min-w-0 items-center gap-2.5 rounded-2xl border border-white/10 bg-slate-900/60 px-3 shadow-glass backdrop-blur-xl sm:max-w-[360px] lg:w-[360px]">
             <i data-lucide="search" class="h-4 w-4 text-slate-400"></i>
             <input id="dashboardSearch" class="min-w-0 flex-1 border-0 bg-transparent text-sm text-white outline-none placeholder:text-slate-400" type="search" placeholder="Search projects, tasks..." autocomplete="off">
           </label>
-          <span id="searchResultCount" class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-300">5 results</span>
-          <button id="newProjectButtonSearch" class="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600/90 via-blue-600/90 to-cyan-600/90 px-4 text-sm font-bold text-white shadow-[0_12px_30px_rgba(37,99,235,0.2)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
+          <span id="searchResultCount" class="inline-flex h-8 items-center justify-center rounded-full bg-white/10 px-3 text-xs font-semibold text-slate-300">5 results</span>
+          <button id="newProjectButtonSearch" class="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-4 text-sm font-bold text-white shadow-[0_16px_38px_rgba(79,70,229,0.28)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
             <i data-lucide="plus" class="h-4 w-4"></i>
             New Project
           </button>
@@ -181,59 +144,39 @@
       </div>
     </header>
 
-    <main id="overview" class="flex min-h-0 flex-col gap-5 px-5 py-5 lg:flex-1 lg:overflow-hidden">
-      <section class="grid min-h-0 flex-1 gap-5 xl:grid-cols-12 xl:grid-rows-[244px_minmax(0,1fr)]">
-        <section class="grid min-h-0 grid-cols-2 gap-5 xl:col-span-3" aria-label="Dashboard metrics">
-          <article class="js-reveal flex items-center gap-3 rounded-[20px] border border-white/[0.06] bg-white/[0.04] p-4 opacity-0 shadow-glass backdrop-blur-2xl transition duration-500 hover:-translate-y-1 hover:bg-white/[0.07] motion-reduce:transform-none">
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-cyan-400/15 text-cyan-200"><i data-lucide="folder-open" class="h-4 w-4"></i></span>
-            <div>
-              <p class="text-xs text-slate-400">Active Projects</p>
-              <strong class="counter text-2xl font-black text-white" data-count="4">0</strong>
-            </div>
-          </article>
-          <article class="js-reveal flex items-center gap-3 rounded-[20px] border border-white/[0.06] bg-white/[0.04] p-4 opacity-0 shadow-glass backdrop-blur-2xl transition duration-500 hover:-translate-y-1 hover:bg-white/[0.07] motion-reduce:transform-none">
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-400/15 text-violet-200"><i data-lucide="check-check" class="h-4 w-4"></i></span>
-            <div>
-              <p class="text-xs text-slate-400">Tasks Done</p>
-              <strong class="counter text-2xl font-black text-white" data-count="128">0</strong>
-            </div>
-          </article>
-          <article class="js-reveal flex items-center gap-3 rounded-[20px] border border-white/[0.06] bg-white/[0.04] p-4 opacity-0 shadow-glass backdrop-blur-2xl transition duration-500 hover:-translate-y-1 hover:bg-white/[0.07] motion-reduce:transform-none">
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-fuchsia-400/15 text-fuchsia-200"><i data-lucide="timer" class="h-4 w-4"></i></span>
-            <div>
-              <p class="text-xs text-slate-400">Due This Week</p>
-              <strong class="counter text-2xl font-black text-white" data-count="18">0</strong>
-            </div>
-          </article>
-          <article class="js-reveal flex items-center gap-3 rounded-[20px] border border-white/[0.06] bg-white/[0.04] p-4 opacity-0 shadow-glass backdrop-blur-2xl transition duration-500 hover:-translate-y-1 hover:bg-white/[0.07] motion-reduce:transform-none">
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-400/15 text-emerald-200"><i data-lucide="trending-up" class="h-4 w-4"></i></span>
-            <div>
-              <p class="text-xs text-slate-400">Team Velocity</p>
-              <strong class="counter text-2xl font-black text-white" data-count="92">0</strong>
-            </div>
-          </article>
-        </section>
-
-        <section id="projects" class="js-reveal flex min-h-0 flex-col rounded-[22px] border border-white/[0.06] bg-white/[0.04] p-3 opacity-0 shadow-glass backdrop-blur-2xl transition duration-500 xl:col-span-9">
-          <div class="mb-2 flex items-center justify-between gap-3">
-            <div>
-              <p class="text-xs font-extrabold uppercase text-cyan-200">Portfolio</p>
-              <h2 class="text-lg font-black leading-tight text-white">Project Cards</h2>
-            </div>
-            <p id="projectSummary" class="text-xs text-slate-400">Showing all projects</p>
-          </div>
-          <div id="projectSkeleton" class="grid flex-1 grid-cols-3 gap-4 overflow-hidden">
-            <div class="rounded-2xl bg-[linear-gradient(100deg,rgba(255,255,255,0.07)_30%,rgba(255,255,255,0.14)_45%,rgba(255,255,255,0.07)_60%)] [background-size:220%_100%] animate-shimmer"></div>
-            <div class="rounded-2xl bg-[linear-gradient(100deg,rgba(255,255,255,0.07)_30%,rgba(255,255,255,0.14)_45%,rgba(255,255,255,0.07)_60%)] [background-size:220%_100%] animate-shimmer"></div>
-            <div class="rounded-2xl bg-[linear-gradient(100deg,rgba(255,255,255,0.07)_30%,rgba(255,255,255,0.14)_45%,rgba(255,255,255,0.07)_60%)] [background-size:220%_100%] animate-shimmer"></div>
-          </div>
-          <div id="projectGrid" class="hidden grid min-h-0 flex-1 grid-cols-3 gap-4 overflow-hidden"></div>
-        </section>
-
-        <article id="analytics" class="js-reveal flex min-h-0 flex-col rounded-[22px] border border-white/[0.06] bg-white/[0.04] p-4 opacity-0 shadow-glass backdrop-blur-2xl transition duration-500 xl:col-span-9">
+    <main id="overview" class="flex min-h-0 flex-col gap-4 overflow-y-auto px-4 py-4 lg:flex-1">
+      <section class="grid gap-4" aria-label="Dashboard workspace">
+        <section id="projects" class="js-reveal rounded-[22px] border border-white/[0.08] bg-slate-900/55 p-3 opacity-0 shadow-soft backdrop-blur-2xl transition duration-500">
           <div class="mb-3 flex items-center justify-between gap-3">
             <div>
-              <p class="text-xs font-extrabold uppercase text-cyan-200">Analytics</p>
+              <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-200">Portfolio</p>
+              <h2 class="text-lg font-black leading-tight text-white">Project Cards</h2>
+            </div>
+            <div class="flex items-center gap-2">
+              <p id="projectSummary" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200">Showing all projects</p>
+              <div class="flex items-center rounded-2xl border border-white/10 bg-white/5 p-1">
+                <button id="projectPrev" class="grid h-8 w-8 place-items-center rounded-xl text-slate-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-35" type="button" aria-label="Previous projects">
+                  <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                </button>
+                <button id="projectNext" class="grid h-8 w-8 place-items-center rounded-xl text-slate-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-35" type="button" aria-label="Next projects">
+                  <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="projectSkeleton" class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <div class="h-[118px] rounded-2xl bg-[linear-gradient(100deg,rgba(255,255,255,0.07)_30%,rgba(255,255,255,0.14)_45%,rgba(255,255,255,0.07)_60%)] [background-size:220%_100%] animate-shimmer"></div>
+            <div class="h-[118px] rounded-2xl bg-[linear-gradient(100deg,rgba(255,255,255,0.07)_30%,rgba(255,255,255,0.14)_45%,rgba(255,255,255,0.07)_60%)] [background-size:220%_100%] animate-shimmer"></div>
+            <div class="h-[118px] rounded-2xl bg-[linear-gradient(100deg,rgba(255,255,255,0.07)_30%,rgba(255,255,255,0.14)_45%,rgba(255,255,255,0.07)_60%)] [background-size:220%_100%] animate-shimmer"></div>
+          </div>
+          <div id="projectGrid" class="hidden grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"></div>
+        </section>
+
+        <section class="grid gap-4 lg:grid-cols-[minmax(0,2.5fr)_minmax(320px,0.9fr)]" aria-label="Analytics">
+        <article id="analytics" class="js-reveal flex flex-col overflow-hidden rounded-[22px] border border-white/[0.08] bg-slate-900/55 p-3 opacity-0 shadow-soft backdrop-blur-2xl transition duration-500">
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-200">Analytics</p>
               <h2 class="text-lg font-black leading-tight text-white">Task Done</h2>
             </div>
             <div class="inline-flex rounded-full border border-white/10 bg-slate-400/10 p-1" role="tablist" aria-label="Task analytics range">
@@ -242,22 +185,25 @@
               <button class="js-chart-tab rounded-full px-3 py-1.5 text-xs font-extrabold text-slate-400 transition hover:text-white" type="button" data-range="monthly">Monthly</button>
             </div>
           </div>
-          <div class="relative h-[260px] max-h-full min-h-0">
+          <div class="relative h-[170px] min-h-0 lg:h-[180px]">
             <canvas id="taskDoneChart" aria-label="Planned and completed tasks chart"></canvas>
           </div>
         </article>
 
-        <article class="js-reveal flex min-h-0 flex-col rounded-[22px] border border-white/[0.06] bg-white/[0.04] p-4 opacity-0 shadow-glass backdrop-blur-2xl transition duration-500 xl:col-span-3">
-          <div class="mb-3">
-            <p class="text-xs font-extrabold uppercase text-cyan-200">Status</p>
+        <article class="js-reveal flex flex-col rounded-[22px] border border-white/[0.08] bg-slate-900/55 p-3 opacity-0 shadow-soft backdrop-blur-2xl transition duration-500">
+          <div class="mb-2">
+            <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-200">Status</p>
             <h2 class="text-lg font-black leading-tight text-white">Task Status Overview</h2>
           </div>
-          <div class="relative h-[220px] max-h-full min-h-0">
-            <canvas id="statusChart" aria-label="Task status donut chart"></canvas>
+          <div class="flex flex-1 flex-col justify-center gap-3">
+            <div class="relative h-[150px] w-full">
+              <canvas id="statusChart" aria-label="Task status donut chart"></canvas>
+            </div>
+            <div id="statusTotals" class="grid grid-cols-1 gap-1.5 sm:grid-cols-3"></div>
           </div>
-          <div id="statusTotals" class="mt-3 grid gap-2"></div>
         </article>
         <div id="activityFeed" class="hidden"></div>
+        </section>
       </section>
     </main>
   </div>
