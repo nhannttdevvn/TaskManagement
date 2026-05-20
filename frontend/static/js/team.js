@@ -153,6 +153,7 @@
     inviteClose: document.getElementById("inviteMemberClose"),
     inviteCancel: document.getElementById("inviteMemberCancel"),
     inviteForm: document.getElementById("inviteMemberForm"),
+    inviteSubmit: document.getElementById("inviteSubmitButton"),
     toast: document.getElementById("teamToast"),
   };
 
@@ -298,6 +299,20 @@
     showToast.timeout = window.setTimeout(() => selectors.toast.classList.add("hidden"), 2200);
   }
 
+  function csrfToken() {
+    return selectors.inviteForm.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
+  }
+
+  function invitePayload() {
+    const formData = new FormData(selectors.inviteForm);
+    return {
+      email: String(formData.get("email") || "").trim(),
+      role: String(formData.get("role") || "member").trim().toLowerCase(),
+      projects: formData.getAll("projects").map((project) => String(project).trim()).filter(Boolean),
+      message: String(formData.get("message") || "").trim(),
+    };
+  }
+
   function openInviteModal() {
     selectors.inviteModal.classList.remove("hidden");
     selectors.inviteModal.classList.add("flex");
@@ -382,11 +397,38 @@
       if (event.target === selectors.inviteModal) closeInviteModal();
     });
 
-    selectors.inviteForm.addEventListener("submit", (event) => {
+    selectors.inviteForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      closeInviteModal();
-      showToast("Invitation sent");
-      selectors.inviteForm.reset();
+      selectors.inviteSubmit.disabled = true;
+      selectors.inviteSubmit.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Sending...';
+      refreshIcons();
+
+      try {
+        const response = await fetch(selectors.inviteForm.dataset.inviteUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken(),
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          body: JSON.stringify(invitePayload()),
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || "Could not send invitation");
+        }
+
+        closeInviteModal();
+        showToast(data.message || "Invitation sent");
+        selectors.inviteForm.reset();
+      } catch (error) {
+        showToast(error.message || "Could not send invitation");
+      } finally {
+        selectors.inviteSubmit.disabled = false;
+        selectors.inviteSubmit.innerHTML = '<i data-lucide="mail" class="h-4 w-4"></i> Send Invitation';
+        refreshIcons();
+      }
     });
 
     document.addEventListener("keydown", (event) => {
