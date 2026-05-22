@@ -40,7 +40,7 @@
         <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
         <span>Dashboard</span>
       </a>
-      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'timeline' %}">
+      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'project' %}">
         <i data-lucide="folder-kanban" class="h-4 w-4"></i>
         <span>Projects</span>
       </a>
@@ -190,16 +190,16 @@
           </div>
         </article>
 
-        <article class="js-reveal flex flex-col rounded-[22px] border border-white/[0.08] bg-slate-900/55 p-3 opacity-0 shadow-soft backdrop-blur-2xl transition duration-500">
-          <div class="mb-2">
+        <article class="js-reveal flex flex-col rounded-[22px] border border-white/[0.08] bg-slate-900/55 p-2.5 opacity-0 shadow-soft backdrop-blur-2xl transition duration-500">
+          <div class="mb-1.5">
             <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-200">Status</p>
             <h2 class="text-lg font-black leading-tight text-white">Task Status Overview</h2>
           </div>
-          <div class="flex flex-1 flex-col justify-center gap-3">
-            <div class="relative h-[150px] w-full">
+          <div class="flex flex-1 flex-col justify-center gap-2">
+            <div class="relative h-[158px] w-full">
               <canvas id="statusChart" aria-label="Task status donut chart"></canvas>
             </div>
-            <div id="statusTotals" class="grid grid-cols-1 gap-1.5 sm:grid-cols-3"></div>
+            <div id="statusTotals" class="grid grid-cols-3 gap-1.5"></div>
           </div>
         </article>
         <div id="activityFeed" class="hidden"></div>
@@ -261,5 +261,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/dashboard.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}?v=20260522-7"></script>
 {% endblock %}

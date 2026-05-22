@@ -135,55 +135,66 @@
   };
 
   const statusData = [
-    { label: "To Do", value: 18, color: "#60a5fa", dotClass: "bg-blue-400" },
-    { label: "In Progress", value: 18, color: "#a78bfa", dotClass: "bg-violet-400" },
+    { label: "To Do", value: 18, color: "#5b8fdc", dotClass: "bg-blue-400" },
+    { label: "In Progress", value: 18, color: "#9b86e8", dotClass: "bg-violet-400" },
     { label: "Done", value: 18, color: "#34d399", dotClass: "bg-emerald-400" },
   ];
 
   const statusLabelPlugin = {
     id: "statusLabelPlugin",
     afterDatasetsDraw(chart) {
-      const { ctx, chartArea } = chart;
+      const { ctx } = chart;
       const meta = chart.getDatasetMeta(0);
       const total = statusData.reduce((sum, item) => sum + item.value, 0);
 
       if (!meta?.data?.length || !total) return;
 
-      ctx.save();
-      ctx.font = "700 9px Inter, system-ui, sans-serif";
-      ctx.textBaseline = "middle";
-
-      meta.data.forEach((arc, index) => {
+      const labelRows = meta.data.map((arc, index) => {
         const item = statusData[index];
         const percent = Math.round((item.value / total) * 100);
-        const label = `${item.label}: ${percent}%`;
         const angle = (arc.startAngle + arc.endAngle) / 2;
-        const edgeX = arc.x + Math.cos(angle) * arc.outerRadius;
-        const edgeY = arc.y + Math.sin(angle) * arc.outerRadius;
-        const bendX = arc.x + Math.cos(angle) * (arc.outerRadius + 10);
-        const bendY = arc.y + Math.sin(angle) * (arc.outerRadius + 10);
+        const unitX = Math.cos(angle);
+        const unitY = Math.sin(angle);
         const labelToRight = Math.cos(angle) >= 0;
-        const labelWidth = ctx.measureText(label).width;
-        const labelX = labelToRight
-          ? Math.min(bendX + 12, chartArea.right - labelWidth - 4)
-          : Math.max(bendX - 12, chartArea.left + labelWidth + 4);
-        const labelY = Math.min(Math.max(bendY, chartArea.top + 10), chartArea.bottom - 10);
+        const lineStartRadius = arc.outerRadius + 4;
+        const lineEndRadius = arc.outerRadius + 20;
+        const labelRadius = arc.outerRadius + 42;
+        return {
+          arc,
+          item,
+          angle,
+          labelToRight,
+          label: `${item.label}: ${percent}%`,
+          startX: arc.x + unitX * lineStartRadius,
+          startY: arc.y + unitY * lineStartRadius,
+          endX: arc.x + unitX * lineEndRadius,
+          endY: arc.y + unitY * lineEndRadius,
+          labelX: arc.x + unitX * labelRadius,
+          y: arc.y + unitY * labelRadius,
+        };
+      });
 
-        ctx.strokeStyle = item.color;
-        ctx.fillStyle = item.color;
-        ctx.lineWidth = 1.25;
+      ctx.save();
+      ctx.font = "800 9.5px Inter, system-ui, sans-serif";
+      ctx.textBaseline = "middle";
+
+      labelRows.forEach((row) => {
+        const labelWidth = ctx.measureText(row.label).width;
+        const textGap = 8;
+        const textX = row.labelToRight
+          ? Math.min(Math.max(row.labelX + textGap, row.endX + textGap), chart.width - labelWidth - 6)
+          : Math.max(Math.min(row.labelX - labelWidth - textGap, row.endX - labelWidth - textGap), 6);
+
+        ctx.strokeStyle = `${row.item.color}bf`;
+        ctx.lineWidth = 0.9;
         ctx.beginPath();
-        ctx.moveTo(edgeX, edgeY);
-        ctx.lineTo(bendX, bendY);
-        ctx.lineTo(labelX, labelY);
+        ctx.moveTo(row.startX, row.startY);
+        ctx.lineTo(row.endX, row.endY);
         ctx.stroke();
 
-        ctx.beginPath();
-        ctx.arc(edgeX, edgeY, 2.2, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.textAlign = labelToRight ? "left" : "right";
-        ctx.fillText(label, labelX + (labelToRight ? 3 : -3), labelY);
+        ctx.textAlign = "left";
+        ctx.fillStyle = row.item.color;
+        ctx.fillText(row.label, textX, row.endY);
       });
 
       ctx.restore();
@@ -367,17 +378,16 @@
   }
 
   function renderStatusTotals() {
-    const total = statusData.reduce((sum, item) => sum + item.value, 0);
     selectors.statusTotals.innerHTML = statusData
       .map((item) => {
-        const percent = Math.round((item.value / total) * 100);
         return `
-          <div class="min-w-0 rounded-xl border border-white/10 bg-white/5 px-1.5 py-1 text-center">
-            <div class="flex items-center justify-center gap-1.5">
-              <span class="h-2 w-2 shrink-0 rounded-full ${item.dotClass}"></span>
-              <span class="text-[0.55rem] font-bold leading-tight text-white xl:text-[0.6rem]">${item.label}: ${percent}%</span>
+          <div class="min-w-0 text-center">
+            <div class="flex items-center justify-center gap-1 text-[0.56rem] font-bold leading-tight text-slate-300">
+              <span class="h-2 w-2 shrink-0 rounded-sm" style="background:${item.color}"></span>
+              <span>${item.label}</span>
             </div>
-            <p class="mt-0.5 text-[0.62rem] font-bold text-slate-300">${item.value} tasks</p>
+            <p class="mt-1.5 text-base font-black leading-none text-white">${item.value}</p>
+            <p class="mt-0.5 text-[0.56rem] font-medium text-slate-400">tasks</p>
           </div>
         `;
       })
@@ -479,22 +489,23 @@
           {
             data: statusData.map((item) => item.value),
             backgroundColor: statusData.map((item) => item.color),
-            borderColor: "rgba(15, 23, 42, 0.42)",
-            borderWidth: 3,
-            hoverOffset: 4,
+            borderColor: "rgba(15, 23, 42, 0.56)",
+            borderWidth: 2,
+            hoverOffset: 2,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: "62%",
+        cutout: "72%",
+        rotation: -108,
         layout: {
           padding: {
-            top: 14,
-            right: 58,
-            bottom: 14,
-            left: 58,
+            top: 26,
+            right: 96,
+            bottom: 26,
+            left: 66,
           },
         },
         animation: {

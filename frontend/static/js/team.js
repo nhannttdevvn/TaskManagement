@@ -127,6 +127,12 @@
   const state = {
     selectedId: members[0].id,
     filteredMembers: members.slice(),
+    messageQuery: "",
+    callActive: false,
+    callConnected: false,
+    callStartedAt: null,
+    callTimer: null,
+    callConnectTimeout: null,
   };
 
   let initialized = false;
@@ -140,6 +146,25 @@
     selectedAvatar: document.getElementById("selectedMemberAvatar"),
     selectedName: document.getElementById("selectedMemberName"),
     selectedStatus: document.getElementById("selectedMemberStatus"),
+    callButton: document.getElementById("teamCallButton"),
+    callStatus: document.getElementById("teamCallStatus"),
+    callModal: document.getElementById("teamCallModal"),
+    callDialog: document.getElementById("teamCallDialog"),
+    callAvatar: document.getElementById("teamCallAvatar"),
+    callName: document.getElementById("teamCallName"),
+    callRole: document.getElementById("teamCallRole"),
+    callState: document.getElementById("teamCallState"),
+    callTimer: document.getElementById("teamCallTimer"),
+    endCall: document.getElementById("teamEndCall"),
+    muteCall: document.getElementById("teamMuteCall"),
+    speakerCall: document.getElementById("teamSpeakerCall"),
+    chatMenuButton: document.getElementById("teamChatMenuButton"),
+    chatMenu: document.getElementById("teamChatMenu"),
+    messageSearchBar: document.getElementById("teamMessageSearchBar"),
+    messageSearchInput: document.getElementById("messageSearchInput"),
+    messageSearchClose: document.getElementById("messageSearchClose"),
+    searchMessagesButton: document.getElementById("teamSearchMessagesButton"),
+    deleteConversationButton: document.getElementById("teamDeleteConversationButton"),
     chatMessages: document.getElementById("chatMessages"),
     messageForm: document.getElementById("messageForm"),
     messageInput: document.getElementById("messageInput"),
@@ -228,6 +253,10 @@
   function renderChat() {
     const member = selectedMember();
     const tone = statusTone(member.status);
+    const query = state.messageQuery.trim().toLowerCase();
+    const visibleMessages = query
+      ? member.messages.filter((message) => message.body.toLowerCase().includes(query) || message.time.toLowerCase().includes(query))
+      : member.messages;
 
     selectors.selectedAvatar.src = member.avatar;
     selectors.selectedAvatar.alt = `${member.name} avatar`;
@@ -235,9 +264,10 @@
     selectors.selectedStatus.className = `text-xs font-semibold ${tone.label}`;
     selectors.selectedStatus.textContent = `${tone.text} - ${member.role}`;
 
-    selectors.chatMessages.innerHTML = member.messages
-      .map(
-        (message) => `
+    selectors.chatMessages.innerHTML = visibleMessages.length
+      ? visibleMessages
+        .map(
+          (message) => `
           <article class="flex justify-end gap-3">
             <div class="max-w-[min(34rem,78%)] text-right">
               <div class="inline-block rounded-2xl rounded-br-md bg-gradient-to-r from-violet-600/95 via-blue-600/95 to-cyan-600/95 px-4 py-3 text-left text-sm leading-6 text-white shadow-[0_14px_34px_rgba(37,99,235,0.22)]">
@@ -248,11 +278,147 @@
             <img class="mt-1 h-8 w-8 rounded-xl border border-white/20 object-cover" src="${member.avatar}" alt="${escapeHtml(member.name)} avatar">
           </article>
         `
-      )
-      .join("");
+        )
+        .join("")
+      : `
+        <div class="grid h-full min-h-[14rem] place-items-center text-center">
+          <div>
+            <div class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-white/5 text-slate-400">
+              <i data-lucide="${query ? "search-x" : "message-square-off"}" class="h-5 w-5"></i>
+            </div>
+            <p class="mt-3 text-sm font-bold text-white">${query ? "No matching messages" : "Conversation is empty"}</p>
+            <p class="mt-1 text-xs font-semibold text-slate-500">${query ? "Try a different keyword." : "Send a new message to restart this chat."}</p>
+          </div>
+        </div>
+      `;
 
     selectors.chatMessages.scrollTop = selectors.chatMessages.scrollHeight;
     refreshIcons();
+  }
+
+  function toggleChatMenu(forceOpen) {
+    const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : selectors.chatMenu.classList.contains("hidden");
+    selectors.chatMenu.classList.toggle("hidden", !shouldOpen);
+    selectors.chatMenuButton.setAttribute("aria-expanded", String(shouldOpen));
+  }
+
+  function callDurationLabel() {
+    if (!state.callStartedAt) return "00:00";
+    const seconds = Math.max(0, Math.floor((Date.now() - state.callStartedAt) / 1000));
+    const minutes = Math.floor(seconds / 60);
+    const remaining = seconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}`;
+  }
+
+  function setCallButtonState(active) {
+    selectors.callStatus.classList.toggle("hidden", !active);
+    selectors.callButton.classList.toggle("bg-emerald-400/15", active);
+    selectors.callButton.classList.toggle("border-emerald-300/30", active);
+    selectors.callButton.innerHTML = `<i data-lucide="${active ? "phone-off" : "phone"}" class="h-4 w-4"></i>`;
+    refreshIcons();
+  }
+
+  function openCallModal() {
+    const member = selectedMember();
+    state.callActive = true;
+    state.callConnected = false;
+    state.callStartedAt = null;
+    selectors.callAvatar.src = member.avatar;
+    selectors.callAvatar.alt = `${member.name} avatar`;
+    selectors.callName.textContent = member.name;
+    selectors.callRole.textContent = member.role;
+    selectors.callState.textContent = "Ringing...";
+    selectors.callTimer.textContent = "Calling...";
+    selectors.callStatus.textContent = `Ringing ${member.name.split(" ")[0]}...`;
+    setCallButtonState(true);
+
+    selectors.callModal.classList.remove("hidden");
+    selectors.callModal.classList.add("flex");
+    selectors.callModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("overflow-hidden");
+
+    window.requestAnimationFrame(() => {
+      selectors.callModal.classList.remove("opacity-0");
+      selectors.callDialog.classList.remove("scale-95", "opacity-0");
+      selectors.callDialog.classList.add("scale-100", "opacity-100");
+    });
+
+    window.clearTimeout(state.callConnectTimeout);
+    state.callConnectTimeout = window.setTimeout(() => {
+      if (!state.callActive) return;
+      state.callConnected = true;
+      state.callStartedAt = Date.now();
+      selectors.callState.textContent = "Connected";
+      selectors.callTimer.textContent = "00:00";
+      selectors.callStatus.textContent = `In call with ${member.name.split(" ")[0]}`;
+      window.clearInterval(state.callTimer);
+      state.callTimer = window.setInterval(() => {
+        selectors.callTimer.textContent = callDurationLabel();
+      }, 1000);
+    }, 2300);
+
+    showToast(`Calling ${member.name}`);
+    refreshIcons();
+  }
+
+  function endCall() {
+    state.callActive = false;
+    state.callConnected = false;
+    state.callStartedAt = null;
+    window.clearTimeout(state.callConnectTimeout);
+    window.clearInterval(state.callTimer);
+    selectors.callModal.classList.add("opacity-0");
+    selectors.callDialog.classList.add("scale-95", "opacity-0");
+    selectors.callDialog.classList.remove("scale-100", "opacity-100");
+    selectors.callModal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("overflow-hidden");
+    selectors.callStatus.textContent = "";
+    setCallButtonState(false);
+
+    window.setTimeout(() => {
+      selectors.callModal.classList.add("hidden");
+      selectors.callModal.classList.remove("flex");
+    }, 180);
+
+    showToast("Call ended");
+  }
+
+  function toggleCall() {
+    if (state.callActive) {
+      endCall();
+      return;
+    }
+    openCallModal();
+  }
+
+  function toggleCallControl(button, activeClass, message) {
+    button.classList.toggle(activeClass);
+    showToast(message);
+    refreshIcons();
+  }
+
+  function openMessageSearch() {
+    selectors.messageSearchBar.classList.remove("hidden");
+    selectors.messageSearchInput.focus();
+    toggleChatMenu(false);
+  }
+
+  function closeMessageSearch() {
+    state.messageQuery = "";
+    selectors.messageSearchInput.value = "";
+    selectors.messageSearchBar.classList.add("hidden");
+    renderChat();
+  }
+
+  function deleteConversation() {
+    const member = selectedMember();
+    member.messages = [];
+    state.messageQuery = "";
+    selectors.messageSearchInput.value = "";
+    selectors.messageSearchBar.classList.add("hidden");
+    toggleChatMenu(false);
+    renderChat();
+    showToast("Conversation deleted");
   }
 
   function renderNotifications() {
@@ -354,8 +520,18 @@
       const memberButton = event.target.closest("[data-member-id]");
       if (!memberButton) return;
       state.selectedId = memberButton.dataset.memberId;
+      state.messageQuery = "";
+      state.callActive = false;
+      state.callConnected = false;
+      window.clearTimeout(state.callConnectTimeout);
+      window.clearInterval(state.callTimer);
+      selectors.messageSearchInput.value = "";
+      selectors.messageSearchBar.classList.add("hidden");
+      selectors.callStatus.classList.add("hidden");
+      setCallButtonState(false);
       renderMembers();
       renderChat();
+      refreshIcons();
     });
 
     selectors.messageForm.addEventListener("submit", (event) => {
@@ -376,9 +552,28 @@
       selectors.notificationDropdown.classList.toggle("hidden");
     });
 
+    selectors.callButton.addEventListener("click", toggleCall);
+    selectors.endCall.addEventListener("click", endCall);
+    selectors.muteCall.addEventListener("click", () => toggleCallControl(selectors.muteCall, "bg-cyan-400/15", "Mute toggled"));
+    selectors.speakerCall.addEventListener("click", () => toggleCallControl(selectors.speakerCall, "bg-cyan-400/15", "Speaker toggled"));
+    selectors.chatMenuButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleChatMenu();
+    });
+    selectors.searchMessagesButton.addEventListener("click", openMessageSearch);
+    selectors.deleteConversationButton.addEventListener("click", deleteConversation);
+    selectors.messageSearchInput.addEventListener("input", () => {
+      state.messageQuery = selectors.messageSearchInput.value.trim();
+      renderChat();
+    });
+    selectors.messageSearchClose.addEventListener("click", closeMessageSearch);
+
     document.addEventListener("click", (event) => {
       if (!event.target.closest("#teamNotificationToggle") && !event.target.closest("#teamNotificationDropdown")) {
         selectors.notificationDropdown.classList.add("hidden");
+      }
+      if (!event.target.closest("#teamChatMenuButton") && !event.target.closest("#teamChatMenu")) {
+        toggleChatMenu(false);
       }
     });
 
@@ -435,6 +630,9 @@
       if (event.key === "Escape") {
         toggleSidebar(false);
         selectors.notificationDropdown.classList.add("hidden");
+        toggleChatMenu(false);
+        if (!selectors.messageSearchBar.classList.contains("hidden")) closeMessageSearch();
+        if (state.callActive) endCall();
         if (!selectors.inviteModal.classList.contains("hidden")) closeInviteModal();
       }
     });
