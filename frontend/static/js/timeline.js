@@ -301,6 +301,8 @@
     filteredTasks: tasks.slice(),
     view: "calendar",
     activeWorkspaceId: window.localStorage.getItem("taskflow-active-workspace") || "fintask-landing-page",
+    activeProjectName: window.localStorage.getItem("taskflow-active-project") || "",
+    mode: window.location.hash.startsWith("#project-") ? "detail" : "overview",
     kanbanQuery: "",
     kanbanPriority: "all",
     kanbanSort: "status",
@@ -325,6 +327,13 @@
     notificationToggle: document.getElementById("timelineNotificationToggle"),
     notificationDropdown: document.getElementById("timelineNotificationDropdown"),
     notificationList: document.getElementById("timelineNotificationList"),
+    projectOverviewPanel: document.getElementById("projectOverviewPanel"),
+    projectOverviewStats: document.getElementById("projectOverviewStats"),
+    projectOverviewCards: document.getElementById("projectOverviewCards"),
+    projectOverviewRows: document.getElementById("projectOverviewRows"),
+    overviewWorkspaceCount: document.getElementById("overviewWorkspaceCount"),
+    overviewAddWorkspace: document.getElementById("overviewAddWorkspace"),
+    projectDetailHeader: document.getElementById("projectDetailHeader"),
     workspace: document.getElementById("timelineWorkspace"),
     skeleton: document.getElementById("timelineSkeleton"),
     scroll: document.getElementById("timelineScroll"),
@@ -445,19 +454,35 @@
     return workspaces.find((workspace) => workspace.id === state.activeWorkspaceId) || workspaces[1] || workspaces[0];
   }
 
+  function activeProjectName() {
+    const workspace = activeWorkspace();
+    return state.activeProjectName || workspace.projects[0] || workspace.name;
+  }
+
   function ensureActiveWorkspace() {
     if (!workspaces.some((workspace) => workspace.id === state.activeWorkspaceId)) {
       state.activeWorkspaceId = "fintask-landing-page";
       window.localStorage.setItem("taskflow-active-workspace", state.activeWorkspaceId);
     }
+    const workspace = activeWorkspace();
+    if (!state.activeProjectName || !workspace.projects.includes(state.activeProjectName)) {
+      state.activeProjectName = workspace.projects[0] || workspace.name;
+      window.localStorage.setItem("taskflow-active-project", state.activeProjectName);
+    }
   }
 
   function normalizeWorkspaceTasks() {
-    const fallbackWorkspaceId = activeWorkspace()?.id || "fintask-landing-page";
-    tasks = tasks.map((task) => ({
-      ...task,
-      workspaceId: task.workspaceId || fallbackWorkspaceId,
-    }));
+    tasks = tasks.map((task, index) => {
+      const workspace = task.workspaceId
+        ? workspaces.find((item) => item.id === task.workspaceId) || workspaces[index % workspaces.length]
+        : workspaces[index % workspaces.length];
+      const projectName = task.projectName || workspace.projects[index % Math.max(workspace.projects.length, 1)] || workspace.name;
+      return {
+        ...task,
+        workspaceId: workspace.id,
+        projectName,
+      };
+    });
   }
 
   function renderWorkspaceMembers(members = []) {
@@ -479,23 +504,41 @@
 
   function renderWorkspaceList() {
     if (!selectors.workspaceList) return;
-    selectors.workspaceCurrentTitle.textContent = activeWorkspace().name;
+    selectors.workspaceCurrentTitle.textContent = state.mode === "overview" ? "Project Overview" : activeWorkspace().name;
     selectors.workspaceList.innerHTML = workspaces
       .map((workspace) => {
         const isActive = workspace.id === state.activeWorkspaceId;
         const count = tasks.filter((task) => task.workspaceId === workspace.id).length;
         return `
-          <button
-            class="w-full rounded-2xl px-3 py-2 text-left transition hover:bg-white/10 ${isActive ? "border border-white/12 bg-white/12 text-white shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "text-slate-300"}"
-            type="button"
-            data-workspace-id="${workspace.id}"
-          >
-            <span class="flex items-center justify-between gap-2">
+          <div class="rounded-2xl px-2.5 py-2 transition ${isActive ? "border border-white/12 bg-white/12 text-white shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "text-slate-300"}">
+            <button
+              class="flex w-full items-center justify-between gap-2 text-left"
+              type="button"
+              data-workspace-overview="${workspace.id}"
+            >
               <span class="truncate text-sm font-bold">${escapeHtml(workspace.name)}</span>
               <span class="rounded-full bg-slate-950/35 px-1.5 py-0.5 text-[0.58rem] font-black text-cyan-100">${count}</span>
-            </span>
-            <span class="mt-1 block truncate text-[0.62rem] font-semibold text-slate-400">${escapeHtml(workspace.projects.join(" · "))}</span>
-          </button>
+            </button>
+            <div class="mt-2 space-y-1">
+              ${workspace.projects
+                .map((project) => {
+                  const isProjectActive = state.mode === "detail" && isActive && activeProjectName() === project;
+                  const projectCount = tasks.filter((task) => task.workspaceId === workspace.id && task.projectName === project).length;
+                  return `
+                    <button
+                      class="flex w-full items-center justify-between gap-2 rounded-xl px-2 py-1.5 text-left text-[0.72rem] font-bold transition hover:bg-white/10 ${isProjectActive ? "bg-cyan-300/14 text-cyan-100" : "text-slate-400"}"
+                      type="button"
+                      data-workspace-id="${workspace.id}"
+                      data-project-name="${escapeHtml(project)}"
+                    >
+                      <span class="truncate">${escapeHtml(project)}</span>
+                      <span class="text-[0.58rem] text-slate-500">${projectCount}</span>
+                    </button>
+                  `;
+                })
+                .join("")}
+            </div>
+          </div>
         `;
       })
       .join("");
@@ -503,24 +546,155 @@
 
   function renderProjectHeader() {
     const workspace = activeWorkspace();
-    selectors.projectBreadcrumb.textContent = workspace.breadcrumb;
+    const projectName = activeProjectName();
+    selectors.projectBreadcrumb.textContent = `${workspace.breadcrumb} / ${workspace.name}`;
     selectors.projectCategory.textContent = workspace.category;
-    selectors.projectTitle.textContent = workspace.name;
+    selectors.projectTitle.textContent = projectName;
     selectors.projectCompany.innerHTML = `<i data-lucide="building-2" class="h-3 w-3"></i> ${escapeHtml(workspace.company)}`;
     selectors.projectDate.innerHTML = `<i data-lucide="calendar-days" class="h-3 w-3"></i> ${escapeHtml(workspace.date)}`;
     selectors.projectMemberStack.innerHTML = renderWorkspaceMembers(workspace.members);
     refreshIcons();
   }
 
-  function switchWorkspace(workspaceId) {
+  function workspaceTasks(workspaceId) {
+    return tasks.filter((task) => task.workspaceId === workspaceId);
+  }
+
+  function projectTasks(workspaceId, projectName) {
+    return tasks.filter((task) => task.workspaceId === workspaceId && task.projectName === projectName);
+  }
+
+  function completionFor(items) {
+    if (!items.length) return 0;
+    const total = items.reduce((sum, task) => sum + Number(task.progress || 0), 0);
+    return Math.round(total / items.length);
+  }
+
+  function renderProjectOverview() {
+    if (!selectors.projectOverviewPanel) return;
+    const totalProjects = workspaces.reduce((sum, workspace) => sum + workspace.projects.length, 0);
+    const doneTasks = tasks.filter((task) => task.status === "Done").length;
+    const activeTasks = tasks.filter((task) => task.status !== "Done").length;
+    const members = new Set(workspaces.flatMap((workspace) => workspace.members));
+    const statCards = [
+      { label: "Workspaces", value: workspaces.length, icon: "layers-3", tone: "text-cyan-200 bg-cyan-400/15" },
+      { label: "Projects", value: totalProjects, icon: "folder-kanban", tone: "text-violet-200 bg-violet-400/15" },
+      { label: "Active Tasks", value: activeTasks, icon: "list-checks", tone: "text-amber-200 bg-amber-400/15" },
+      { label: "Team Members", value: members.size, icon: "users-round", tone: "text-emerald-200 bg-emerald-400/15" },
+    ];
+
+    selectors.projectOverviewStats.innerHTML = statCards
+      .map(
+        (card) => `
+          <article class="rounded-xl border border-white/10 bg-white/[0.055] p-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="grid h-8 w-8 place-items-center rounded-xl ${card.tone}">
+                <i data-lucide="${card.icon}" class="h-3.5 w-3.5"></i>
+              </span>
+              <strong class="text-xl font-black text-white">${card.value}</strong>
+            </div>
+            <p class="mt-1.5 text-[0.68rem] font-bold text-slate-400">${card.label}</p>
+          </article>
+        `
+      )
+      .join("");
+
+    selectors.overviewWorkspaceCount.textContent = `${workspaces.length} groups`;
+    selectors.projectOverviewCards.innerHTML = workspaces
+      .map((workspace) => {
+        const items = workspaceTasks(workspace.id);
+        const progress = completionFor(items);
+        return `
+          <article class="rounded-xl border border-white/10 bg-white/[0.052] p-2.5 transition hover:-translate-y-0.5 hover:border-cyan-300/25 hover:bg-white/[0.075] motion-reduce:transform-none">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <p class="text-[0.6rem] font-black uppercase tracking-[0.14em] text-cyan-200">${escapeHtml(workspace.category)}</p>
+                <h3 class="mt-0.5 truncate text-sm font-black text-white">${escapeHtml(workspace.name)}</h3>
+                <p class="mt-0.5 truncate text-[0.66rem] font-semibold text-slate-400">${escapeHtml(workspace.company)} · ${escapeHtml(workspace.date)}</p>
+              </div>
+              <div class="-space-x-2 whitespace-nowrap scale-90 origin-right">${renderWorkspaceMembers(workspace.members)}</div>
+            </div>
+            <div class="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
+              <span class="block h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-500 transition-all duration-700" style="width:${progress}%"></span>
+            </div>
+            <div class="mt-2 grid gap-1">
+              ${workspace.projects
+                .map((project) => {
+                  const count = projectTasks(workspace.id, project).length;
+                  return `
+                    <button class="flex h-8 items-center justify-between gap-2 rounded-lg border border-white/[0.07] bg-slate-950/25 px-2 text-left transition hover:border-cyan-300/25 hover:bg-cyan-300/10" type="button" data-workspace-id="${workspace.id}" data-project-name="${escapeHtml(project)}">
+                      <span class="truncate text-[0.72rem] font-black text-white">${escapeHtml(project)}</span>
+                      <span class="rounded-full bg-white/10 px-1.5 py-0.5 text-[0.56rem] font-black text-slate-400">${count}</span>
+                    </button>
+                  `;
+                })
+                .join("")}
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+
+    selectors.projectOverviewRows.innerHTML = workspaces
+      .flatMap((workspace) => workspace.projects.map((project) => ({ workspace, project, items: projectTasks(workspace.id, project) })))
+      .map(
+        ({ workspace, project, items }) => `
+          <button class="flex h-14 w-full items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.045] px-2.5 text-left transition hover:-translate-y-0.5 hover:border-cyan-300/20 hover:bg-white/[0.075] motion-reduce:transform-none" type="button" data-workspace-id="${workspace.id}" data-project-name="${escapeHtml(project)}">
+            <span class="min-w-0">
+              <span class="block truncate text-[0.8rem] font-black text-white">${escapeHtml(project)}</span>
+              <span class="block truncate text-[0.66rem] font-semibold text-slate-400">${escapeHtml(workspace.name)}</span>
+            </span>
+            <span class="shrink-0 text-right">
+              <span class="block text-xs font-black text-cyan-200">${completionFor(items)}%</span>
+              <span class="block text-[0.62rem] font-bold text-slate-500">${items.length} tasks</span>
+            </span>
+          </button>
+        `
+      )
+      .join("");
+
+    refreshIcons();
+  }
+
+  function setProjectMode(mode) {
+    state.mode = mode;
+    const isOverview = mode === "overview";
+    selectors.projectOverviewPanel.classList.toggle("hidden", !isOverview);
+    selectors.projectOverviewPanel.classList.toggle("flex", isOverview);
+    selectors.projectDetailHeader.classList.toggle("hidden", isOverview);
+    selectors.workspace.classList.toggle("hidden", isOverview);
+    selectors.workspace.classList.toggle("flex", !isOverview);
+    if (isOverview) {
+      selectors.scroll.classList.add("hidden");
+      selectors.kanbanView.classList.add("hidden");
+      selectors.kanbanView.classList.remove("flex");
+      selectors.listView.classList.add("hidden");
+      selectors.listView.classList.remove("flex");
+      window.history.replaceState(null, "", window.location.pathname);
+    } else {
+      selectors.skeleton.classList.add("hidden");
+      selectors.scroll.classList.toggle("hidden", state.view !== "calendar");
+      selectors.kanbanView.classList.toggle("hidden", state.view !== "kanban");
+      selectors.kanbanView.classList.toggle("flex", state.view === "kanban");
+      selectors.listView.classList.toggle("hidden", state.view !== "list");
+      selectors.listView.classList.toggle("flex", state.view === "list");
+    }
+  }
+
+  function switchWorkspace(workspaceId, projectName = "") {
     if (!workspaces.some((workspace) => workspace.id === workspaceId)) return;
     state.activeWorkspaceId = workspaceId;
+    const workspace = activeWorkspace();
+    state.activeProjectName = projectName || workspace.projects[0] || workspace.name;
     window.localStorage.setItem("taskflow-active-workspace", workspaceId);
+    window.localStorage.setItem("taskflow-active-project", state.activeProjectName);
+    setProjectMode("detail");
     renderWorkspaceList();
     renderProjectHeader();
     applyTaskFilters();
+    window.history.replaceState(null, "", `#project-${createSlug(state.activeProjectName)}`);
     selectors.workspace.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    showToast(`${activeWorkspace().name} workspace loaded`);
+    showToast(`${state.activeProjectName} opened`);
   }
 
   function loadFavorites() {
@@ -603,6 +777,7 @@
     const priority = state.kanbanPriority;
     const sorted = tasks
       .filter((task) => task.workspaceId === state.activeWorkspaceId)
+      .filter((task) => task.projectName === activeProjectName())
       .filter((task) => taskMatchesQuery(task, query))
       .filter((task) => priority === "all" || task.priority === priority)
       .slice();
@@ -617,6 +792,7 @@
     sorted.sort(sorters[state.kanbanSort] || sorters.status);
     state.filteredTasks = sorted;
     renderTaskViews(state.filteredTasks);
+    renderProjectOverview();
     updateFavoriteSortButton();
   }
 
@@ -1140,6 +1316,7 @@
         id: createTaskId(payload.title),
         ...payload,
         workspaceId: state.activeWorkspaceId,
+        projectName: activeProjectName(),
         start: 10,
         duration: 1.25,
         row: 0,
@@ -1230,13 +1407,32 @@
 
     selectors.workspaceList.addEventListener("click", (event) => {
       const workspaceButton = event.target.closest("[data-workspace-id]");
+      const workspaceOverview = event.target.closest("[data-workspace-overview]");
+      if (workspaceOverview) {
+        state.activeWorkspaceId = workspaceOverview.dataset.workspaceOverview;
+        state.activeProjectName = workspaces.find((workspace) => workspace.id === state.activeWorkspaceId)?.projects[0] || "";
+        window.localStorage.setItem("taskflow-active-workspace", state.activeWorkspaceId);
+        window.localStorage.setItem("taskflow-active-project", state.activeProjectName);
+        setProjectMode("overview");
+        renderWorkspaceList();
+        renderProjectOverview();
+        toggleSidebar(false);
+        return;
+      }
       if (!workspaceButton) return;
-      switchWorkspace(workspaceButton.dataset.workspaceId);
+      switchWorkspace(workspaceButton.dataset.workspaceId, workspaceButton.dataset.projectName || "");
       toggleSidebar(false);
     });
 
     selectors.addWorkspaceButton.addEventListener("click", openWorkspaceEditor);
+    selectors.overviewAddWorkspace.addEventListener("click", openWorkspaceEditor);
     selectors.workspaceEditorForm.addEventListener("submit", saveWorkspaceFromEditor);
+
+    selectors.projectOverviewPanel.addEventListener("click", (event) => {
+      const projectButton = event.target.closest("[data-workspace-id][data-project-name]");
+      if (!projectButton) return;
+      switchWorkspace(projectButton.dataset.workspaceId, projectButton.dataset.projectName || "");
+    });
 
     selectors.workspaceInviteButton.addEventListener("click", openProjectInviteModal);
     selectors.projectInviteForm.addEventListener("submit", sendProjectInvite);
@@ -1470,7 +1666,9 @@
     ensureActiveWorkspace();
     loadFavorites();
     await loadProjectData();
+    setProjectMode(state.mode);
     renderWorkspaceList();
+    renderProjectOverview();
     renderProjectHeader();
     renderHeader();
     renderNotifications();
@@ -1482,7 +1680,7 @@
 
     window.setTimeout(() => {
       selectors.skeleton.classList.add("hidden");
-      if (state.view === "calendar") {
+      if (state.mode === "detail" && state.view === "calendar") {
         selectors.scroll.classList.remove("hidden");
       }
     }, 450);
