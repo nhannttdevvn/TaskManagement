@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks | TMDS{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h3 mb-0">Tasks</h1>
+  <a class="btn btn-primary" href="{% url 'task_create' %}">New Task</a>
+</div>
+
+{% if tasks %}
+  <div class="list-group">
+    {% for task in tasks %}
+      <a
+        class="list-group-item list-group-item-action d-flex justify-content-between align-items-start gap-3"
+        href="{% url 'task_detail' task.pk %}"
+      >
+        <div>
+          <h2 class="h5 mb-1 {% if task.status == 'done' %}text-decoration-line-through text-muted{% elif task.status == 'in_progress' %}fw-bold text-primary{% endif %}">
+            {{ task.title }}
+          </h2>
+          {% if task.description %}
+            <p class="mb-1 text-muted">{{ task.description|truncatewords:20 }}</p>
+          {% endif %}
+          {% if task.due_date %}
+            <small class="text-muted">Due {{ task.due_date }}</small>
+          {% endif %}
+        </div>
+        <div class="text-end">
+          {% include "tasks/components/task_status_badge.html" with status=task.status status_display=task.get_status_display %}
+          {% include "tasks/components/task_priority_badge.html" with priority=task.priority priority_display=task.get_priority_display %}
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">No tasks yet.</div>
+{% endif %}
+{% endblock %}
