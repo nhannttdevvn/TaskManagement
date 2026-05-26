@@ -19,16 +19,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import TemplateView
 
 urlpatterns = [
     path("api/", include("apps.tasks.api.urls")),
-    path("dashboard/", TemplateView.as_view(template_name="dashboard/index.html"), name="dashboard"),
-    path("project/", TemplateView.as_view(template_name="timeline/index.html"), name="project"),
-    path("timeline/", TemplateView.as_view(template_name="timeline/index.html"), name="timeline"),
-    path("team/", TemplateView.as_view(template_name="team/index.html"), name="team"),
-    path("", include("apps.tasks.urls")),
     path("admin/", admin.site.urls),
+    path("", include("apps.tasks.urls")),
 ]
 
 if settings.DEBUG:
