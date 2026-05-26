@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 {% load static %}
 
 {% block title %}Project Dashboard | TaskFlow{% endblock %}
 
 {% block vendor_styles %}
-{% include "includes/app_design_tokens.html" %}
+{% include "partials/design_tokens.html" %}
 {% endblock %}
 
 {% block body_class %}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %}
@@ -12,6 +12,8 @@
 {% block page_shell %}
 <div
   id="dashboardApp"
+  data-dashboard-url="{% url 'api_dashboard_data' %}"
+  data-allow-demo-fallback="true"
   class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(59,42,143,0.36),transparent_32%),linear-gradient(225deg,rgba(91,61,245,0.22),transparent_34%),linear-gradient(180deg,#050816_0%,#0d1326_54%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
 >
   <div
@@ -251,15 +253,15 @@
     </section>
   </div>
 
-  <div id="toast" class="fixed bottom-5 right-5 z-[80] hidden rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white shadow-[0_20px_70px_rgba(2,6,23,0.34)] backdrop-blur-2xl"></div>
+  {% include "partials/toast.html" with toast_id="toast" %}
 </div>
 {% endblock %}
 
 {% block vendor_scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
+{% include "partials/vendor_dashboard.html" %}
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/dashboard.js' %}?v=20260523-1"></script>
+<script src="{% static 'js/pages/dashboard/api.js' %}?v=20260527-1"></script>
+<script src="{% static 'js/pages/dashboard.js' %}?v=20260527-1"></script>
 {% endblock %}

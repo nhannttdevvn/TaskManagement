@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 {% load static %}
 
 {% block title %}Project Timeline | TaskFlow{% endblock %}
 
 {% block vendor_styles %}
-{% include "includes/app_design_tokens.html" %}
+{% include "partials/design_tokens.html" %}
 <style>
   #timelineApp {
     color-scheme: dark;
@@ -63,6 +63,9 @@
 {% block page_shell %}
 <div
   id="timelineApp"
+  data-project-url="{% url 'api_project_data' %}"
+  data-invite-url="{% url 'api_team_invitations' 1 %}"
+  data-allow-demo-fallback="true"
   class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(79,70,229,0.22),transparent_30%),linear-gradient(225deg,rgba(14,165,233,0.16),transparent_34%),linear-gradient(180deg,#050816_0%,#0f172a_52%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
 >
   <div
@@ -481,6 +484,7 @@
       <p class="text-xs font-extrabold uppercase text-cyan-200">Workspace invite</p>
       <h2 id="projectInviteTitle" class="mb-4 text-xl font-black text-white">Invite Member</h2>
       <form id="projectInviteForm" class="space-y-3" data-invite-url="{% url 'api_team_invitations' 1 %}">
+        {% csrf_token %}
         <label class="grid gap-1.5">
           <span class="text-xs font-bold text-slate-400">Email or username</span>
           <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="email" type="email" placeholder="colleague@example.com" required>
@@ -525,14 +529,15 @@
     </section>
   </div>
 
-  <div id="timelineToast" class="fixed bottom-5 right-5 z-[80] hidden rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white shadow-[0_20px_70px_rgba(2,6,23,0.34)] backdrop-blur-2xl"></div>
+  {% include "partials/toast.html" with toast_id="timelineToast" %}
 </div>
 {% endblock %}
 
 {% block vendor_scripts %}
-<script src="https://unpkg.com/lucide@latest"></script>
+{% include "partials/vendor_lucide.html" %}
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/timeline.js' %}?v=20260526-3"></script>
+<script src="{% static 'js/pages/timeline/api.js' %}?v=20260527-1"></script>
+<script src="{% static 'js/pages/timeline.js' %}?v=20260527-1"></script>
 {% endblock %}

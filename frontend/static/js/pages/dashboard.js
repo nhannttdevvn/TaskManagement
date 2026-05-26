@@ -4,6 +4,10 @@
   const app = document.getElementById("dashboardApp");
   if (!app) return;
 
+  const dashboardApi = window.TaskFlow?.dashboardApi;
+  const toast = window.TaskFlow?.toast;
+  const allowDemoFallback = app.dataset.allowDemoFallback === "true";
+
   let projects = [
     {
       id: "website-redesign",
@@ -731,6 +735,10 @@
   }
 
   function showToast(message) {
+    if (toast) {
+      toast.show(selectors.toast, message, { duration: 2600 });
+      return;
+    }
     selectors.toast.textContent = message;
     selectors.toast.classList.remove("hidden");
     window.clearTimeout(showToast.timeout);
@@ -839,14 +847,7 @@
 
   async function loadDashboardData() {
     try {
-      const response = await fetch("/api/dashboard/data/", {
-        headers: { Accept: "application/json" },
-      });
-      const result = await response.json();
-
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error || "Dashboard API failed");
-      }
+      const result = await dashboardApi.loadData(app);
 
       projects = result.data.projects || projects;
       upcomingTasks = result.data.upcomingTasks || upcomingTasks;
@@ -856,7 +857,11 @@
       statusData = result.data.statusData || statusData;
       state.filteredProjects = projects.slice();
     } catch (error) {
-      console.warn("Using dashboard fallback data:", error);
+      showToast(error.message || "Dashboard data could not be loaded");
+      if (!allowDemoFallback) {
+        throw error;
+      }
+      console.warn("Using dashboard demo fallback data:", error);
     }
   }
 

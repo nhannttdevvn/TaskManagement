@@ -4,6 +4,10 @@
   const app = document.getElementById("timelineApp");
   if (!app) return;
 
+  const timelineApi = window.TaskFlow?.timelineApi;
+  const toast = window.TaskFlow?.toast;
+  const allowDemoFallback = app.dataset.allowDemoFallback === "true";
+
   const scale = 142;
   const timelineStart = 9;
   const timelineEnd = 17;
@@ -1243,18 +1247,7 @@
     refreshIcons();
 
     try {
-      const response = await fetch(selectors.projectInviteForm.dataset.inviteUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-        },
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json();
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error || "Could not send invitation");
-      }
+      await timelineApi.sendInvite(app, selectors.projectInviteForm, payload);
       closeProjectInviteModal();
       showToast("Invitation sent");
     } catch (error) {
@@ -1367,6 +1360,10 @@
   }
 
   function showToast(message) {
+    if (toast) {
+      toast.show(selectors.toast, message, { duration: 2400 });
+      return;
+    }
     selectors.toast.textContent = message;
     selectors.toast.classList.remove("hidden");
     window.clearTimeout(showToast.timeout);
@@ -1641,21 +1638,18 @@
 
   async function loadProjectData() {
     try {
-      const response = await fetch("/api/project/data/", {
-        headers: { Accept: "application/json" },
-      });
-      const result = await response.json();
-
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error || "Project API failed");
-      }
+      const result = await timelineApi.loadProjectData(app);
 
       tasks = result.data.tasks || tasks;
       normalizeWorkspaceTasks();
       notifications = result.data.notifications || notifications;
       state.filteredTasks = tasks.slice();
     } catch (error) {
-      console.warn("Using project fallback data:", error);
+      showToast(error.message || "Project data could not be loaded");
+      if (!allowDemoFallback) {
+        throw error;
+      }
+      console.warn("Using project demo fallback data:", error);
       normalizeWorkspaceTasks();
     }
   }

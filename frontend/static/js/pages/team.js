@@ -4,6 +4,10 @@
   const app = document.getElementById("teamApp");
   if (!app) return;
 
+  const teamApi = window.TaskFlow?.teamApi;
+  const toast = window.TaskFlow?.toast;
+  const allowDemoFallback = app.dataset.allowDemoFallback === "true";
+
   let members = [
     {
       id: "mostafa",
@@ -459,14 +463,14 @@
   }
 
   function showToast(message) {
+    if (toast) {
+      toast.show(selectors.toast, message, { duration: 2200 });
+      return;
+    }
     selectors.toast.textContent = message;
     selectors.toast.classList.remove("hidden");
     window.clearTimeout(showToast.timeout);
     showToast.timeout = window.setTimeout(() => selectors.toast.classList.add("hidden"), 2200);
-  }
-
-  function csrfToken() {
-    return selectors.inviteForm.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
   }
 
   function invitePayload() {
@@ -599,20 +603,7 @@
       refreshIcons();
 
       try {
-        const response = await fetch(selectors.inviteForm.dataset.inviteUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken(),
-            "X-Requested-With": "XMLHttpRequest",
-          },
-          body: JSON.stringify(invitePayload()),
-        });
-        const data = await response.json();
-
-        if (!response.ok || !data.ok) {
-          throw new Error(data.error || "Could not send invitation");
-        }
+        const data = await teamApi.sendInvite(app, selectors.inviteForm, invitePayload());
 
         closeInviteModal();
         showToast(data.message || "Invitation sent");
@@ -644,21 +635,18 @@
 
   async function loadTeamData() {
     try {
-      const response = await fetch("/api/team/data/", {
-        headers: { Accept: "application/json" },
-      });
-      const result = await response.json();
-
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error || "Team API failed");
-      }
+      const result = await teamApi.loadData(app);
 
       members = result.data.members || members;
       notifications = result.data.notifications || notifications;
       state.selectedId = members[0]?.id || state.selectedId;
       state.filteredMembers = members.slice();
     } catch (error) {
-      console.warn("Using team fallback data:", error);
+      showToast(error.message || "Team data could not be loaded");
+      if (!allowDemoFallback) {
+        throw error;
+      }
+      console.warn("Using team demo fallback data:", error);
     }
   }
 
