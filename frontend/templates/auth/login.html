@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sign in | TaskFlow{% endblock %}
+
+{% block vendor_styles %}
+{% include "includes/app_design_tokens.html" %}
+{% endblock %}
+
+{% block body_class %}bg-slate-950 p-0 font-sans antialiased{% endblock %}
+
+{% block page_shell %}
+<div
+  id="loginApp"
+  class="relative isolate min-h-screen overflow-hidden bg-[linear-gradient(135deg,rgba(59,42,143,0.36),transparent_32%),linear-gradient(225deg,rgba(91,61,245,0.22),transparent_34%),linear-gradient(180deg,#050816_0%,#0d1326_54%,#111827_100%)] text-white"
+>
+  <div
+    class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,rgba(124,77,255,0.28),transparent_24%),radial-gradient(circle_at_82%_-4%,rgba(34,211,238,0.22),transparent_24%),radial-gradient(circle_at_50%_120%,rgba(124,77,255,0.18),transparent_42%),linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:auto,auto,auto,56px_56px,56px_56px]"
+    aria-hidden="true"
+  ></div>
+
+  {# floating orbs #}
+  <div class="pointer-events-none fixed -left-24 top-1/4 h-72 w-72 rounded-full bg-violet-600/30 blur-3xl animate-pulseLine" aria-hidden="true"></div>
+  <div class="pointer-events-none fixed -right-24 bottom-1/4 h-80 w-80 rounded-full bg-cyan-500/20 blur-3xl animate-pulseLine" aria-hidden="true"></div>
+
+  <main class="relative grid min-h-screen grid-cols-1 lg:grid-cols-2">
+    {# ============= LEFT HERO ============= #}
+    <section class="hidden flex-col justify-between px-10 py-12 lg:flex">
+      <a href="{% url 'login' %}" class="flex items-center gap-3">
+        <div class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-sm font-black text-white shadow-[0_18px_44px_rgba(124,77,255,0.45)]">TF</div>
+        <div>
+          <p class="text-xs font-semibold uppercase text-cyan-200/80">TaskFlow</p>
+          <h1 class="text-base font-bold text-white">Project Hub</h1>
+        </div>
+      </a>
+
+      <div class="max-w-md">
+        <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-200">Welcome back</p>
+        <h2 class="mt-3 text-4xl font-black leading-tight text-white">
+          Get more done with <span class="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">TaskFlow</span>.
+        </h2>
+        <p class="mt-4 text-sm text-slate-300">
+          Một nền tảng tập trung cho mọi project, task, file và team — với dashboard
+          analytics theo thời gian thực và quy trình collaboration cực gọn.
+        </p>
+
+        <div class="mt-8 space-y-3">
+          <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
+            <span class="grid h-9 w-9 place-items-center rounded-xl bg-cyan-400/15 text-cyan-200"><i data-lucide="layout-dashboard" class="h-4 w-4"></i></span>
+            <p class="text-sm text-slate-200">Workspace ➔ Project ➔ Task ➔ User — phân cấp rõ ràng</p>
+          </div>
+          <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
+            <span class="grid h-9 w-9 place-items-center rounded-xl bg-violet-400/15 text-violet-200"><i data-lucide="bar-chart-3" class="h-4 w-4"></i></span>
+            <p class="text-sm text-slate-200">Dashboard analytics + biểu đồ tròn phân bổ trạng thái task</p>
+          </div>
+          <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
+            <span class="grid h-9 w-9 place-items-center rounded-xl bg-emerald-400/15 text-emerald-200"><i data-lucide="bell-ring" class="h-4 w-4"></i></span>
+            <p class="text-sm text-slate-200">Real-time notifications cho mọi thay đổi trong project</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-400">&copy; 2026 TaskFlow · Designed for high performance teams.</p>
+    </section>
+
+    {# ============= RIGHT FORM ============= #}
+    <section class="flex items-center justify-center px-4 py-10 sm:px-10">
+      <div class="w-full max-w-md">
+        <a href="{% url 'login' %}" class="mb-6 inline-flex items-center gap-2 lg:hidden">
+          <div class="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-xs font-black text-white shadow-[0_14px_34px_rgba(124,77,255,0.45)]">TF</div>
+          <p class="text-base font-black text-white">TaskFlow</p>
+        </a>
+
+        <div class="rounded-[26px] border border-white/[0.08] bg-slate-900/65 p-7 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-2xl">
+          <header>
+            <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-200">Sign in</p>
+            <h2 class="mt-1 text-2xl font-black text-white">Đăng nhập vào TaskFlow</h2>
+            <p class="mt-1 text-sm text-slate-400">Quản lý dự án, theo dõi task và cộng tác với team mọi lúc.</p>
+          </header>
+
+          {# Tab Sign in / Sign up #}
+          <nav class="mt-6 inline-flex w-full rounded-2xl border border-white/10 bg-slate-950/60 p-1 text-sm font-bold" role="tablist" aria-label="Auth mode">
+            <button class="js-auth-tab flex-1 rounded-xl bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-3 py-2 text-white shadow-[0_8px_24px_rgba(79,70,229,0.28)]" type="button" data-mode="signin" aria-selected="true">Sign in</button>
+            <button class="js-auth-tab flex-1 rounded-xl px-3 py-2 text-slate-400 transition hover:text-white" type="button" data-mode="signup" aria-selected="false">Sign up</button>
+          </nav>
+
+          <form id="loginForm" class="mt-5 space-y-4" novalidate>
+            <div class="js-signup-only hidden grid gap-2">
+              <span class="text-sm font-extrabold text-slate-400">Full name</span>
+              <div class="relative">
+                <i data-lucide="user-round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
+                <input name="full_name" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="text" placeholder="Nguyen Van A">
+              </div>
+            </div>
+
+            <label class="grid gap-2">
+              <span class="text-sm font-extrabold text-slate-400">Email</span>
+              <div class="relative">
+                <i data-lucide="mail" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
+                <input id="loginEmail" name="email" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="email" placeholder="name@example.com" required autocomplete="email">
+              </div>
+              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="email">Email không hợp lệ</p>
+            </label>
+
+            <label class="grid gap-2">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-extrabold text-slate-400">Password</span>
+                <a class="js-signin-only text-xs font-bold text-cyan-200 hover:text-cyan-100" href="#forgot">Quên mật khẩu?</a>
+              </div>
+              <div class="relative">
+                <i data-lucide="lock" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
+                <input id="loginPassword" name="password" class="js-password w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="password" placeholder="••••••••" required minlength="8" autocomplete="current-password">
+                <button class="js-toggle-password absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" aria-label="Show password">
+                  <i data-lucide="eye" class="h-4 w-4"></i>
+                </button>
+              </div>
+              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="password">Mật khẩu tối thiểu 8 ký tự</p>
+            </label>
+
+            <div class="flex items-center justify-between text-xs">
+              <label class="inline-flex items-center gap-2 font-semibold text-slate-300">
+                <input type="checkbox" name="remember" class="h-4 w-4 rounded border-white/10 bg-slate-800 accent-cyan-400" checked>
+                Remember me
+              </label>
+              <span class="rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2.5 py-1 text-[0.65rem] font-black uppercase tracking-wider text-emerald-200">
+                <i data-lucide="shield-check" class="mr-1 inline h-3 w-3"></i> Secure
+              </span>
+            </div>
+
+            <button id="loginSubmit" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-5 text-sm font-black text-white shadow-[0_16px_38px_rgba(79,70,229,0.28)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transform-none" type="submit">
+              <span class="js-signin-only">Sign in</span>
+              <span class="js-signup-only hidden">Create account</span>
+              <i data-lucide="arrow-right" class="h-4 w-4"></i>
+            </button>
+
+            <div class="relative flex items-center py-1">
+              <span class="flex-1 border-t border-white/10"></span>
+              <span class="px-3 text-[0.65rem] font-extrabold uppercase tracking-[0.18em] text-slate-500">or continue with</span>
+              <span class="flex-1 border-t border-white/10"></span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <button class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10 motion-reduce:transform-none" type="button" data-provider="google">
+                <svg class="h-4 w-4" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.1l6.6 4.8C14.7 15 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.1z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.3 26.7 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5C9.6 39.5 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.6l6.2 5.2C40.8 35.6 44 30.3 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
+                Google
+              </button>
+              <button class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10 motion-reduce:transform-none" type="button" data-provider="github">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 .5C5.65.5.5 5.65.5 12.02c0 5.09 3.29 9.4 7.86 10.93.57.11.78-.25.78-.55v-1.92c-3.2.7-3.87-1.54-3.87-1.54-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.75.12 3.04.74.81 1.18 1.83 1.18 3.09 0 4.43-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.18c0 .31.21.67.79.55 4.57-1.53 7.85-5.84 7.85-10.93C23.5 5.65 18.35.5 12 .5Z"/>
+                </svg>
+                GitHub
+              </button>
+              <button class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10 motion-reduce:transform-none" type="button" data-provider="microsoft">
+                <svg class="h-4 w-4" viewBox="0 0 32 32" aria-hidden="true"><rect width="14" height="14" x="1" y="1" fill="#F25022"/><rect width="14" height="14" x="17" y="1" fill="#7FBA00"/><rect width="14" height="14" x="1" y="17" fill="#00A4EF"/><rect width="14" height="14" x="17" y="17" fill="#FFB900"/></svg>
+                Microsoft
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <p class="mt-6 text-center text-sm text-slate-400">
+          <span class="js-signin-only">Chưa có tài khoản?
+            <button class="js-auth-tab font-bold text-cyan-200 hover:text-cyan-100" data-mode="signup" type="button">Tạo tài khoản miễn phí</button>
+          </span>
+          <span class="js-signup-only hidden">Đã có tài khoản?
+            <button class="js-auth-tab font-bold text-cyan-200 hover:text-cyan-100" data-mode="signin" type="button">Sign in</button>
+          </span>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <div id="authToast" class="fixed bottom-5 right-5 z-[80] hidden rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white shadow-[0_20px_70px_rgba(2,6,23,0.34)] backdrop-blur-2xl"></div>
+</div>
+{% endblock %}
+
+{% block vendor_scripts %}
+<script src="https://unpkg.com/lucide@latest"></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/auth.js' %}?v=20260523-1"></script>
+{% endblock %}

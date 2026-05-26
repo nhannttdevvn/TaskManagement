@@ -1,0 +1,511 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Workspace Settings | TaskFlow{% endblock %}
+
+{% block vendor_styles %}
+{% include "includes/app_design_tokens.html" %}
+{% endblock %}
+
+{% block body_class %}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %}
+
+{% block page_shell %}
+<div
+  id="settingsApp"
+  class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(59,42,143,0.36),transparent_32%),linear-gradient(225deg,rgba(91,61,245,0.22),transparent_34%),linear-gradient(180deg,#050816_0%,#0d1326_54%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
+>
+  <div
+    class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,rgba(124,77,255,0.24),transparent_26%),radial-gradient(circle_at_80%_0%,rgba(34,211,238,0.14),transparent_24%),linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:auto,auto,56px_56px,56px_56px] [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9),transparent)]"
+    aria-hidden="true"
+  ></div>
+
+  <div id="settingsSidebarOverlay" class="fixed inset-0 z-30 hidden bg-slate-950/60 backdrop-blur-sm lg:hidden"></div>
+
+  <aside
+    id="settingsSidebar"
+    class="fixed inset-y-0 left-0 z-40 flex w-48 -translate-x-full flex-col border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
+    aria-label="Settings navigation"
+  >
+    <div class="flex items-center gap-2 px-2">
+      <div class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-sm font-black text-white shadow-[0_16px_40px_rgba(124,77,255,0.35)]">TF</div>
+      <div>
+        <p class="text-xs font-semibold uppercase text-cyan-200/80">TaskFlow</p>
+        <h1 class="text-sm font-bold text-white">Project Hub</h1>
+      </div>
+    </div>
+
+    <nav class="mt-7 space-y-1.5">
+      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'dashboard' %}">
+        <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+        <span>Dashboard</span>
+      </a>
+      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'timeline' %}">
+        <i data-lucide="folder-kanban" class="h-4 w-4"></i>
+        <span>Projects</span>
+      </a>
+      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}#teamWorkspace">
+        <i data-lucide="users-round" class="h-4 w-4"></i>
+        <span>Team</span>
+      </a>
+      <a class="settings-nav-link relative flex h-10 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="#settingsWorkspace">
+        <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
+        <i data-lucide="settings" class="h-4 w-4"></i>
+        <span>Settings</span>
+      </a>
+      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
+        <i data-lucide="files" class="h-4 w-4"></i>
+        <span>Files</span>
+      </a>
+      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#updates">
+        <i data-lucide="radio" class="h-4 w-4"></i>
+        <span>All Updates</span>
+      </a>
+    </nav>
+
+    <div class="mt-auto rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
+      <div class="flex items-center gap-3">
+        <img
+          class="h-9 w-9 rounded-xl border border-white/20 object-cover"
+          src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80"
+          alt="Mostafa profile"
+        >
+        <div class="min-w-0">
+          <p class="truncate text-sm font-semibold text-white">Mostafa Mahmoud</p>
+          <p class="truncate text-xs text-slate-300">Admin</p>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20">
+        <i data-lucide="log-out" class="h-4 w-4"></i>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <div class="min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-48">
+    <header class="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-2.5 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-5 lg:shrink-0">
+      <div class="flex items-center justify-between gap-5">
+        <div class="flex shrink-0 items-center gap-3">
+          <button id="settingsSidebarToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 lg:hidden motion-reduce:transform-none" type="button" aria-label="Open sidebar">
+            <i data-lucide="menu" class="h-5 w-5"></i>
+          </button>
+          <p class="text-xs font-semibold text-cyan-200">Hi, Mostafa</p>
+        </div>
+
+        <div class="flex shrink-0 items-center justify-end gap-3">
+          <div class="relative">
+            <button id="settingsNotificationToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_30px_rgba(34,211,238,0.16)] motion-reduce:transform-none" type="button" aria-label="Open notifications">
+              <i data-lucide="bell" class="h-4 w-4"></i>
+              <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-fuchsia-400 ring-2 ring-slate-950"></span>
+            </button>
+            <div id="settingsNotificationDropdown" class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-slate-950/90 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-bold text-white">Notifications</h3>
+                <span class="rounded-full bg-cyan-400/15 px-2 py-1 text-xs font-semibold text-cyan-200">2 new</span>
+              </div>
+              <div id="settingsNotificationList" class="space-y-3"></div>
+            </div>
+          </div>
+
+          <button class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_30px_rgba(34,211,238,0.16)] motion-reduce:transform-none" type="button" aria-label="Help">
+            <i data-lucide="circle-help" class="h-4 w-4"></i>
+          </button>
+
+          <button id="settingsThemeToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_30px_rgba(34,211,238,0.16)] motion-reduce:transform-none" type="button" aria-label="Toggle dark mode">
+            <i data-lucide="moon" class="h-4 w-4"></i>
+          </button>
+
+          <img class="h-9 w-9 rounded-xl border border-white/20 object-cover shadow-glass" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80" alt="Mostafa avatar">
+        </div>
+      </div>
+
+      <div class="mt-2 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 class="text-xl font-black tracking-tight text-white">Workspace Settings</h1>
+          <p class="mt-0.5 text-xs font-medium text-slate-300">Profile, preferences, security and team permissions</p>
+        </div>
+        <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:w-auto lg:shrink-0">
+          <label class="flex h-10 w-full min-w-0 items-center gap-2.5 rounded-2xl border border-white/10 bg-slate-900/60 px-3 shadow-glass backdrop-blur-xl sm:max-w-[360px] lg:w-[360px]">
+            <i data-lucide="search" class="h-4 w-4 text-slate-400"></i>
+            <input id="settingsSearch" class="min-w-0 flex-1 border-0 bg-transparent text-sm text-white outline-none placeholder:text-slate-400" type="search" placeholder="Search settings..." autocomplete="off">
+          </label>
+          <button id="settingsSaveAllButton" class="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-4 text-sm font-bold text-white shadow-[0_16px_38px_rgba(79,70,229,0.28)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
+            <i data-lucide="save" class="h-4 w-4"></i>
+            Save All
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="settingsWorkspace" class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 lg:overflow-hidden">
+      <section class="flex h-full min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:flex-row">
+        {# ============= TAB SIDEBAR ============= #}
+        <aside class="glass-panel flex min-h-0 w-full flex-col rounded-[22px] border border-white/[0.06] bg-white/[0.04] p-3 shadow-glass backdrop-blur-2xl lg:h-full lg:w-[260px] lg:min-w-[260px]">
+          <p class="px-2 pt-1 text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-200">Categories</p>
+          <nav class="mt-3 grid gap-1.5" role="tablist" aria-label="Settings sections">
+            <button class="settings-tab flex items-center gap-3 rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm font-semibold text-slate-200/80 transition hover:bg-white/10 hover:text-white" type="button" data-tab="profile" role="tab" aria-selected="true">
+              <i data-lucide="user-round" class="h-4 w-4"></i>
+              Profile Settings
+            </button>
+            <button class="settings-tab flex items-center gap-3 rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm font-semibold text-slate-200/80 transition hover:bg-white/10 hover:text-white" type="button" data-tab="preferences" role="tab" aria-selected="false">
+              <i data-lucide="monitor-cog" class="h-4 w-4"></i>
+              Preferences
+            </button>
+            <button class="settings-tab flex items-center gap-3 rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm font-semibold text-slate-200/80 transition hover:bg-white/10 hover:text-white" type="button" data-tab="account" role="tab" aria-selected="false">
+              <i data-lucide="shield-check" class="h-4 w-4"></i>
+              Account Management
+            </button>
+            <button class="settings-tab flex items-center gap-3 rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm font-semibold text-slate-200/80 transition hover:bg-white/10 hover:text-white" type="button" data-tab="team" role="tab" aria-selected="false">
+              <i data-lucide="users-round" class="h-4 w-4"></i>
+              Team &amp; Permissions
+            </button>
+          </nav>
+
+          <section class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs leading-relaxed text-slate-300">
+            <p class="font-extrabold uppercase text-cyan-200">Tip</p>
+            <p class="mt-1">Mọi thay đổi đều có nút <span class="font-bold text-white">Save Changes</span> riêng. Save All ở thanh trên sẽ lưu mọi tab cùng lúc.</p>
+          </section>
+        </aside>
+
+        {# ============= TAB CONTENT ============= #}
+        <section class="glass-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-[22px] border border-white/[0.06] bg-white/[0.04] shadow-glass backdrop-blur-2xl lg:h-full">
+          <div id="settingsPanels" class="min-h-0 flex-1 overflow-y-auto p-5">
+
+            {# ---------- Profile Settings ---------- #}
+            <article class="settings-panel" data-panel="profile" role="tabpanel">
+              <header class="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-200">Section</p>
+                  <h2 class="text-lg font-black text-white">Profile Settings</h2>
+                </div>
+                <span class="hidden rounded-full border border-emerald-300/20 bg-emerald-400/15 px-2.5 py-1 text-[0.65rem] font-black uppercase tracking-wider text-emerald-200 sm:inline-flex" id="profileDirtyBadge">Unsaved</span>
+              </header>
+
+              <form id="profileForm" class="space-y-4">
+                <div class="flex items-center gap-4 rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+                  <div class="relative">
+                    <img id="profileAvatarPreview" class="h-16 w-16 rounded-2xl border border-white/20 object-cover shadow-glass" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80" alt="Profile avatar">
+                    <span class="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-xl border border-white/25 bg-gradient-to-br from-violet-500 to-cyan-400 text-white shadow-[0_10px_24px_rgba(124,77,255,0.4)]">
+                      <i data-lucide="user-round" class="h-3.5 w-3.5"></i>
+                    </span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <label class="inline-flex cursor-pointer items-center gap-2 text-sm font-bold text-cyan-200 hover:text-cyan-100">
+                      <i data-lucide="image-up" class="h-4 w-4"></i>
+                      Change photo
+                      <input id="profileAvatarInput" class="hidden" type="file" accept="image/png,image/jpeg,image/gif">
+                    </label>
+                    <p class="mt-1 text-xs text-slate-400">JPG, GIF or PNG. 1MB max.</p>
+                  </div>
+                </div>
+
+                <label class="grid gap-2">
+                  <span class="text-sm font-extrabold text-slate-400">Full Name</span>
+                  <input name="full_name" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="text" placeholder="Your full name" value="Mostafa Mahmoud" required>
+                </label>
+
+                <label class="grid gap-2">
+                  <span class="text-sm font-extrabold text-slate-400">Email Address</span>
+                  <input name="email" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="email" placeholder="name@example.com" value="Mostafa@example.com" required>
+                </label>
+
+                <div class="grid gap-4 md:grid-cols-2">
+                  <label class="grid gap-2">
+                    <span class="text-sm font-extrabold text-slate-400">Current Password</span>
+                    <div class="relative">
+                      <input name="current_password" class="js-password-input w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="password" placeholder="••••••••">
+                      <button class="js-toggle-password absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" aria-label="Show password">
+                        <i data-lucide="eye" class="h-4 w-4"></i>
+                      </button>
+                    </div>
+                  </label>
+                  <label class="grid gap-2">
+                    <span class="text-sm font-extrabold text-slate-400">New Password</span>
+                    <div class="relative">
+                      <input name="new_password" class="js-password-input w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="password" placeholder="At least 8 characters">
+                      <button class="js-toggle-password absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" aria-label="Show password">
+                        <i data-lucide="eye" class="h-4 w-4"></i>
+                      </button>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="mt-2 flex items-center justify-end gap-3 border-t border-white/5 pt-4">
+                  <button class="rounded-2xl bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10" type="reset">Cancel</button>
+                  <button class="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-5 py-2 text-sm font-bold text-white shadow-[0_12px_30px_rgba(79,70,229,0.28)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="submit">
+                    <i data-lucide="save" class="h-4 w-4"></i>
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </article>
+
+            {# ---------- Preferences ---------- #}
+            <article class="settings-panel hidden" data-panel="preferences" role="tabpanel">
+              <header class="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-200">Section</p>
+                  <h2 class="text-lg font-black text-white">Preferences</h2>
+                </div>
+              </header>
+
+              <form id="preferencesForm" class="space-y-3">
+                <div class="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+                  <div class="flex items-center gap-3">
+                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-cyan-400/15 text-cyan-200">
+                      <i data-lucide="sun-moon" class="h-5 w-5"></i>
+                    </span>
+                    <div>
+                      <p class="text-sm font-bold text-white">Theme Mode</p>
+                      <p class="text-xs text-slate-400">Switch between light &amp; dark workspace</p>
+                    </div>
+                  </div>
+                  <label class="relative inline-flex h-6 w-11 cursor-pointer items-center">
+                    <input id="prefThemeSwitch" class="peer sr-only" type="checkbox" checked>
+                    <span class="h-6 w-11 rounded-full bg-white/15 transition peer-checked:bg-gradient-to-r peer-checked:from-violet-500 peer-checked:to-cyan-400"></span>
+                    <span class="absolute left-0.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+                  <div class="flex items-center gap-3">
+                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-violet-400/15 text-violet-200">
+                      <i data-lucide="globe" class="h-5 w-5"></i>
+                    </span>
+                    <div>
+                      <p class="text-sm font-bold text-white">Language</p>
+                      <p class="text-xs text-slate-400">Interface language across all pages</p>
+                    </div>
+                  </div>
+                  <select name="language" class="w-44 rounded-2xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10">
+                    <option value="en">English</option>
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="ja">日本語</option>
+                    <option value="ko">한국어</option>
+                  </select>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+                  <div class="flex items-center gap-3">
+                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-amber-400/15 text-amber-200">
+                      <i data-lucide="bell-ring" class="h-5 w-5"></i>
+                    </span>
+                    <div>
+                      <p class="text-sm font-bold text-white">Task Notifications</p>
+                      <p class="text-xs text-slate-400">Email + in-app alerts for task updates</p>
+                    </div>
+                  </div>
+                  <label class="relative inline-flex h-6 w-11 cursor-pointer items-center">
+                    <input name="task_notifications" class="peer sr-only" type="checkbox" checked>
+                    <span class="h-6 w-11 rounded-full bg-white/15 transition peer-checked:bg-gradient-to-r peer-checked:from-violet-500 peer-checked:to-cyan-400"></span>
+                    <span class="absolute left-0.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+                  <div class="flex items-center gap-3">
+                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-emerald-400/15 text-emerald-200">
+                      <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
+                    </span>
+                    <div>
+                      <p class="text-sm font-bold text-white">Default Task View</p>
+                      <p class="text-xs text-slate-400">Choose the layout that opens by default</p>
+                    </div>
+                  </div>
+                  <select name="task_view" class="w-44 rounded-2xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10">
+                    <option>Kanban</option>
+                    <option>List</option>
+                    <option>Calendar</option>
+                    <option>Timeline</option>
+                  </select>
+                </div>
+
+                <div class="mt-2 flex items-center justify-end gap-3 border-t border-white/5 pt-4">
+                  <button class="rounded-2xl bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10" type="reset">Cancel</button>
+                  <button class="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-5 py-2 text-sm font-bold text-white shadow-[0_12px_30px_rgba(79,70,229,0.28)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="submit">
+                    <i data-lucide="save" class="h-4 w-4"></i>
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </article>
+
+            {# ---------- Account Management ---------- #}
+            <article class="settings-panel hidden" data-panel="account" role="tabpanel">
+              <header class="mb-4">
+                <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-200">Section</p>
+                <h2 class="text-lg font-black text-white">Account Management</h2>
+              </header>
+
+              <form id="accountForm" class="space-y-3">
+                <div class="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+                  <div class="flex items-center gap-3">
+                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-cyan-400/15 text-cyan-200">
+                      <i data-lucide="shield-check" class="h-5 w-5"></i>
+                    </span>
+                    <div>
+                      <p class="text-sm font-bold text-white">Two-Factor Authentication</p>
+                      <p class="text-xs text-slate-400">Add an extra layer of security to your account</p>
+                    </div>
+                  </div>
+                  <label class="relative inline-flex h-6 w-11 cursor-pointer items-center">
+                    <input name="two_factor" class="peer sr-only" type="checkbox">
+                    <span class="h-6 w-11 rounded-full bg-white/15 transition peer-checked:bg-gradient-to-r peer-checked:from-violet-500 peer-checked:to-cyan-400"></span>
+                    <span class="absolute left-0.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                  </label>
+                </div>
+
+                <section class="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+                  <div class="mb-3 flex items-center gap-3">
+                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-violet-400/15 text-violet-200">
+                      <i data-lucide="smartphone" class="h-5 w-5"></i>
+                    </span>
+                    <p class="text-sm font-bold text-white">Connected Devices</p>
+                  </div>
+                  <ul id="deviceList" class="divide-y divide-white/5">
+                    <li class="flex items-center justify-between py-3">
+                      <div class="min-w-0">
+                        <p class="text-sm font-bold text-white">MacBook Pro</p>
+                        <p class="text-xs text-slate-400">Last active 2 minutes ago · Da Nang</p>
+                      </div>
+                      <button class="js-revoke-device inline-flex items-center gap-1.5 rounded-xl border border-rose-300/20 bg-rose-500/10 px-3 py-1.5 text-xs font-bold text-rose-200 transition hover:bg-rose-500/20" type="button">
+                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                        Revoke
+                      </button>
+                    </li>
+                    <li class="flex items-center justify-between py-3">
+                      <div class="min-w-0">
+                        <p class="text-sm font-bold text-white">iPhone 12</p>
+                        <p class="text-xs text-slate-400">Last active 1 hour ago · Ha Noi</p>
+                      </div>
+                      <button class="js-revoke-device inline-flex items-center gap-1.5 rounded-xl border border-rose-300/20 bg-rose-500/10 px-3 py-1.5 text-xs font-bold text-rose-200 transition hover:bg-rose-500/20" type="button">
+                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                        Revoke
+                      </button>
+                    </li>
+                  </ul>
+                </section>
+
+                <section class="flex items-center justify-between gap-4 rounded-2xl border border-rose-300/20 bg-rose-500/10 p-4">
+                  <div class="flex items-center gap-3">
+                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-rose-500/20 text-rose-200">
+                      <i data-lucide="trash-2" class="h-5 w-5"></i>
+                    </span>
+                    <div>
+                      <p class="text-sm font-bold text-rose-100">Delete Account</p>
+                      <p class="text-xs text-rose-200/80">Permanently delete your account and all data. This cannot be undone.</p>
+                    </div>
+                  </div>
+                  <button id="deleteAccountButton" class="inline-flex items-center gap-2 rounded-2xl border border-rose-300/20 bg-rose-500/90 px-4 py-2 text-sm font-bold text-white shadow-[0_12px_30px_rgba(244,63,94,0.24)] transition hover:-translate-y-0.5 hover:bg-rose-500" type="button">
+                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                    Delete
+                  </button>
+                </section>
+
+                <div class="mt-2 flex items-center justify-end gap-3 border-t border-white/5 pt-4">
+                  <button class="rounded-2xl bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10" type="reset">Cancel</button>
+                  <button class="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-5 py-2 text-sm font-bold text-white shadow-[0_12px_30px_rgba(79,70,229,0.28)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="submit">
+                    <i data-lucide="save" class="h-4 w-4"></i>
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </article>
+
+            {# ---------- Team & Permissions ---------- #}
+            <article class="settings-panel hidden" data-panel="team" role="tabpanel">
+              <header class="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-200">Section</p>
+                  <h2 class="text-lg font-black text-white">Team &amp; Permissions</h2>
+                </div>
+                <button id="inviteTeammateButton" class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-cyan-100 transition hover:bg-white/10" type="button">
+                  <i data-lucide="user-plus" class="h-4 w-4"></i>
+                  Invite
+                </button>
+              </header>
+
+              <form id="teamPermissionsForm" class="space-y-3">
+                <div id="teamMemberList" class="space-y-3"></div>
+
+                <button id="inviteTeammateRowButton" class="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] px-4 py-3 text-sm font-bold text-slate-200 transition hover:border-cyan-300/40 hover:bg-white/10 hover:text-white" type="button">
+                  <i data-lucide="user-plus" class="h-4 w-4"></i>
+                  Invite New Team Member
+                </button>
+
+                <div class="mt-2 flex items-center justify-end gap-3 border-t border-white/5 pt-4">
+                  <button class="rounded-2xl bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10" type="reset">Cancel</button>
+                  <button class="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-5 py-2 text-sm font-bold text-white shadow-[0_12px_30px_rgba(79,70,229,0.28)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="submit">
+                    <i data-lucide="save" class="h-4 w-4"></i>
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  {# ============= Invite Modal ============= #}
+  <div id="inviteSettingsModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/75 px-4 opacity-0 backdrop-blur-md transition-opacity duration-200 ease-out" aria-hidden="true">
+    <section class="relative w-full max-w-md scale-95 rounded-2xl border border-white/10 bg-slate-950/95 p-6 text-white opacity-0 shadow-[0_24px_72px_rgba(2,6,23,0.46)] transition-all duration-200 ease-out" role="dialog" aria-modal="true" aria-labelledby="inviteSettingsTitle">
+      <div class="flex items-center justify-between">
+        <h2 id="inviteSettingsTitle" class="text-lg font-black text-white">Invite Team Member</h2>
+        <button class="grid h-9 w-9 place-items-center rounded-xl text-slate-300 transition hover:bg-white/10 hover:text-white" type="button" data-close-invite aria-label="Close invite modal">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+      <form id="inviteSettingsForm" class="mt-5 space-y-4">
+        <label class="grid gap-2">
+          <span class="text-sm font-extrabold text-slate-400">Email Address</span>
+          <input name="email" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="email" placeholder="colleague@example.com" required>
+        </label>
+        <label class="grid gap-2">
+          <span class="text-sm font-extrabold text-slate-400">Role</span>
+          <select name="role" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10">
+            <option value="Member">Member</option>
+            <option value="Admin">Admin</option>
+            <option value="Viewer">Viewer</option>
+          </select>
+        </label>
+        <div class="mt-4 flex items-center justify-end gap-3">
+          <button class="rounded-2xl bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10" type="button" data-close-invite>Cancel</button>
+          <button class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-500 px-5 py-2 text-sm font-bold text-white shadow-[0_12px_30px_rgba(79,70,229,0.28)] transition hover:brightness-110" type="submit">
+            <i data-lucide="send" class="h-4 w-4"></i>
+            Send Invitation
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  {# ============= Confirm Delete Modal ============= #}
+  <div id="confirmDeleteModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/75 px-4 opacity-0 backdrop-blur-md transition-opacity duration-200 ease-out" aria-hidden="true">
+    <section class="relative w-full max-w-md scale-95 rounded-2xl border border-rose-300/20 bg-slate-950/95 p-6 text-white opacity-0 shadow-[0_24px_72px_rgba(244,63,94,0.18)] transition-all duration-200 ease-out" role="dialog" aria-modal="true" aria-labelledby="confirmDeleteTitle">
+      <div class="grid h-14 w-14 place-items-center rounded-2xl bg-rose-500/15 text-rose-200">
+        <i data-lucide="triangle-alert" class="h-7 w-7"></i>
+      </div>
+      <h2 id="confirmDeleteTitle" class="mt-4 text-lg font-black text-white">Delete account permanently?</h2>
+      <p class="mt-1 text-sm text-slate-300">Hành động này <span class="font-bold text-rose-200">không thể hoàn tác</span>. Toàn bộ projects, tasks và files của bạn sẽ bị xoá vĩnh viễn.</p>
+      <div class="mt-5 flex items-center justify-end gap-3">
+        <button class="rounded-2xl bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10" type="button" data-close-confirm>Cancel</button>
+        <button id="confirmDeleteFinal" class="inline-flex items-center gap-2 rounded-2xl border border-rose-300/20 bg-rose-500/90 px-5 py-2 text-sm font-bold text-white shadow-[0_12px_30px_rgba(244,63,94,0.24)] transition hover:bg-rose-500" type="button">
+          <i data-lucide="trash-2" class="h-4 w-4"></i>
+          Delete permanently
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div id="settingsToast" class="fixed bottom-5 right-5 z-[80] hidden rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white shadow-[0_20px_70px_rgba(2,6,23,0.34)] backdrop-blur-2xl"></div>
+</div>
+{% endblock %}
+
+{% block vendor_scripts %}
+<script src="https://unpkg.com/lucide@latest"></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/settings.js' %}?v=20260523-1"></script>
+{% endblock %}
