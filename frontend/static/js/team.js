@@ -4,7 +4,7 @@
   const app = document.getElementById("teamApp");
   if (!app) return;
 
-  const members = [
+  let members = [
     {
       id: "mostafa",
       name: "Mostafa Ahmed",
@@ -119,7 +119,7 @@
     },
   ];
 
-  const notifications = [
+  let notifications = [
     "Aisha mentioned you in UX copy updates.",
     "Daniel completed responsive review.",
   ];
@@ -642,10 +642,31 @@
     if (window.lucide) window.lucide.createIcons();
   }
 
-  function init() {
+  async function loadTeamData() {
+    try {
+      const response = await fetch("/api/team/data/", {
+        headers: { Accept: "application/json" },
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || "Team API failed");
+      }
+
+      members = result.data.members || members;
+      notifications = result.data.notifications || notifications;
+      state.selectedId = members[0]?.id || state.selectedId;
+      state.filteredMembers = members.slice();
+    } catch (error) {
+      console.warn("Using team fallback data:", error);
+    }
+  }
+
+  async function init() {
     if (initialized) return;
     initialized = true;
     setTheme(window.localStorage.getItem("taskflow-team-theme") || "dark");
+    await loadTeamData();
     renderNotifications();
     renderMembers();
     renderChat();

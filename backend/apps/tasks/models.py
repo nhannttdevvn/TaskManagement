@@ -47,6 +47,11 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "name"], name="unique_project_name_per_user"),
+        ]
+
 
 class Team(models.Model):
     name = models.CharField(max_length=120)

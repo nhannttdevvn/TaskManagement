@@ -4,7 +4,7 @@
   const app = document.getElementById("dashboardApp");
   if (!app) return;
 
-  const projects = [
+  let projects = [
     {
       id: "website-redesign",
       initials: "WR",
@@ -72,7 +72,7 @@
     },
   ];
 
-  const upcomingTasks = [
+  let upcomingTasks = [
     {
       title: "Finalize dashboard wireframes",
       deadline: "Today, 4:00 PM",
@@ -103,20 +103,20 @@
     },
   ];
 
-  const notifications = [
+  let notifications = [
     "Mobile App Development moved 3 tasks to review.",
     "Website Redesign reached 76% completion.",
     "Content Strategy has a new deadline this week.",
   ];
 
-  const activityItems = [
+  let activityItems = [
     "Sarah assigned a high priority task to Website Redesign.",
     "Marketing Campaign was marked completed.",
     "User Research timeline changed to on-hold.",
     "Content Strategy added 4 new documentation tasks.",
   ];
 
-  const analytics = {
+  let analytics = {
     daily: {
       labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
       planned: [7, 9, 8, 11, 10, 5, 6],
@@ -134,7 +134,7 @@
     },
   };
 
-  const statusData = [
+  let statusData = [
     { label: "To Do", value: 18, color: "#5b8fdc", dotClass: "bg-blue-400" },
     { label: "In Progress", value: 18, color: "#9b86e8", dotClass: "bg-violet-400" },
     { label: "Done", value: 18, color: "#34d399", dotClass: "bg-emerald-400" },
@@ -837,9 +837,33 @@
     });
   }
 
-  function init() {
+  async function loadDashboardData() {
+    try {
+      const response = await fetch("/api/dashboard/data/", {
+        headers: { Accept: "application/json" },
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || "Dashboard API failed");
+      }
+
+      projects = result.data.projects || projects;
+      upcomingTasks = result.data.upcomingTasks || upcomingTasks;
+      notifications = result.data.notifications || notifications;
+      activityItems = result.data.activityItems || activityItems;
+      analytics = result.data.analytics || analytics;
+      statusData = result.data.statusData || statusData;
+      state.filteredProjects = projects.slice();
+    } catch (error) {
+      console.warn("Using dashboard fallback data:", error);
+    }
+  }
+
+  async function init() {
     const savedTheme = window.localStorage.getItem("tmds-dashboard-theme") || "dark";
     setTheme(savedTheme);
+    await loadDashboardData();
     renderNotifications();
     renderUpcomingTasks(upcomingTasks);
     renderStatusTotals();

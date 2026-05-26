@@ -222,7 +222,7 @@
         </button>
       </div>
 
-      <form id="inviteMemberForm" class="mt-5 space-y-4" data-invite-url="{% url 'team_invite' %}">
+      <form id="inviteMemberForm" class="mt-5 space-y-4" data-invite-url="{% url 'api_team_invitations' 1 %}">
         {% csrf_token %}
         <label class="block">
           <span class="text-sm font-medium text-gray-300">Email Address</span>
@@ -314,5 +314,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/team.js' %}?v=20260523-2"></script>
+<script src="{% static 'js/team.js' %}?v=20260523-3"></script>
 {% endblock %}

@@ -8,7 +8,7 @@
   const timelineStart = 9;
   const timelineEnd = 17;
 
-  const tasks = [
+  let tasks = [
     {
       id: "development",
       title: "Development",
@@ -248,15 +248,59 @@
     },
   ];
 
-  const notifications = [
+  let notifications = [
     "Web Visual Design moved to high priority.",
     "Development is scheduled for 9:30 AM.",
     "UX Copywrite has 4 new comments.",
   ];
 
+  let workspaces = [
+    {
+      id: "design-sprint",
+      name: "Design Sprint",
+      breadcrumb: "/ Product Discovery",
+      category: "Sprint",
+      company: "TaskFlow Studio",
+      date: "Nov 12, 2026",
+      members: ["SN", "MS", "DN", "AK", "YL"],
+      projects: ["Research Plan", "Design System", "Sprint Review"],
+    },
+    {
+      id: "fintask-landing-page",
+      name: "Fintask Landing Page",
+      breadcrumb: "/ Landing Page",
+      category: "Web Design",
+      company: "Fintask Inc.",
+      date: "Nov 15, 2026",
+      members: ["SN", "MS", "DN", "AK", "YL", "RA", "LM", "QA"],
+      projects: ["Hero Section", "UX Copy", "Visual Design"],
+    },
+    {
+      id: "checkout-flow",
+      name: "Checkout Flow",
+      breadcrumb: "/ Product Flow",
+      category: "E-commerce",
+      company: "FlowPay Team",
+      date: "Nov 22, 2026",
+      members: ["RA", "DN", "QA", "VN"],
+      projects: ["Cart Review", "Payment States", "Error Handling"],
+    },
+    {
+      id: "brand-refresh",
+      name: "Brand Refresh",
+      breadcrumb: "/ Creative",
+      category: "Branding",
+      company: "Northstar Labs",
+      date: "Dec 04, 2026",
+      members: ["AK", "YL", "SN", "LM", "TH"],
+      projects: ["Logo Cleanup", "Color System", "Launch Assets"],
+    },
+  ];
+
   const state = {
     filteredTasks: tasks.slice(),
     view: "calendar",
+    activeWorkspaceId: window.localStorage.getItem("taskflow-active-workspace") || "fintask-landing-page",
     kanbanQuery: "",
     kanbanPriority: "all",
     kanbanSort: "status",
@@ -272,6 +316,9 @@
     sidebarToggle: document.getElementById("timelineSidebarToggle"),
     workspaceToggle: document.getElementById("workspaceToggle"),
     workspaceItems: document.getElementById("workspaceItems"),
+    workspaceCurrentTitle: document.getElementById("workspaceCurrentTitle"),
+    workspaceList: document.getElementById("workspaceList"),
+    addWorkspaceButton: document.getElementById("addWorkspaceButton"),
     themeToggle: document.getElementById("timelineThemeToggle"),
     searchInput: document.getElementById("timelineSearch"),
     searchCount: document.getElementById("timelineSearchCount"),
@@ -300,11 +347,27 @@
     taskLayer: document.getElementById("taskLayer"),
     progressLine: document.getElementById("progressLine"),
     status: document.getElementById("timelineStatus"),
+    projectBreadcrumb: document.getElementById("projectBreadcrumb"),
+    projectCategory: document.getElementById("projectCategory"),
+    projectTitle: document.getElementById("projectTitle"),
+    projectCompany: document.getElementById("projectCompany"),
+    projectDate: document.getElementById("projectDate"),
+    projectMemberStack: document.getElementById("projectMemberStack"),
+    workspaceInviteButton: document.getElementById("workspaceInviteButton"),
+    helpToggle: document.getElementById("timelineHelpToggle"),
+    helpModal: document.getElementById("timelineHelpModal"),
+    profileToggle: document.getElementById("timelineProfileToggle"),
+    profileDropdown: document.getElementById("timelineProfileDropdown"),
     modal: document.getElementById("timelineTaskModal"),
     detail: document.getElementById("timelineTaskDetail"),
     editorModal: document.getElementById("taskEditorModal"),
     editorForm: document.getElementById("taskEditorForm"),
     editorTitle: document.getElementById("taskEditorTitle"),
+    workspaceEditorModal: document.getElementById("workspaceEditorModal"),
+    workspaceEditorForm: document.getElementById("workspaceEditorForm"),
+    projectInviteModal: document.getElementById("projectInviteModal"),
+    projectInviteForm: document.getElementById("projectInviteForm"),
+    projectInviteSubmit: document.getElementById("projectInviteSubmit"),
     toast: document.getElementById("timelineToast"),
   };
 
@@ -346,6 +409,118 @@
 
   function priorityRank(priority) {
     return { High: 3, Medium: 2, Low: 1 }[priority] || 0;
+  }
+
+  function createSlug(value) {
+    return String(value || "workspace")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+      .slice(0, 48) || `workspace-${Date.now().toString(36)}`;
+  }
+
+  function loadStoredWorkspaces() {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem("taskflow-workspaces") || "[]");
+      const existingIds = new Set(workspaces.map((workspace) => workspace.id));
+      stored.forEach((workspace) => {
+        if (workspace?.id && !existingIds.has(workspace.id)) {
+          workspaces.push(workspace);
+          existingIds.add(workspace.id);
+        }
+      });
+    } catch {
+      window.localStorage.removeItem("taskflow-workspaces");
+    }
+  }
+
+  function saveCustomWorkspaces() {
+    const defaultIds = new Set(["design-sprint", "fintask-landing-page", "checkout-flow", "brand-refresh"]);
+    const custom = workspaces.filter((workspace) => !defaultIds.has(workspace.id));
+    window.localStorage.setItem("taskflow-workspaces", JSON.stringify(custom));
+  }
+
+  function activeWorkspace() {
+    return workspaces.find((workspace) => workspace.id === state.activeWorkspaceId) || workspaces[1] || workspaces[0];
+  }
+
+  function ensureActiveWorkspace() {
+    if (!workspaces.some((workspace) => workspace.id === state.activeWorkspaceId)) {
+      state.activeWorkspaceId = "fintask-landing-page";
+      window.localStorage.setItem("taskflow-active-workspace", state.activeWorkspaceId);
+    }
+  }
+
+  function normalizeWorkspaceTasks() {
+    const fallbackWorkspaceId = activeWorkspace()?.id || "fintask-landing-page";
+    tasks = tasks.map((task) => ({
+      ...task,
+      workspaceId: task.workspaceId || fallbackWorkspaceId,
+    }));
+  }
+
+  function renderWorkspaceMembers(members = []) {
+    const visible = members.slice(0, 3);
+    const remaining = Math.max(members.length - visible.length, 0);
+    return `
+      ${visible
+        .map(
+          (member) => `
+            <span class="inline-grid h-6 w-6 place-items-center rounded-full border-2 border-slate-950 bg-gradient-to-br from-cyan-400 to-violet-500 text-[0.56rem] font-black text-white">
+              ${escapeHtml(member)}
+            </span>
+          `
+        )
+        .join("")}
+      ${remaining ? `<span class="inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-slate-950 bg-white/10 text-[0.56rem] font-black text-slate-200">+${remaining}</span>` : ""}
+    `;
+  }
+
+  function renderWorkspaceList() {
+    if (!selectors.workspaceList) return;
+    selectors.workspaceCurrentTitle.textContent = activeWorkspace().name;
+    selectors.workspaceList.innerHTML = workspaces
+      .map((workspace) => {
+        const isActive = workspace.id === state.activeWorkspaceId;
+        const count = tasks.filter((task) => task.workspaceId === workspace.id).length;
+        return `
+          <button
+            class="w-full rounded-2xl px-3 py-2 text-left transition hover:bg-white/10 ${isActive ? "border border-white/12 bg-white/12 text-white shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "text-slate-300"}"
+            type="button"
+            data-workspace-id="${workspace.id}"
+          >
+            <span class="flex items-center justify-between gap-2">
+              <span class="truncate text-sm font-bold">${escapeHtml(workspace.name)}</span>
+              <span class="rounded-full bg-slate-950/35 px-1.5 py-0.5 text-[0.58rem] font-black text-cyan-100">${count}</span>
+            </span>
+            <span class="mt-1 block truncate text-[0.62rem] font-semibold text-slate-400">${escapeHtml(workspace.projects.join(" · "))}</span>
+          </button>
+        `;
+      })
+      .join("");
+  }
+
+  function renderProjectHeader() {
+    const workspace = activeWorkspace();
+    selectors.projectBreadcrumb.textContent = workspace.breadcrumb;
+    selectors.projectCategory.textContent = workspace.category;
+    selectors.projectTitle.textContent = workspace.name;
+    selectors.projectCompany.innerHTML = `<i data-lucide="building-2" class="h-3 w-3"></i> ${escapeHtml(workspace.company)}`;
+    selectors.projectDate.innerHTML = `<i data-lucide="calendar-days" class="h-3 w-3"></i> ${escapeHtml(workspace.date)}`;
+    selectors.projectMemberStack.innerHTML = renderWorkspaceMembers(workspace.members);
+    refreshIcons();
+  }
+
+  function switchWorkspace(workspaceId) {
+    if (!workspaces.some((workspace) => workspace.id === workspaceId)) return;
+    state.activeWorkspaceId = workspaceId;
+    window.localStorage.setItem("taskflow-active-workspace", workspaceId);
+    renderWorkspaceList();
+    renderProjectHeader();
+    applyTaskFilters();
+    selectors.workspace.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    showToast(`${activeWorkspace().name} workspace loaded`);
   }
 
   function loadFavorites() {
@@ -427,6 +602,7 @@
     const query = state.kanbanQuery.trim().toLowerCase();
     const priority = state.kanbanPriority;
     const sorted = tasks
+      .filter((task) => task.workspaceId === state.activeWorkspaceId)
       .filter((task) => taskMatchesQuery(task, query))
       .filter((task) => priority === "all" || task.priority === priority)
       .slice();
@@ -553,12 +729,12 @@
         return `
           <section class="kanban-column flex min-h-0 flex-col rounded-2xl border border-white/[0.07] bg-white/[0.032] p-2.5 transition duration-200" data-column-status="${column.name}">
             <div class="mb-2.5 flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="grid h-6 w-6 place-items-center rounded-lg border ${statusTone(column.name)}">
-                  <i data-lucide="${column.icon}" class="h-3 w-3"></i>
-                </span>
-                <h3 class="text-sm font-black text-white">${column.name}</h3>
-              </div>
+          <div class="flex items-center gap-2">
+            <span class="grid h-6 w-6 place-items-center rounded-lg border ${statusTone(column.name)}">
+              <i data-lucide="${column.icon}" class="h-3 w-3"></i>
+            </span>
+            <h3 class="text-sm font-black text-white">${column.name}</h3>
+          </div>
               <div class="flex items-center gap-1">
                 <span class="rounded-full bg-white/10 px-2 py-0.5 text-[0.65rem] font-black text-slate-300">${columnTasks.length}</span>
                 <button class="grid h-6 w-6 place-items-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-add-status="${column.name}" aria-label="Add task to ${column.name}">
@@ -744,7 +920,7 @@
         <div class="min-w-0">
           <p class="text-xs font-extrabold uppercase text-cyan-200">${escapeHtml(task.category)}</p>
           <h2 id="timelineTaskTitle" class="mt-2 text-2xl font-black text-white">${escapeHtml(task.title)}</h2>
-          <p class="mt-2 text-sm leading-6 text-slate-400">${escapeHtml(task.subtitle)} scheduled from ${timeLabel(task.start)} for ${task.duration} hours.</p>
+          <p class="mt-2 text-sm leading-6 text-slate-400">${escapeHtml(task.subtitle)} scheduled from ${timeLabel(task.start)} for ${task.duration} hours in ${escapeHtml(activeWorkspace().name)}.</p>
         </div>
         <span class="shrink-0 rounded-full border px-2.5 py-1 text-[0.68rem] font-black ${priorityTone(task.priority)}">${escapeHtml(task.priority)}</span>
       </div>
@@ -835,6 +1011,109 @@
     document.body.style.overflow = "";
   }
 
+  function openWorkspaceEditor() {
+    selectors.workspaceEditorForm.reset();
+    selectors.workspaceEditorModal.classList.remove("hidden");
+    selectors.workspaceEditorModal.classList.add("grid");
+    document.body.style.overflow = "hidden";
+    selectors.workspaceEditorForm.elements.name.focus();
+  }
+
+  function closeWorkspaceEditor() {
+    selectors.workspaceEditorModal.classList.add("hidden");
+    selectors.workspaceEditorModal.classList.remove("grid");
+    document.body.style.overflow = "";
+  }
+
+  function openProjectInviteModal() {
+    selectors.projectInviteForm.reset();
+    selectors.projectInviteModal.classList.remove("hidden");
+    selectors.projectInviteModal.classList.add("grid");
+    document.body.style.overflow = "hidden";
+    selectors.projectInviteForm.elements.email.focus();
+  }
+
+  function closeProjectInviteModal() {
+    selectors.projectInviteModal.classList.add("hidden");
+    selectors.projectInviteModal.classList.remove("grid");
+    document.body.style.overflow = "";
+  }
+
+  function openHelpModal() {
+    selectors.helpModal.classList.remove("hidden");
+    selectors.helpModal.classList.add("grid");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeHelpModal() {
+    selectors.helpModal.classList.add("hidden");
+    selectors.helpModal.classList.remove("grid");
+    document.body.style.overflow = "";
+  }
+
+  async function sendProjectInvite(event) {
+    event.preventDefault();
+    const formData = new FormData(selectors.projectInviteForm);
+    const workspace = activeWorkspace();
+    const payload = {
+      email: String(formData.get("email") || "").trim(),
+      role: String(formData.get("role") || "member").trim(),
+      projects: [workspace.name],
+      message: String(formData.get("message") || `You have been invited to ${workspace.name}.`).trim(),
+    };
+
+    selectors.projectInviteSubmit.disabled = true;
+    selectors.projectInviteSubmit.innerHTML = '<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i> Sending...';
+    refreshIcons();
+
+    try {
+      const response = await fetch(selectors.projectInviteForm.dataset.inviteUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || "Could not send invitation");
+      }
+      closeProjectInviteModal();
+      showToast("Invitation sent");
+    } catch (error) {
+      showToast(error.message || "Could not send invitation");
+    } finally {
+      selectors.projectInviteSubmit.disabled = false;
+      selectors.projectInviteSubmit.innerHTML = '<i data-lucide="mail" class="h-3.5 w-3.5"></i> Send Invitation';
+      refreshIcons();
+    }
+  }
+
+  function saveWorkspaceFromEditor(event) {
+    event.preventDefault();
+    const formData = new FormData(selectors.workspaceEditorForm);
+    const name = String(formData.get("name") || "").trim();
+    if (!name) return;
+
+    const workspace = {
+      id: `${createSlug(name)}-${Date.now().toString(36)}`,
+      name,
+      breadcrumb: `/${name}`,
+      category: String(formData.get("category") || "Project").trim() || "Project",
+      company: String(formData.get("company") || "TaskFlow Workspace").trim() || "TaskFlow Workspace",
+      date: String(formData.get("date") || "No deadline").trim() || "No deadline",
+      members: ["SN", "MS"],
+      projects: ["Planning", "Delivery"],
+    };
+
+    workspaces.push(workspace);
+    saveCustomWorkspaces();
+    closeWorkspaceEditor();
+    switchWorkspace(workspace.id);
+    showToast("Workspace created");
+  }
+
   function saveTaskFromEditor(event) {
     event.preventDefault();
     const formData = new FormData(selectors.editorForm);
@@ -860,6 +1139,7 @@
       tasks.push({
         id: createTaskId(payload.title),
         ...payload,
+        workspaceId: state.activeWorkspaceId,
         start: 10,
         duration: 1.25,
         row: 0,
@@ -897,7 +1177,15 @@
   function setTheme(theme) {
     app.dataset.theme = theme;
     document.documentElement.classList.toggle("dark", theme !== "light");
-    selectors.themeToggle.innerHTML = `<i data-lucide="${theme === "light" ? "sun" : "moon"}" class="h-4 w-4"></i>`;
+    const isLight = theme === "light";
+    selectors.themeToggle.setAttribute("aria-label", isLight ? "Switch to dark mode" : "Switch to light mode");
+    selectors.themeToggle.setAttribute("title", isLight ? "Switch to dark mode" : "Switch to light mode");
+    selectors.themeToggle.innerHTML = `
+      <span class="grid h-6 w-6 place-items-center rounded-lg ${isLight ? "bg-violet-500/15 text-violet-700" : "bg-cyan-300/15 text-cyan-100"}">
+        <i data-lucide="${isLight ? "moon" : "sun"}" class="h-3.5 w-3.5"></i>
+      </span>
+      <span class="hidden sm:inline">${isLight ? "Dark" : "Light"}</span>
+    `;
     refreshIcons();
   }
 
@@ -938,6 +1226,26 @@
 
     selectors.workspaceToggle.addEventListener("click", () => {
       selectors.workspaceItems.classList.toggle("hidden");
+    });
+
+    selectors.workspaceList.addEventListener("click", (event) => {
+      const workspaceButton = event.target.closest("[data-workspace-id]");
+      if (!workspaceButton) return;
+      switchWorkspace(workspaceButton.dataset.workspaceId);
+      toggleSidebar(false);
+    });
+
+    selectors.addWorkspaceButton.addEventListener("click", openWorkspaceEditor);
+    selectors.workspaceEditorForm.addEventListener("submit", saveWorkspaceFromEditor);
+
+    selectors.workspaceInviteButton.addEventListener("click", openProjectInviteModal);
+    selectors.projectInviteForm.addEventListener("submit", sendProjectInvite);
+
+    selectors.helpToggle.addEventListener("click", openHelpModal);
+
+    selectors.profileToggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      selectors.profileDropdown.classList.toggle("hidden");
     });
 
     if (selectors.searchInput) {
@@ -989,6 +1297,9 @@
       if (!event.target.closest("#timelineNotificationToggle") && !event.target.closest("#timelineNotificationDropdown")) {
         selectors.notificationDropdown.classList.add("hidden");
       }
+      if (!event.target.closest("#timelineProfileToggle") && !event.target.closest("#timelineProfileDropdown")) {
+        selectors.profileDropdown.classList.add("hidden");
+      }
     });
 
     selectors.themeToggle.addEventListener("click", () => {
@@ -1029,6 +1340,21 @@
         return;
       }
 
+      if (event.target.closest("[data-close-workspace-editor]")) {
+        closeWorkspaceEditor();
+        return;
+      }
+
+      if (event.target.closest("[data-close-project-invite]")) {
+        closeProjectInviteModal();
+        return;
+      }
+
+      if (event.target.closest("[data-close-help]")) {
+        closeHelpModal();
+        return;
+      }
+
       const favoriteButton = event.target.closest("[data-favorite-task]");
       if (favoriteButton) {
         event.preventDefault();
@@ -1046,7 +1372,11 @@
       if (event.key === "Escape") {
         closeTaskModal();
         closeTaskEditor();
+        closeWorkspaceEditor();
+        closeProjectInviteModal();
+        closeHelpModal();
         toggleSidebar(false);
+        selectors.profileDropdown.classList.add("hidden");
       }
     });
 
@@ -1102,7 +1432,7 @@
   function startRealtimeStatus() {
     window.setInterval(() => {
       selectors.status.textContent = "Updated now";
-      showToast("Timeline synced with mock workspace");
+      showToast(`${activeWorkspace().name} synced`);
       window.setTimeout(() => {
         selectors.status.textContent = "Live sync";
       }, 2200);
@@ -1113,9 +1443,35 @@
     if (window.lucide) window.lucide.createIcons();
   }
 
-  function init() {
+  async function loadProjectData() {
+    try {
+      const response = await fetch("/api/project/data/", {
+        headers: { Accept: "application/json" },
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || "Project API failed");
+      }
+
+      tasks = result.data.tasks || tasks;
+      normalizeWorkspaceTasks();
+      notifications = result.data.notifications || notifications;
+      state.filteredTasks = tasks.slice();
+    } catch (error) {
+      console.warn("Using project fallback data:", error);
+      normalizeWorkspaceTasks();
+    }
+  }
+
+  async function init() {
     setTheme(window.localStorage.getItem("taskflow-timeline-theme") || "dark");
+    loadStoredWorkspaces();
+    ensureActiveWorkspace();
     loadFavorites();
+    await loadProjectData();
+    renderWorkspaceList();
+    renderProjectHeader();
     renderHeader();
     renderNotifications();
     applyTaskFilters();
