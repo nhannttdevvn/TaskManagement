@@ -27,6 +27,11 @@ urlpatterns = [
     path("project/", TemplateView.as_view(template_name="timeline/index.html"), name="project"),
     path("timeline/", TemplateView.as_view(template_name="timeline/index.html"), name="timeline"),
     path("team/", TemplateView.as_view(template_name="team/index.html"), name="team"),
+    # ── FE: Settings / Files / Auth (added by feature/ui-components) ──
+    path("settings/", TemplateView.as_view(template_name="settings/index.html"), name="settings"),
+    path("files/", TemplateView.as_view(template_name="files/index.html"), name="files"),
+    path("login/", TemplateView.as_view(template_name="auth/login.html"), name="login"),
+    path("logout/", TemplateView.as_view(template_name="auth/logout.html"), name="logout"),
     path("", include("apps.tasks.urls")),
     path("admin/", admin.site.urls),
 ]
