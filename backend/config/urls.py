@@ -22,7 +22,9 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 
 urlpatterns = [
+    path("api/", include("apps.tasks.api.urls")),
     path("dashboard/", TemplateView.as_view(template_name="dashboard/index.html"), name="dashboard"),
+    path("project/", TemplateView.as_view(template_name="timeline/index.html"), name="project"),
     path("timeline/", TemplateView.as_view(template_name="timeline/index.html"), name="timeline"),
     path("team/", TemplateView.as_view(template_name="team/index.html"), name="team"),
     path("", include("apps.tasks.urls")),
