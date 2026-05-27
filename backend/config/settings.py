@@ -12,7 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 
 from decouple import Csv, config
+<<<<<<< feature/backend-core
+=======
 
+>>>>>>> main
 # backend/ contains Django code. frontend/ contains templates and static assets.
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BASE_DIR.parent
