@@ -1,4 +1,4 @@
-from .auth import auth_login, auth_logout, users_me
+from .auth import auth_login, auth_logout, auth_signup, users_me
 from .conversations import (
     call_end,
     conversation_calls,
@@ -93,4 +93,5 @@ __all__ = [
     "teams_collection",
     "user_presence",
     "users_me",
+    "auth_signup",
 ]
