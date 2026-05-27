@@ -19,21 +19,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-<<<<<<< HEAD
-
-urlpatterns = [
-    path("api/", include("apps.tasks.api.urls")),
-    path("admin/", admin.site.urls),
-    path("", include("apps.tasks.urls")),
-=======
 from django.views.generic import TemplateView
 
 urlpatterns = [
     path("api/", include("apps.tasks.api.urls")),
-    path("dashboard/", TemplateView.as_view(template_name="dashboard/index.html"), name="dashboard"),
-    path("project/", TemplateView.as_view(template_name="timeline/index.html"), name="project"),
-    path("timeline/", TemplateView.as_view(template_name="timeline/index.html"), name="timeline"),
-    path("team/", TemplateView.as_view(template_name="team/index.html"), name="team"),
     # ── FE: Settings / Files / Auth (added by feature/ui-components) ──
     path("settings/", TemplateView.as_view(template_name="settings/index.html"), name="settings"),
     path("files/", TemplateView.as_view(template_name="files/index.html"), name="files"),
@@ -41,7 +30,6 @@ urlpatterns = [
     path("logout/", TemplateView.as_view(template_name="auth/logout.html"), name="logout"),
     path("", include("apps.tasks.urls")),
     path("admin/", admin.site.urls),
->>>>>>> origin/develop
 ]
 
 if settings.DEBUG:

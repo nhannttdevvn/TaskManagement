@@ -11,11 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 from pathlib import Path
 
-<<<<<<< HEAD
 from decouple import Csv, config
-
-=======
->>>>>>> origin/develop
 # backend/ contains Django code. frontend/ contains templates and static assets.
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BASE_DIR.parent
@@ -82,7 +78,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-<<<<<<< HEAD
 DB_ENGINE = config("DB_ENGINE", default="django.db.backends.sqlite3")
 
 if DB_ENGINE == "django.db.backends.mysql":
@@ -108,19 +103,6 @@ else:
             "ENGINE": DB_ENGINE,
             "NAME": str(sqlite_name),
         }
-=======
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "tmds_project",
-        "USER": "tmds_user",
-        "PASSWORD": "tmds_password",
-        "HOST": "127.0.0.1",
-        "PORT": "3306",
-        "OPTIONS": {
-            "charset": "utf8mb4",
-        },
->>>>>>> origin/develop
     }
 
 
