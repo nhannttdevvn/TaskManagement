@@ -19,17 +19,20 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import TemplateView
 
 urlpatterns = [
     path("api/", include("apps.tasks.api.urls")),
+<<<<<<< feature/backend-core
     # ── FE: Settings / Files / Auth (added by feature/ui-components) ──
     path("settings/", TemplateView.as_view(template_name="settings/index.html"), name="settings"),
     path("files/", TemplateView.as_view(template_name="files/index.html"), name="files"),
     path("login/", TemplateView.as_view(template_name="auth/login.html"), name="login"),
     path("logout/", TemplateView.as_view(template_name="auth/logout.html"), name="logout"),
     path("", include("apps.tasks.urls")),
+=======
+>>>>>>> main
     path("admin/", admin.site.urls),
+    path("", include("apps.tasks.urls")),
 ]
 
 if settings.DEBUG:
