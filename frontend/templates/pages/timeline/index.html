@@ -1,0 +1,543 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Project Timeline | TaskFlow{% endblock %}
+
+{% block vendor_styles %}
+{% include "partials/design_tokens.html" %}
+<style>
+  #timelineApp {
+    color-scheme: dark;
+  }
+
+  #timelineApp[data-theme="light"] {
+    color-scheme: light;
+    background:
+      linear-gradient(135deg, rgba(79, 70, 229, 0.08), transparent 28%),
+      linear-gradient(225deg, rgba(14, 165, 233, 0.12), transparent 30%),
+      linear-gradient(180deg, #f8fafc 0%, #eef6ff 52%, #f5f3ff 100%) !important;
+  }
+
+  #timelineApp[data-theme="light"] .theme-content .theme-panel,
+  #timelineApp[data-theme="light"] .theme-content [class*="bg-white/10"],
+  #timelineApp[data-theme="light"] .theme-content [class*="bg-white/[0."] {
+    background-color: rgba(255, 255, 255, 0.78) !important;
+    border-color: rgba(148, 163, 184, 0.36) !important;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  #timelineApp[data-theme="light"] .theme-content [class*="bg-slate-950"],
+  #timelineApp[data-theme="light"] .theme-content [class*="bg-slate-900"] {
+    background-color: rgba(255, 255, 255, 0.74) !important;
+  }
+
+  #timelineApp[data-theme="light"] .theme-content .text-white {
+    color: #0f172a !important;
+  }
+
+  #timelineApp[data-theme="light"] .theme-content .text-slate-500,
+  #timelineApp[data-theme="light"] .theme-content .text-slate-400,
+  #timelineApp[data-theme="light"] .theme-content .text-slate-300 {
+    color: #475569 !important;
+  }
+
+  #timelineApp[data-theme="light"] .theme-content input,
+  #timelineApp[data-theme="light"] .theme-content select,
+  #timelineApp[data-theme="light"] .theme-content textarea {
+    color: #0f172a !important;
+  }
+
+  #timelineApp[data-theme="light"] .theme-content input::placeholder,
+  #timelineApp[data-theme="light"] .theme-content textarea::placeholder {
+    color: #64748b !important;
+  }
+
+  #timelineApp[data-theme="light"] .theme-content [class*="border-white"] {
+    border-color: rgba(148, 163, 184, 0.34) !important;
+  }
+</style>
+{% endblock %}
+
+{% block body_class %}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %}
+
+{% block page_shell %}
+<div
+  id="timelineApp"
+  data-project-url="{% url 'api_project_data' %}"
+  data-invite-url="{% url 'api_team_invitations' 1 %}"
+  data-allow-demo-fallback="true"
+  class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(79,70,229,0.22),transparent_30%),linear-gradient(225deg,rgba(14,165,233,0.16),transparent_34%),linear-gradient(180deg,#050816_0%,#0f172a_52%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
+>
+  <div
+    class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,rgba(124,77,255,0.24),transparent_26%),radial-gradient(circle_at_80%_0%,rgba(34,211,238,0.14),transparent_24%),linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:auto,auto,56px_56px,56px_56px] [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9),transparent)]"
+    aria-hidden="true"
+  ></div>
+
+  <div id="timelineSidebarOverlay" class="fixed inset-0 z-30 hidden bg-slate-950/60 backdrop-blur-sm lg:hidden"></div>
+
+  <aside
+    id="timelineSidebar"
+    class="fixed inset-y-0 left-0 z-40 flex w-48 -translate-x-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
+    aria-label="Timeline navigation"
+  >
+    <div class="flex shrink-0 items-center gap-2 px-2">
+      <div class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-sm font-black text-white shadow-[0_16px_40px_rgba(124,77,255,0.35)]">TF</div>
+      <div>
+        <p class="text-xs font-semibold uppercase text-cyan-200/80">TaskFlow</p>
+        <h1 class="text-sm font-bold text-white">Project Hub</h1>
+      </div>
+    </div>
+
+    <div class="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
+      <nav class="space-y-1.5">
+        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'dashboard' %}">
+          <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+          <span>Dashboard</span>
+        </a>
+        <a class="timeline-nav-link relative flex h-10 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="{% url 'project' %}">
+          <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
+          <i data-lucide="folder-kanban" class="h-4 w-4"></i>
+          <span>Projects</span>
+        </a>
+        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}#teamWorkspace">
+          <i data-lucide="users-round" class="h-4 w-4"></i>
+          <span>Team</span>
+        </a>
+        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#settings">
+          <i data-lucide="settings" class="h-4 w-4"></i>
+          <span>Settings</span>
+        </a>
+        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#files">
+          <i data-lucide="files" class="h-4 w-4"></i>
+          <span>Files</span>
+        </a>
+        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#updates">
+          <i data-lucide="radio" class="h-4 w-4"></i>
+          <span>All Updates</span>
+        </a>
+      </nav>
+
+      <section class="mt-4 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
+        <button id="workspaceToggle" class="flex w-full items-center justify-between text-left" type="button">
+          <span>
+            <span class="block text-xs font-extrabold uppercase text-cyan-200">Workspace</span>
+            <span id="workspaceCurrentTitle" class="block text-sm font-bold text-white">Fintask Landing Page</span>
+          </span>
+          <i data-lucide="chevron-down" class="h-5 w-5 text-slate-300"></i>
+        </button>
+        <div id="workspaceItems" class="mt-3 space-y-1.5">
+          <div id="workspaceList" class="max-h-[min(18rem,34vh)] space-y-1.5 overflow-y-auto pr-1"></div>
+        </div>
+        <button id="addWorkspaceButton" class="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 px-3 py-1.5 text-sm font-bold text-cyan-100 transition hover:border-cyan-300/50 hover:bg-cyan-300/10" type="button">
+          <i data-lucide="plus" class="h-4 w-4"></i>
+          Add New
+        </button>
+      </section>
+    </div>
+
+    <div class="mt-3 shrink-0 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
+      <div class="flex items-center gap-3">
+        <img class="h-9 w-9 rounded-xl border border-white/20 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Sarah profile">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-semibold text-white">Sarah Nguyen</p>
+          <p class="truncate text-xs text-slate-300">Product Manager</p>
+        </div>
+      </div>
+      <button class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20" type="button">
+        <i data-lucide="log-out" class="h-4 w-4"></i>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <div class="theme-content min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-48">
+    <header class="theme-panel sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-2.5 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-5 lg:shrink-0">
+      <div class="flex items-center justify-between gap-5">
+        <div class="flex shrink-0 items-center gap-3">
+          <button id="timelineSidebarToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 lg:hidden motion-reduce:transform-none" type="button" aria-label="Open sidebar">
+            <i data-lucide="menu" class="h-5 w-5"></i>
+          </button>
+          <div>
+            <p class="text-xs font-semibold text-cyan-200">Hi, Sarah</p>
+          </div>
+        </div>
+
+        <div class="flex shrink-0 items-center justify-end gap-3">
+            <div class="relative">
+              <button id="timelineNotificationToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_30px_rgba(34,211,238,0.16)] motion-reduce:transform-none" type="button" aria-label="Open notifications">
+                <i data-lucide="bell" class="h-4 w-4"></i>
+                <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-fuchsia-400 ring-2 ring-slate-950"></span>
+              </button>
+              <div id="timelineNotificationDropdown" class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-slate-950/90 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
+                <div class="mb-3 flex items-center justify-between">
+                  <h3 class="text-sm font-bold text-white">Notifications</h3>
+                  <span class="rounded-full bg-cyan-400/15 px-2 py-1 text-xs font-semibold text-cyan-200">3 new</span>
+                </div>
+                <div id="timelineNotificationList" class="space-y-3"></div>
+              </div>
+            </div>
+
+            <button id="timelineHelpToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_30px_rgba(34,211,238,0.16)] motion-reduce:transform-none" type="button" aria-label="Help">
+              <i data-lucide="circle-help" class="h-4 w-4"></i>
+            </button>
+
+            <button id="timelineThemeToggle" class="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-2.5 text-xs font-black text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_30px_rgba(34,211,238,0.16)] motion-reduce:transform-none" type="button" aria-label="Switch display mode">
+              <span class="grid h-6 w-6 place-items-center rounded-lg bg-cyan-300/15 text-cyan-100">
+                <i data-lucide="sun" class="h-3.5 w-3.5"></i>
+              </span>
+              <span class="hidden sm:inline">Light</span>
+            </button>
+
+            <div class="relative">
+              <button id="timelineProfileToggle" class="block rounded-xl transition hover:-translate-y-0.5 motion-reduce:transform-none" type="button" aria-label="Open profile menu">
+                <img class="h-9 w-9 rounded-xl border border-white/20 object-cover shadow-glass" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Sarah avatar">
+              </button>
+              <div id="timelineProfileDropdown" class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-56 rounded-2xl border border-white/10 bg-slate-950/90 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
+                <div class="flex items-center gap-3 rounded-xl bg-white/5 p-2">
+                  <img class="h-9 w-9 rounded-xl border border-white/20 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Sarah profile">
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-bold text-white">Sarah Nguyen</p>
+                    <p class="truncate text-xs text-slate-400">Product Manager</p>
+                  </div>
+                </div>
+                <button class="mt-2 flex h-9 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white" type="button">
+                  <i data-lucide="user-round" class="h-4 w-4"></i>
+                  Account settings
+                </button>
+                <button class="flex h-9 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white" type="button">
+                  <i data-lucide="log-out" class="h-4 w-4"></i>
+                  Logout
+                </button>
+              </div>
+            </div>
+        </div>
+      </div>
+
+    </header>
+
+    <main id="timelineOverview" class="flex min-h-0 flex-col gap-2 overflow-y-auto px-3 py-2 sm:px-4 lg:flex-1 lg:overflow-hidden">
+      <section id="projectOverviewPanel" class="theme-panel flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-2xl lg:flex-1 lg:overflow-hidden">
+        <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p class="text-[0.66rem] font-extrabold uppercase tracking-[0.14em] text-cyan-200">Project Overview</p>
+            <h1 class="mt-0.5 text-xl font-black leading-tight text-white">All project workspaces</h1>
+            <p class="mt-0.5 max-w-2xl text-xs font-semibold leading-5 text-slate-400">Open a project under each workspace to manage timeline, kanban, and task ownership.</p>
+          </div>
+          <button id="overviewAddWorkspace" class="inline-flex h-8 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-3 text-xs font-black text-white shadow-[0_10px_24px_rgba(79,70,229,0.18)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
+            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+            Add Workspace
+          </button>
+        </div>
+
+        <div id="projectOverviewStats" class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4"></div>
+
+        <div class="mt-3 grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.75fr)]">
+          <section class="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/30 p-2.5">
+            <div class="mb-2 flex shrink-0 items-center justify-between">
+              <div>
+                <h2 class="text-sm font-black text-white">Workspace groups</h2>
+                <p class="text-[0.68rem] font-semibold text-slate-400">Choose a project to open timeline.</p>
+              </div>
+              <span id="overviewWorkspaceCount" class="rounded-full bg-cyan-400/15 px-2 py-1 text-[0.65rem] font-black text-cyan-200"></span>
+            </div>
+            <div id="projectOverviewCards" class="grid min-h-0 flex-1 content-start gap-2 overflow-y-auto pr-1 md:grid-cols-2 2xl:grid-cols-3"></div>
+          </section>
+
+          <section class="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/30 p-2.5">
+            <div class="mb-2 flex shrink-0 items-center justify-between">
+              <div>
+                <h2 class="text-sm font-black text-white">Recent projects</h2>
+                <p class="text-[0.68rem] font-semibold text-slate-400">Quick access.</p>
+              </div>
+              <i data-lucide="folder-open" class="h-4 w-4 text-cyan-200"></i>
+            </div>
+            <div id="projectOverviewRows" class="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="projectDetailHeader" class="theme-panel hidden rounded-2xl border border-white/10 bg-white/10 px-3 py-2 shadow-glass backdrop-blur-2xl lg:shrink-0">
+        <div class="flex flex-col gap-1.5">
+          <div class="flex flex-wrap items-center gap-2">
+            <p id="projectBreadcrumb" class="text-[0.68rem] font-semibold text-slate-400">/ Landing Page</p>
+            <span id="projectCategory" class="inline-flex rounded-full bg-cyan-400/15 px-2 py-0.5 text-[0.62rem] font-extrabold uppercase text-cyan-200">Web Design</span>
+          </div>
+          <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+            <h1 id="projectTitle" class="min-w-0 truncate text-xl font-black leading-tight text-white">Fintask Landing Page</h1>
+            <div class="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
+              <span id="projectCompany" class="inline-flex items-center gap-1.5 text-[0.65rem] font-medium text-slate-400"><i data-lucide="building-2" class="h-3 w-3"></i> Fintask Inc.</span>
+              <span id="projectDate" class="inline-flex items-center gap-1.5 text-[0.65rem] font-medium text-slate-400"><i data-lucide="calendar-days" class="h-3 w-3"></i> Nov 15, 2026</span>
+              <div id="projectMemberStack" class="-space-x-2"></div>
+              <button id="workspaceInviteButton" class="inline-flex h-7 items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-2.5 text-[0.68rem] font-bold text-white shadow-[0_10px_24px_rgba(79,70,229,0.22)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
+                <i data-lucide="user-plus" class="h-3 w-3"></i>
+                Invite
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="timelineWorkspace" class="theme-panel hidden min-h-[32rem] flex-col rounded-2xl border border-white/10 bg-white/10 p-2.5 shadow-glass backdrop-blur-2xl lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+        <div class="mb-2 flex shrink-0 flex-col gap-2 rounded-2xl border border-white/[0.08] bg-slate-950/25 px-2.5 py-2 sm:flex-row sm:items-center sm:justify-between">
+          <div class="min-w-0">
+            <p class="text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-cyan-200">November 15</p>
+            <h2 id="timelineViewTitle" class="truncate text-base font-black text-white">10:00 AM Timeline</h2>
+            <div class="mt-1 flex flex-wrap gap-1" role="tablist" aria-label="Project task views">
+              <button class="timeline-view-tab rounded-lg px-2.5 py-0.5 text-xs font-extrabold text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-view="kanban" role="tab" aria-selected="false">Kanban View</button>
+              <button class="timeline-view-tab rounded-lg px-2.5 py-0.5 text-xs font-extrabold text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-view="list" role="tab" aria-selected="false">List View</button>
+              <button class="timeline-view-tab rounded-lg border border-cyan-300/30 bg-cyan-400/10 px-2.5 py-0.5 text-xs font-extrabold text-cyan-200 shadow-[inset_0_-2px_0_rgba(34,211,238,0.9)]" type="button" data-view="calendar" role="tab" aria-selected="true">Calendar View</button>
+            </div>
+          </div>
+          <div class="flex shrink-0 flex-wrap items-center justify-end gap-2 text-xs text-slate-400">
+            <span id="timelineStatus" class="rounded-full bg-emerald-400/15 px-2.5 py-1 font-bold text-emerald-200">Live sync</span>
+            <span id="timelineViewMeta" class="hidden sm:inline">Scale: 1h = 142px</span>
+            <div class="flex items-center gap-1">
+              <button id="timelineAddTask" class="grid h-7 w-7 place-items-center rounded-lg border border-white/10 bg-white/10 transition hover:bg-white/15" type="button" aria-label="Add task">
+                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+              </button>
+              <button id="projectFavoriteSort" class="grid h-7 w-7 place-items-center rounded-lg border border-amber-300/25 bg-amber-300/10 text-amber-200 transition hover:bg-amber-300/15" type="button" aria-label="Toggle favorite sorting" aria-pressed="true">
+                <i data-lucide="star" class="h-3.5 w-3.5"></i>
+              </button>
+              <button class="grid h-7 w-7 place-items-center rounded-lg border border-white/10 bg-white/10 transition hover:bg-white/15" type="button" aria-label="More options">
+                <i data-lucide="more-horizontal" class="h-3.5 w-3.5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="timelineSkeleton" class="grid flex-1 gap-3">
+          <div class="h-12 rounded-2xl bg-[linear-gradient(100deg,rgba(255,255,255,0.07)_30%,rgba(255,255,255,0.14)_45%,rgba(255,255,255,0.07)_60%)] [background-size:220%_100%] animate-shimmer"></div>
+          <div class="h-24 rounded-2xl bg-[linear-gradient(100deg,rgba(255,255,255,0.07)_30%,rgba(255,255,255,0.14)_45%,rgba(255,255,255,0.07)_60%)] [background-size:220%_100%] animate-shimmer"></div>
+          <div class="h-24 rounded-2xl bg-[linear-gradient(100deg,rgba(255,255,255,0.07)_30%,rgba(255,255,255,0.14)_45%,rgba(255,255,255,0.07)_60%)] [background-size:220%_100%] animate-shimmer"></div>
+        </div>
+
+        <div id="timelineScroll" class="hidden flex-1 overflow-x-auto overflow-y-hidden scroll-smooth rounded-[1.25rem] border border-white/10 bg-slate-950/45">
+          <div id="timelineCanvas" class="relative min-h-[25rem] w-[1280px] lg:h-full lg:min-h-0 lg:w-[1280px] xl:w-[1360px]">
+            <div id="timelineHeader" class="sticky top-0 z-10 grid h-12 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl"></div>
+            <div id="timelineGrid" class="absolute inset-x-0 top-12 bottom-0"></div>
+            <div id="progressLine" class="absolute top-12 bottom-0 z-20 w-0.5 bg-cyan-300 shadow-[0_0_28px_rgba(34,211,238,0.9)] animate-pulseLine">
+              <span class="absolute -top-3 left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-cyan-200 shadow-[0_0_28px_rgba(34,211,238,0.9)]"></span>
+            </div>
+            <div id="taskLayer" class="absolute inset-x-0 top-14 bottom-0"></div>
+          </div>
+        </div>
+
+        <div id="kanbanView" class="hidden flex-1 flex-col overflow-hidden rounded-[1.25rem] border border-white/[0.08] bg-slate-950/35 p-2">
+          <div class="mb-2 flex shrink-0 flex-col gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.035] p-2 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+              <label class="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/[0.08] bg-slate-950/45 px-2.5 text-slate-300 sm:max-w-[260px]">
+                <i data-lucide="search" class="h-3.5 w-3.5 text-slate-500"></i>
+                <input id="kanbanSearch" class="min-w-0 flex-1 bg-transparent text-xs font-semibold text-white outline-none placeholder:text-slate-500" type="search" placeholder="Search kanban tasks..." autocomplete="off">
+              </label>
+              <select id="kanbanPriorityFilter" class="h-8 rounded-xl border border-white/[0.08] bg-slate-950/45 px-2.5 text-xs font-bold text-slate-300 outline-none transition focus:border-cyan-300/35">
+                <option value="all">All priorities</option>
+                <option value="High">High priority</option>
+                <option value="Medium">Medium priority</option>
+                <option value="Low">Low priority</option>
+              </select>
+              <select id="kanbanSort" class="h-8 rounded-xl border border-white/[0.08] bg-slate-950/45 px-2.5 text-xs font-bold text-slate-300 outline-none transition focus:border-cyan-300/35">
+                <option value="status">Sort by status</option>
+                <option value="priority">Priority first</option>
+                <option value="progress">Progress high</option>
+                <option value="due">Deadline</option>
+              </select>
+            </div>
+            <div class="flex items-center justify-between gap-2 lg:justify-end">
+              <div class="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-2 py-1">
+                <span class="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.4)]"></span>
+                <div class="-space-x-2">
+                  <span class="inline-grid h-6 w-6 place-items-center rounded-full border-2 border-slate-950 bg-cyan-500 text-[0.56rem] font-black text-white">SN</span>
+                  <span class="inline-grid h-6 w-6 place-items-center rounded-full border-2 border-slate-950 bg-violet-500 text-[0.56rem] font-black text-white">MS</span>
+                  <span class="inline-grid h-6 w-6 place-items-center rounded-full border-2 border-slate-950 bg-emerald-500 text-[0.56rem] font-black text-white">DN</span>
+                </div>
+                <span class="text-[0.62rem] font-bold text-slate-400">online</span>
+              </div>
+              <button id="kanbanAddTask" class="inline-flex h-8 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-gradient-to-r from-violet-600/90 to-cyan-500/90 px-3 text-xs font-black text-white shadow-[0_8px_18px_rgba(79,70,229,0.16)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
+                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                Add Task
+              </button>
+            </div>
+          </div>
+          <div id="kanbanColumns" class="grid min-h-0 flex-1 w-full grid-cols-1 gap-2 overflow-y-auto md:grid-cols-2 xl:grid-cols-4"></div>
+        </div>
+
+        <div id="listView" class="hidden flex-1 flex-col overflow-hidden rounded-[1.25rem] border border-white/[0.08] bg-slate-950/30">
+          <div class="hidden grid-cols-[minmax(340px,2.2fr)_minmax(150px,0.8fr)_minmax(120px,0.65fr)_minmax(150px,0.75fr)_minmax(90px,0.45fr)] items-center gap-4 border-b border-white/[0.07] bg-white/[0.035] px-3.5 py-2 text-[0.64rem] font-black uppercase tracking-[0.14em] text-slate-500 lg:grid">
+            <span class="pl-10">Task</span>
+            <span>Owner</span>
+            <span>Status</span>
+            <span>Schedule</span>
+            <span class="text-right">Progress</span>
+          </div>
+          <div id="listRows" class="min-h-0 flex-1 overflow-y-auto p-2"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="timelineTaskModal" class="fixed inset-0 z-[60] hidden place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="timelineTaskTitle">
+    <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-md" data-close-task-modal></div>
+    <section class="relative max-h-[calc(100vh-2rem)] w-[min(100%,38rem)] overflow-auto rounded-2xl border border-white/10 bg-slate-950/90 p-5 shadow-[0_24px_72px_rgba(2,6,23,0.46)] backdrop-blur-2xl animate-modalIn">
+      <button class="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-xl bg-slate-400/10 text-white transition hover:bg-white/15" type="button" data-close-task-modal aria-label="Close task detail">
+        <i data-lucide="x" class="h-5 w-5"></i>
+      </button>
+      <div id="timelineTaskDetail"></div>
+    </section>
+  </div>
+
+  <div id="taskEditorModal" class="fixed inset-0 z-[70] hidden place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="taskEditorTitle">
+    <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-md" data-close-task-editor></div>
+    <section class="relative max-h-[calc(100vh-2rem)] w-[min(100%,34rem)] overflow-auto rounded-2xl border border-white/10 bg-slate-950/92 p-5 shadow-[0_24px_72px_rgba(2,6,23,0.42)] backdrop-blur-2xl animate-modalIn">
+      <button class="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-xl bg-white/8 text-white transition hover:bg-white/15" type="button" data-close-task-editor aria-label="Close task editor">
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+      <p class="text-xs font-extrabold uppercase text-cyan-200">Kanban task</p>
+      <h2 id="taskEditorTitle" class="mb-4 text-xl font-black text-white">Add Task</h2>
+      <form id="taskEditorForm" class="space-y-3">
+        <input type="hidden" name="id">
+        <div class="grid gap-3 sm:grid-cols-2">
+          <label class="grid gap-1.5 sm:col-span-2">
+            <span class="text-xs font-bold text-slate-400">Title</span>
+            <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="title" placeholder="Task title" required>
+          </label>
+          <label class="grid gap-1.5 sm:col-span-2">
+            <span class="text-xs font-bold text-slate-400">Description</span>
+            <textarea class="min-h-[78px] resize-none rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="subtitle" placeholder="Short task description"></textarea>
+          </label>
+          <label class="grid gap-1.5">
+            <span class="text-xs font-bold text-slate-400">Status</span>
+            <select class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none focus:border-cyan-300/40" name="status">
+              <option>To Do</option>
+              <option>In Progress</option>
+              <option>Review</option>
+              <option>Done</option>
+            </select>
+          </label>
+          <label class="grid gap-1.5">
+            <span class="text-xs font-bold text-slate-400">Priority</span>
+            <select class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none focus:border-cyan-300/40" name="priority">
+              <option>Medium</option>
+              <option>High</option>
+              <option>Low</option>
+            </select>
+          </label>
+          <label class="grid gap-1.5">
+            <span class="text-xs font-bold text-slate-400">Owner</span>
+            <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="owner" placeholder="Sarah Nguyen">
+          </label>
+          <label class="grid gap-1.5">
+            <span class="text-xs font-bold text-slate-400">Deadline</span>
+            <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="due" placeholder="Nov 18">
+          </label>
+          <label class="grid gap-1.5 sm:col-span-2">
+            <span class="text-xs font-bold text-slate-400">Progress</span>
+            <input class="accent-cyan-300" name="progress" type="range" min="0" max="100" value="20">
+          </label>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button class="h-9 rounded-xl border border-white/10 bg-white/8 px-3 text-xs font-bold text-slate-300 transition hover:bg-white/14" type="button" data-close-task-editor>Cancel</button>
+          <button class="h-9 rounded-xl border border-white/10 bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white transition hover:brightness-110" type="submit">Save Task</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="workspaceEditorModal" class="fixed inset-0 z-[70] hidden place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="workspaceEditorTitle">
+    <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-md" data-close-workspace-editor></div>
+    <section class="relative w-[min(100%,30rem)] rounded-2xl border border-white/10 bg-slate-950/92 p-5 text-white shadow-[0_24px_72px_rgba(2,6,23,0.42)] backdrop-blur-2xl animate-modalIn">
+      <button class="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-xl bg-white/8 text-white transition hover:bg-white/15" type="button" data-close-workspace-editor aria-label="Close workspace editor">
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+      <p class="text-xs font-extrabold uppercase text-cyan-200">Workspace</p>
+      <h2 id="workspaceEditorTitle" class="mb-4 text-xl font-black text-white">Create Workspace</h2>
+      <form id="workspaceEditorForm" class="space-y-3">
+        <label class="grid gap-1.5">
+          <span class="text-xs font-bold text-slate-400">Workspace / Project name</span>
+          <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="name" placeholder="New Product Sprint" required>
+        </label>
+        <label class="grid gap-1.5">
+          <span class="text-xs font-bold text-slate-400">Category tag</span>
+          <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="category" placeholder="Web Design">
+        </label>
+        <label class="grid gap-1.5">
+          <span class="text-xs font-bold text-slate-400">Company / team</span>
+          <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="company" placeholder="TaskFlow Studio">
+        </label>
+        <label class="grid gap-1.5">
+          <span class="text-xs font-bold text-slate-400">Deadline</span>
+          <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="date" placeholder="Dec 02, 2026">
+        </label>
+        <div class="flex justify-end gap-2 pt-2">
+          <button class="h-9 rounded-xl border border-white/10 bg-white/8 px-3 text-xs font-bold text-slate-300 transition hover:bg-white/14" type="button" data-close-workspace-editor>Cancel</button>
+          <button class="h-9 rounded-xl border border-white/10 bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white transition hover:brightness-110" type="submit">Create Workspace</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="projectInviteModal" class="fixed inset-0 z-[70] hidden place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="projectInviteTitle">
+    <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-md" data-close-project-invite></div>
+    <section class="relative w-[min(100%,30rem)] rounded-2xl border border-white/10 bg-slate-950/92 p-5 text-white shadow-[0_24px_72px_rgba(2,6,23,0.42)] backdrop-blur-2xl animate-modalIn">
+      <button class="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-xl bg-white/8 text-white transition hover:bg-white/15" type="button" data-close-project-invite aria-label="Close invite modal">
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+      <p class="text-xs font-extrabold uppercase text-cyan-200">Workspace invite</p>
+      <h2 id="projectInviteTitle" class="mb-4 text-xl font-black text-white">Invite Member</h2>
+      <form id="projectInviteForm" class="space-y-3" data-invite-url="{% url 'api_team_invitations' 1 %}">
+        {% csrf_token %}
+        <label class="grid gap-1.5">
+          <span class="text-xs font-bold text-slate-400">Email or username</span>
+          <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="email" type="email" placeholder="colleague@example.com" required>
+        </label>
+        <label class="grid gap-1.5">
+          <span class="text-xs font-bold text-slate-400">Role</span>
+          <select class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none focus:border-cyan-300/40" name="role">
+            <option value="member">Member</option>
+            <option value="admin">Admin</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </label>
+        <label class="grid gap-1.5">
+          <span class="text-xs font-bold text-slate-400">Message</span>
+          <textarea class="min-h-[88px] resize-none rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="message" placeholder="Write a short invitation message..."></textarea>
+        </label>
+        <div class="flex justify-end gap-2 pt-2">
+          <button class="h-9 rounded-xl border border-white/10 bg-white/8 px-3 text-xs font-bold text-slate-300 transition hover:bg-white/14" type="button" data-close-project-invite>Cancel</button>
+          <button id="projectInviteSubmit" class="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white transition hover:brightness-110" type="submit">
+            <i data-lucide="mail" class="h-3.5 w-3.5"></i>
+            Send Invitation
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="timelineHelpModal" class="fixed inset-0 z-[70] hidden place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="timelineHelpTitle">
+    <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-md" data-close-help></div>
+    <section class="relative w-[min(100%,34rem)] rounded-2xl border border-white/10 bg-slate-950/92 p-5 text-white shadow-[0_24px_72px_rgba(2,6,23,0.42)] backdrop-blur-2xl animate-modalIn">
+      <button class="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-xl bg-white/8 text-white transition hover:bg-white/15" type="button" data-close-help aria-label="Close help">
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+      <p class="text-xs font-extrabold uppercase text-cyan-200">Help center</p>
+      <h2 id="timelineHelpTitle" class="mt-1 text-xl font-black text-white">Project workspace guide</h2>
+      <div class="mt-4 grid gap-2 text-sm font-semibold text-slate-300">
+        <p class="rounded-xl border border-white/10 bg-white/6 p-3"><strong class="text-white">Workspace:</strong> switch between project groups from the left sidebar.</p>
+        <p class="rounded-xl border border-white/10 bg-white/6 p-3"><strong class="text-white">Views:</strong> use Kanban, List, or Calendar to track ownership and schedule.</p>
+        <p class="rounded-xl border border-white/10 bg-white/6 p-3"><strong class="text-white">Invite:</strong> send an email invite to collaborate in the active workspace.</p>
+        <p class="rounded-xl border border-white/10 bg-white/6 p-3"><strong class="text-white">Live sync:</strong> status updates show when the workspace has synced recently.</p>
+      </div>
+    </section>
+  </div>
+
+  {% include "partials/toast.html" with toast_id="timelineToast" %}
+</div>
+{% endblock %}
+
+{% block vendor_scripts %}
+{% include "partials/vendor_lucide.html" %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/pages/timeline/api.js' %}?v=20260527-1"></script>
+<script src="{% static 'js/pages/timeline.js' %}?v=20260527-1"></script>
+{% endblock %}
