@@ -88,52 +88,48 @@
       </div>
     </div>
 
-    <div class="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
-      <nav class="space-y-1.5">
-        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'dashboard' %}">
-          <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
-          <span>Dashboard</span>
-        </a>
-        <a class="timeline-nav-link relative flex h-10 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="{% url 'project' %}">
-          <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
-          <i data-lucide="folder-kanban" class="h-4 w-4"></i>
-          <span>Projects</span>
-        </a>
-        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}#teamWorkspace">
-          <i data-lucide="users-round" class="h-4 w-4"></i>
-          <span>Team</span>
-        </a>
-        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#settings">
-          <i data-lucide="settings" class="h-4 w-4"></i>
-          <span>Settings</span>
-        </a>
-        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#files">
-          <i data-lucide="files" class="h-4 w-4"></i>
-          <span>Files</span>
-        </a>
-        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#updates">
-          <i data-lucide="radio" class="h-4 w-4"></i>
-          <span>All Updates</span>
-        </a>
-      </nav>
+    <nav class="mt-5 shrink-0 space-y-1">
+      <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'dashboard' %}">
+        <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+        <span>Dashboard</span>
+      </a>
+      <a id="projectHomeLink" class="timeline-nav-link relative flex h-10 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="{% url 'project' %}">
+        <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
+        <i data-lucide="folder-kanban" class="h-4 w-4"></i>
+        <span>Projects</span>
+      </a>
+      <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
+        <i data-lucide="files" class="h-4 w-4"></i>
+        <span>Files</span>
+      </a>
+      <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}#teamWorkspace">
+        <i data-lucide="users-round" class="h-4 w-4"></i>
+        <span>Team</span>
+      </a>
+      <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'settings' %}">
+        <i data-lucide="settings" class="h-4 w-4"></i>
+        <span>Settings</span>
+      </a>
+    </nav>
 
-      <section class="mt-4 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
-        <button id="workspaceToggle" class="flex w-full items-center justify-between text-left" type="button">
+      <section class="mt-4 flex min-h-0 flex-1 flex-col rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
+        <button id="workspaceToggle" class="flex w-full shrink-0 items-center justify-between text-left" type="button">
+=======
+  
           <span>
             <span class="block text-xs font-extrabold uppercase text-cyan-200">Workspace</span>
             <span id="workspaceCurrentTitle" class="block text-sm font-bold text-white">Fintask Landing Page</span>
           </span>
           <i data-lucide="chevron-down" class="h-5 w-5 text-slate-300"></i>
         </button>
-        <div id="workspaceItems" class="mt-3 space-y-1.5">
-          <div id="workspaceList" class="max-h-[min(18rem,34vh)] space-y-1.5 overflow-y-auto pr-1"></div>
+        <div id="workspaceItems" class="mt-3 min-h-0 flex-1 overflow-hidden">
+          <div id="workspaceList" class="h-full space-y-1.5 overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:rgba(34,211,238,0.35)_transparent]"></div>
         </div>
-        <button id="addWorkspaceButton" class="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 px-3 py-1.5 text-sm font-bold text-cyan-100 transition hover:border-cyan-300/50 hover:bg-cyan-300/10" type="button">
+        <button id="addWorkspaceButton" class="mt-3 flex w-full shrink-0 items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 px-3 py-1.5 text-sm font-bold text-cyan-100 transition hover:border-cyan-300/50 hover:bg-cyan-300/10" type="button">
           <i data-lucide="plus" class="h-4 w-4"></i>
           Add New
         </button>
       </section>
-    </div>
 
     <div class="mt-3 shrink-0 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
       <div class="flex items-center gap-3">
@@ -151,7 +147,7 @@
   </aside>
 
   <div class="theme-content min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-48">
-    <header class="theme-panel sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-2.5 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-5 lg:shrink-0">
+    <header class="theme-panel sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-3 py-2 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-4 lg:shrink-0">
       <div class="flex items-center justify-between gap-5">
         <div class="flex shrink-0 items-center gap-3">
           <button id="timelineSidebarToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 lg:hidden motion-reduce:transform-none" type="button" aria-label="Open sidebar">
@@ -216,6 +212,34 @@
     </header>
 
     <main id="timelineOverview" class="flex min-h-0 flex-col gap-2 overflow-y-auto px-3 py-2 sm:px-4 lg:flex-1 lg:overflow-hidden">
+<<<<<<< HEAD:frontend/templates/timeline/index.html
+      <section id="projectOverviewPanel" class="flex min-h-0 flex-col gap-2 lg:flex-1 lg:overflow-hidden">
+        <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 class="text-2xl font-black leading-tight text-white">Projects</h1>
+          </div>
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label class="flex h-10 min-w-0 items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/45 px-3 text-slate-300 shadow-glass backdrop-blur-xl sm:w-[26rem]">
+              <i data-lucide="search" class="h-4 w-4 text-slate-500"></i>
+              <input id="projectOverviewSearch" class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-white outline-none placeholder:text-slate-500" type="search" placeholder="Search projects, tasks, members..." autocomplete="off">
+              <span class="rounded-lg border border-white/10 bg-white/5 px-1.5 py-0.5 text-[0.62rem] font-black text-slate-400">K</span>
+            </label>
+            <button class="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/8 px-4 text-sm font-bold text-slate-200 shadow-glass transition hover:bg-white/14 hover:text-white" type="button">
+              <i data-lucide="filter" class="h-4 w-4"></i>
+              Filter
+            </button>
+            <button id="overviewAddWorkspace" class="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-4 text-sm font-black text-white shadow-[0_10px_24px_rgba(79,70,229,0.18)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
+              <i data-lucide="plus" class="h-4 w-4"></i>
+              Add Workspace
+            </button>
+          </div>
+        </div>
+
+        <div id="projectOverviewStats" class="grid w-full grid-cols-4 gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-1.5 shadow-glass backdrop-blur-2xl"></div>
+        <div id="projectOverviewCards" class="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1"></div>
+        <span id="overviewWorkspaceCount" class="hidden"></span>
+        <div id="projectOverviewRows" class="hidden"></div>
+=======
       <section id="projectOverviewPanel" class="theme-panel flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-2xl lg:flex-1 lg:overflow-hidden">
         <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -254,6 +278,7 @@
             <div id="projectOverviewRows" class="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1"></div>
           </section>
         </div>
+>>>>>>> 8420ce20d5130a0bc5bc835724d6ee0a842b3a42:frontend/templates/pages/timeline/index.html
       </section>
 
       <section id="projectDetailHeader" class="theme-panel hidden rounded-2xl border border-white/10 bg-white/10 px-3 py-2 shadow-glass backdrop-blur-2xl lg:shrink-0">
@@ -265,6 +290,10 @@
           <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
             <h1 id="projectTitle" class="min-w-0 truncate text-xl font-black leading-tight text-white">Fintask Landing Page</h1>
             <div class="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
+              <button id="backToProjectOverview" class="hidden h-7 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/8 px-2.5 text-[0.68rem] font-bold text-slate-300 transition hover:bg-white/14 hover:text-white" type="button">
+                <i data-lucide="arrow-left" class="h-3 w-3"></i>
+                Overview
+              </button>
               <span id="projectCompany" class="inline-flex items-center gap-1.5 text-[0.65rem] font-medium text-slate-400"><i data-lucide="building-2" class="h-3 w-3"></i> Fintask Inc.</span>
               <span id="projectDate" class="inline-flex items-center gap-1.5 text-[0.65rem] font-medium text-slate-400"><i data-lucide="calendar-days" class="h-3 w-3"></i> Nov 15, 2026</span>
               <div id="projectMemberStack" class="-space-x-2"></div>
@@ -538,6 +567,10 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<<<<<<< HEAD:frontend/templates/timeline/index.html
+<script src="{% static 'js/timeline.js' %}?v=20260529-1"></script>
+=======
 <script src="{% static 'js/pages/timeline/api.js' %}?v=20260527-1"></script>
 <script src="{% static 'js/pages/timeline.js' %}?v=20260527-1"></script>
+>>>>>>> 8420ce20d5130a0bc5bc835724d6ee0a842b3a42:frontend/templates/pages/timeline/index.html
 {% endblock %}
