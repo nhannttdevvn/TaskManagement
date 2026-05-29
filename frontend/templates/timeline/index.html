@@ -58,6 +58,10 @@
 </style>
 {% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/theme.css' %}?v=20260525-1" />
+{% endblock %}
+
 {% block body_class %}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %}
 
 {% block page_shell %}
@@ -518,5 +522,6 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="{% static 'js/theme-toggle.js' %}?v=20260525-2"></script>
 <script src="{% static 'js/timeline.js' %}?v=20260523-6"></script>
 {% endblock %}

@@ -7,6 +7,10 @@
 {% include "includes/app_design_tokens.html" %}
 {% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/theme.css' %}?v=20260525-1" />
+{% endblock %}
+
 {% block body_class %}bg-slate-950 p-0 font-sans antialiased{% endblock %}
 
 {% block page_shell %}
@@ -22,6 +26,11 @@
   {# floating orbs #}
   <div class="pointer-events-none fixed -left-24 top-1/4 h-72 w-72 rounded-full bg-violet-600/30 blur-3xl animate-pulseLine" aria-hidden="true"></div>
   <div class="pointer-events-none fixed -right-24 bottom-1/4 h-80 w-80 rounded-full bg-cyan-500/20 blur-3xl animate-pulseLine" aria-hidden="true"></div>
+
+  {# Floating theme toggle (login không có topbar) #}
+  <button id="loginThemeToggle" class="fixed right-4 top-4 z-50 grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 motion-reduce:transform-none" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+    <i data-lucide="moon" class="h-4 w-4"></i>
+  </button>
 
   <main class="relative grid min-h-screen grid-cols-1 lg:grid-cols-2">
     {# ============= LEFT HERO ============= #}
@@ -179,5 +188,6 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/auth.js' %}?v=20260523-1"></script>
+<script src="{% static 'js/theme-toggle.js' %}?v=20260525-1"></script>
+<script src="{% static 'js/auth.js' %}?v=20260525-1"></script>
 {% endblock %}

@@ -1,0 +1,445 @@
+/* ============================================================
+ * TaskFlow — Light theme + compact narrow sidebar
+ * ----------------------------------------------------------
+ * Kích hoạt khi <html> KHÔNG có class `dark` (light mode).
+ * Đồng bộ cross-page qua theme-toggle.js (4 keys localStorage).
+ * ============================================================ */
+
+/* ============================================================
+ * NARROW ICON SIDEBAR (áp dụng cho mọi theme — dark + light)
+ * Yêu cầu: sidebar compact icon-style như screenshot user gửi.
+ * ============================================================ */
+aside[id$="Sidebar"],
+aside#sidebar {
+  width: 84px !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+/* Sidebar brand block (TF logo + "TaskFlow") → chỉ giữ logo */
+aside[id$="Sidebar"] > div:first-child,
+aside#sidebar > div:first-child {
+  justify-content: center !important;
+}
+aside[id$="Sidebar"] > div:first-child > div:not(.grid),
+aside#sidebar > div:first-child > div:not(.grid) {
+  display: none !important;
+}
+
+/* Nav items: stack icon trên, label nhỏ dưới, căn giữa */
+aside[id$="Sidebar"] nav,
+aside#sidebar nav {
+  gap: 8px !important;
+}
+aside[id$="Sidebar"] nav a,
+aside#sidebar nav a {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  height: auto !important;
+  min-height: 56px;
+  padding: 8px 4px !important;
+  gap: 4px !important;
+  border-radius: 14px !important;
+}
+aside[id$="Sidebar"] nav a span,
+aside#sidebar nav a span {
+  font-size: 0.625rem !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+}
+aside[id$="Sidebar"] nav a i,
+aside#sidebar nav a i {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+/* Hide các sub-section nội bộ sidebar (Workspace card của timeline,
+   member list của team) để gọn — sẽ hiện trên topbar */
+aside[id$="Sidebar"] > section,
+aside#sidebar > section {
+  display: none !important;
+}
+
+/* Bottom user card: collapse — chỉ giữ avatar nhỏ */
+aside[id$="Sidebar"] > div.mt-auto,
+aside#sidebar > div.mt-auto {
+  padding: 6px !important;
+  background: transparent !important;
+  border: none !important;
+}
+aside[id$="Sidebar"] > div.mt-auto > div:first-child,
+aside#sidebar > div.mt-auto > div:first-child {
+  justify-content: center !important;
+  margin-bottom: 6px;
+}
+aside[id$="Sidebar"] > div.mt-auto > div:first-child img,
+aside#sidebar > div.mt-auto > div:first-child img {
+  width: 36px !important;
+  height: 36px !important;
+}
+aside[id$="Sidebar"] > div.mt-auto > div:first-child > div:not(.grid),
+aside#sidebar > div.mt-auto > div:first-child > div:not(.grid) {
+  display: none !important;
+}
+
+/* Logout button: stack icon + label vertical */
+aside[id$="Sidebar"] > div.mt-auto a,
+aside#sidebar > div.mt-auto a,
+aside[id$="Sidebar"] > div.mt-auto button,
+aside#sidebar > div.mt-auto button {
+  flex-direction: column !important;
+  height: auto !important;
+  min-height: 56px;
+  padding: 8px 4px !important;
+  gap: 4px !important;
+  font-size: 0.625rem !important;
+  border-radius: 14px !important;
+}
+aside[id$="Sidebar"] > div.mt-auto a i,
+aside#sidebar > div.mt-auto a i {
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+}
+
+/* Push main content right by new sidebar width */
+.lg\:pl-48 {
+  padding-left: 84px !important;
+}
+
+/* ============================================================
+ * LIGHT THEME OVERRIDES
+ * ============================================================ */
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
+/* ---------- BODY ---------- */
+html:not(.dark) body {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+/* ---------- APP CONTAINERS (gradient backgrounds) ---------- */
+html:not(.dark) #loginApp,
+html:not(.dark) #logoutApp,
+html:not(.dark) #settingsApp,
+html:not(.dark) #filesApp,
+html:not(.dark) #dashboardApp,
+html:not(.dark) #teamApp,
+html:not(.dark) #timelineApp {
+  background:
+    linear-gradient(135deg, rgba(99, 102, 241, 0.08), transparent 32%),
+    linear-gradient(225deg, rgba(34, 211, 238, 0.08), transparent 34%),
+    linear-gradient(180deg, #f8fafc 0%, #e0e7ff 100%) !important;
+  color: #1e293b !important;
+}
+/* Sub-overlay grid → mờ đi */
+html:not(.dark) #loginApp > div[aria-hidden],
+html:not(.dark) #logoutApp > div[aria-hidden],
+html:not(.dark) #settingsApp > div[aria-hidden],
+html:not(.dark) #filesApp > div[aria-hidden],
+html:not(.dark) #dashboardApp > div[aria-hidden],
+html:not(.dark) #teamApp > div[aria-hidden],
+html:not(.dark) #timelineApp > div[aria-hidden] {
+  opacity: 0.25;
+  filter: invert(0.85);
+}
+
+/* ---------- SIDEBAR (light mode giữ purple gradient nhưng sáng hơn) ---------- */
+html:not(.dark) aside[id$="Sidebar"],
+html:not(.dark) aside#sidebar {
+  background:
+    linear-gradient(160deg, #6366f1, #4f46e5) !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+}
+/* Sidebar text vẫn trắng (vì nền vẫn sẫm) */
+html:not(.dark) aside[id$="Sidebar"] *,
+html:not(.dark) aside#sidebar * {
+  color: #ffffff !important;
+}
+
+/* ---------- HEADER / TOPBAR ---------- */
+html:not(.dark) header.sticky {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+html:not(.dark) header.sticky h1,
+html:not(.dark) header.sticky h2,
+html:not(.dark) header.sticky h3 {
+  color: #0f172a !important;
+}
+html:not(.dark) header.sticky p {
+  color: #475569 !important;
+}
+html:not(.dark) header.sticky [class*="text-cyan-200"] {
+  color: #4338ca !important;
+}
+
+/* Icon buttons trong header (bell, help, theme) */
+html:not(.dark) header.sticky button,
+html:not(.dark) header.sticky label[class*="bg-slate"] {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  border-color: rgba(99, 102, 241, 0.15) !important;
+  color: #475569 !important;
+}
+html:not(.dark) header.sticky button:hover {
+  background-color: rgba(99, 102, 241, 0.16) !important;
+  color: #4338ca !important;
+}
+html:not(.dark) header.sticky input[type="search"] {
+  color: #1e293b !important;
+}
+/* Floating theme toggle ở login/logout */
+html:not(.dark) #loginThemeToggle,
+html:not(.dark) #logoutThemeToggle {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #475569 !important;
+}
+
+/* Keep gradient CTA buttons (Save All, New Folder, Upload, Invite) */
+html:not(.dark) button[class*="from-violet-600"],
+html:not(.dark) button[class*="from-cyan-400"][class*="bg-gradient-to-r"],
+html:not(.dark) a[class*="from-violet-600"],
+html:not(.dark) form button[type="submit"][class*="from-violet-600"] {
+  background-image: linear-gradient(to right, #6366f1, #2563eb, #06b6d4) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ---------- CARDS / SURFACES — SOLID white để text rõ ràng ---------- */
+html:not(.dark) [class*="bg-slate-900"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(header),
+html:not(.dark) [class*="bg-slate-950"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(header) {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+html:not(.dark) [class*="bg-slate-800"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *) {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+/* Nested cards (form-row, surfaces) — nhẹ hơn cha
+ * Exclude: sidebar, header, folder cards (gradient), chat bubbles (gradient)
+ */
+html:not(.dark) [class*="bg-white/5"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(header *):not(.js-folder-card *):not([class*="bg-gradient-to-br"] *):not([class*="bg-gradient-to-r"] *),
+html:not(.dark) [class*="bg-white/8"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(header *):not(.js-folder-card *):not([class*="bg-gradient-to-br"] *):not([class*="bg-gradient-to-r"] *),
+html:not(.dark) [class*="bg-white/10"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(header *):not(.js-folder-card *):not([class*="bg-gradient-to-br"] *):not([class*="bg-gradient-to-r"] *),
+html:not(.dark) [class*="bg-white/15"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(header *):not(.js-folder-card *):not([class*="bg-gradient-to-br"] *):not([class*="bg-gradient-to-r"] *),
+html:not(.dark) [class*="bg-white/[0.0"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(header *):not(.js-folder-card *):not([class*="bg-gradient-to-br"] *):not([class*="bg-gradient-to-r"] *),
+html:not(.dark) [class*="bg-white/[0.1"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(header *):not(.js-folder-card *):not([class*="bg-gradient-to-br"] *):not([class*="bg-gradient-to-r"] *) {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+}
+
+/* Glass-panel (Settings tab panel + Team list panel) — solid white nổi bật */
+html:not(.dark) .glass-panel {
+  background-color: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Team page: member items (.team-member do team.js render) */
+html:not(.dark) .team-member {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+html:not(.dark) .team-member:hover {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(99, 102, 241, 0.30) !important;
+}
+/* Active member (selected): clear gradient highlight */
+html:not(.dark) .team-member[class*="from-violet-500"] {
+  background-image: linear-gradient(to right, rgba(99, 102, 241, 0.18), rgba(34, 211, 238, 0.10)) !important;
+  background-color: transparent !important;
+  border-color: rgba(99, 102, 241, 0.50) !important;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12) !important;
+}
+/* Member name (text-white) trong light mode — ép đậm để rõ */
+html:not(.dark) .team-member [class*="text-white"] {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+/* Member role (text-slate-400) — đủ contrast nhưng nhạt hơn name */
+html:not(.dark) .team-member [class*="text-slate-400"] {
+  color: #64748b !important;
+}
+/* Avatar border */
+html:not(.dark) .team-member img {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+/* Status dot ring */
+html:not(.dark) .team-member [class*="border-slate-950"] {
+  border-color: #ffffff !important;
+}
+
+/* Settings Tip card (user khoanh đỏ ảnh 1) — solid với border accent */
+html:not(.dark) .glass-panel section,
+html:not(.dark) aside.glass-panel section {
+  background-color: #eef2ff !important;
+  border-color: rgba(99, 102, 241, 0.20) !important;
+  color: #1e293b !important;
+}
+
+/* ---------- BORDERS ---------- */
+html:not(.dark) [class*="border-white/"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *) {
+  border-color: rgba(15, 23, 42, 0.10) !important;
+}
+
+/* ---------- TEXT COLORS ---------- */
+/* text-white: ép thành dark, NHƯNG GIỮ trắng trong:
+ *   - sidebar tím (aside narrow)
+ *   - phần tử có gradient color background (folder cards, chat bubbles,
+ *     CTA buttons với bg-gradient-to-r)
+ *   - svg paths
+ */
+html:not(.dark) [class*="text-white"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(svg):not(button[class*="bg-gradient"] *):not(a[class*="bg-gradient"] *):not(.js-folder-card *):not(.js-folder-card):not([class*="bg-gradient-to-r"] *):not([class*="bg-gradient-to-br"] *):not([class*="bg-gradient-to-r"]):not([class*="bg-gradient-to-br"]) {
+  color: #1e293b !important;
+}
+html:not(.dark) [class*="text-slate-100"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *),
+html:not(.dark) [class*="text-slate-200"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *),
+html:not(.dark) [class*="text-slate-300"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *) {
+  color: #475569 !important;
+}
+html:not(.dark) [class*="text-slate-400"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *),
+html:not(.dark) [class*="text-slate-500"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *) {
+  color: #64748b !important;
+}
+html:not(.dark) [class*="text-cyan-200"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(button[class*="bg-gradient"] *) {
+  color: #4338ca !important;
+}
+html:not(.dark) [class*="text-cyan-100"]:not(aside[id$="Sidebar"] *):not(aside#sidebar *):not(button[class*="bg-gradient"] *) {
+  color: #3730a3 !important;
+}
+html:not(.dark) [class*="text-emerald-200"] { color: #047857 !important; }
+html:not(.dark) [class*="text-rose-200"],
+html:not(.dark) [class*="text-rose-100"] { color: #be123c !important; }
+html:not(.dark) [class*="text-violet-200"] { color: #6d28d9 !important; }
+html:not(.dark) [class*="text-amber-200"] { color: #b45309 !important; }
+html:not(.dark) [class*="text-fuchsia-200"] { color: #a21caf !important; }
+
+/* ---------- INPUTS / SELECTS / TEXTAREAS ---------- */
+html:not(.dark) input:not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) select,
+html:not(.dark) textarea {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* ---------- DROPDOWNS / MODALS ---------- */
+html:not(.dark) [id$="NotificationDropdown"],
+html:not(.dark) #inviteSettingsModal > section,
+html:not(.dark) #confirmDeleteModal > section,
+html:not(.dark) #createFolderModal > section,
+html:not(.dark) [id$="Modal"] > section {
+  background-color: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #1e293b !important;
+}
+/* Modal backdrop */
+html:not(.dark) [id$="Modal"] {
+  background-color: rgba(15, 23, 42, 0.40) !important;
+}
+
+/* ---------- BADGES / PILLS ---------- */
+html:not(.dark) [class*="bg-emerald-400/"],
+html:not(.dark) [class*="bg-emerald-500/"] {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+}
+html:not(.dark) [class*="bg-rose-400/"],
+html:not(.dark) [class*="bg-rose-500/"] {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+}
+html:not(.dark) [class*="bg-cyan-400/"] {
+  background-color: rgba(99, 102, 241, 0.14) !important;
+}
+html:not(.dark) [class*="bg-violet-400/"] {
+  background-color: rgba(139, 92, 246, 0.14) !important;
+}
+html:not(.dark) [class*="bg-amber-400/"] {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+}
+html:not(.dark) [class*="bg-fuchsia-400/"] {
+  background-color: rgba(217, 70, 239, 0.14) !important;
+}
+
+/* ---------- TOAST ---------- */
+html:not(.dark) [id$="Toast"] {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+/* ---------- TABLE (Files Recent) ---------- */
+html:not(.dark) table thead th,
+html:not(.dark) table thead button {
+  color: #64748b !important;
+}
+html:not(.dark) table tbody {
+  color: #1e293b !important;
+}
+html:not(.dark) table tbody tr {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+html:not(.dark) table tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.04) !important;
+}
+
+/* ---------- SETTINGS TAB ACTIVE ---------- */
+html:not(.dark) .settings-tab[aria-selected="true"] {
+  background-image: linear-gradient(to right, rgba(99, 102, 241, 0.20), rgba(139, 92, 246, 0.20)) !important;
+  color: #4338ca !important;
+  border-color: rgba(99, 102, 241, 0.30) !important;
+}
+html:not(.dark) .settings-tab[aria-selected="false"] {
+  color: #475569 !important;
+}
+html:not(.dark) .settings-tab:hover {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  color: #1e293b !important;
+}
+
+/* ---------- TOGGLE SWITCH (peer-checked) ---------- */
+html:not(.dark) .peer + span:not([class*="peer-checked"]) {
+  background-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+/* ---------- DIVIDERS / SEPARATORS ---------- */
+html:not(.dark) [class*="divide-white/"] > * + * {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* ---------- FOLDER GRID (files.js renders dynamically) ---------- */
+html:not(.dark) #folderGrid > div,
+html:not(.dark) #folderGrid > a {
+  /* Keep gradients but lighten border */
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* ---------- CHART CANVAS BG (Chart.js) ---------- */
+html:not(.dark) #activityChart,
+html:not(.dark) #taskDoneChart,
+html:not(.dark) #statusChart {
+  filter: brightness(1.05) saturate(1.05);
+}
+
+/* ---------- SHADOWS (lighter in light mode) ---------- */
+html:not(.dark) .shadow-glass {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
+}
+html:not(.dark) .shadow-soft {
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* End of theme.css */
