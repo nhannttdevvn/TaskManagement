@@ -34,14 +34,18 @@
       </div>
     </div>
 
-    <nav class="mt-7 space-y-1.5">
+    <nav class="mt-5 space-y-1">
       <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'dashboard' %}">
         <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
         <span>Dashboard</span>
       </a>
-      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'timeline' %}">
+      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'project' %}">
         <i data-lucide="folder-kanban" class="h-4 w-4"></i>
         <span>Projects</span>
+      </a>
+      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
+        <i data-lucide="files" class="h-4 w-4"></i>
+        <span>Files</span>
       </a>
       <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}#teamWorkspace">
         <i data-lucide="users-round" class="h-4 w-4"></i>
@@ -51,14 +55,6 @@
         <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
         <i data-lucide="settings" class="h-4 w-4"></i>
         <span>Settings</span>
-      </a>
-      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
-        <i data-lucide="files" class="h-4 w-4"></i>
-        <span>Files</span>
-      </a>
-      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#updates">
-        <i data-lucide="radio" class="h-4 w-4"></i>
-        <span>All Updates</span>
       </a>
     </nav>
 
@@ -82,7 +78,7 @@
   </aside>
 
   <div class="min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-48">
-    <header class="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-2.5 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-5 lg:shrink-0">
+    <header class="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-3 py-2 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-4 lg:shrink-0">
       <div class="flex items-center justify-between gap-5">
         <div class="flex shrink-0 items-center gap-3">
           <button id="settingsSidebarToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 lg:hidden motion-reduce:transform-none" type="button" aria-label="Open sidebar">
@@ -136,8 +132,8 @@
       </div>
     </header>
 
-    <main id="settingsWorkspace" class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 lg:overflow-hidden">
-      <section class="flex h-full min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:flex-row">
+    <main id="settingsWorkspace" class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 py-3 lg:overflow-hidden">
+      <section class="flex h-full min-h-0 flex-1 flex-col gap-3 overflow-hidden lg:flex-row">
         {# ============= TAB SIDEBAR ============= #}
         <aside class="glass-panel flex min-h-0 w-full flex-col rounded-[22px] border border-white/[0.06] bg-white/[0.04] p-3 shadow-glass backdrop-blur-2xl lg:h-full lg:w-[260px] lg:min-w-[260px]">
           <p class="px-2 pt-1 text-xs font-extrabold uppercase tracking-[0.16em] text-cyan-200">Categories</p>

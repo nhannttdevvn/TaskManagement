@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <nav class="mt-7 space-y-1.5">
+    <nav class="mt-5 space-y-1">
       <a class="js-sidebar-link relative flex h-10 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="{% url 'dashboard' %}">
         <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
         <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
@@ -44,6 +44,10 @@
         <i data-lucide="folder-kanban" class="h-4 w-4"></i>
         <span>Projects</span>
       </a>
+      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
+        <i data-lucide="files" class="h-4 w-4"></i>
+        <span>Files</span>
+      </a>
       <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}#teamWorkspace">
         <i data-lucide="users-round" class="h-4 w-4"></i>
         <span>Team</span>
@@ -51,14 +55,6 @@
       <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'settings' %}">
         <i data-lucide="settings" class="h-4 w-4"></i>
         <span>Settings</span>
-      </a>
-      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
-        <i data-lucide="files" class="h-4 w-4"></i>
-        <span>Files</span>
-      </a>
-      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#updates">
-        <i data-lucide="radio" class="h-4 w-4"></i>
-        <span>All Updates</span>
       </a>
     </nav>
 
@@ -82,7 +78,7 @@
   </aside>
 
   <div class="min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-48">
-    <header class="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-2.5 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-5 lg:shrink-0">
+    <header class="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-3 py-2 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-4 lg:shrink-0">
       <div class="flex items-center justify-between gap-5">
         <div class="flex shrink-0 items-center gap-3">
           <button id="sidebarToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 lg:hidden motion-reduce:transform-none" type="button" aria-label="Open sidebar">
@@ -144,8 +140,8 @@
       </div>
     </header>
 
-    <main id="overview" class="flex min-h-0 flex-col gap-4 overflow-y-auto px-4 py-4 lg:flex-1">
-      <section class="grid gap-4" aria-label="Dashboard workspace">
+    <main id="overview" class="flex min-h-0 flex-col gap-3 overflow-y-auto px-3 py-3 lg:flex-1">
+      <section class="grid gap-3" aria-label="Dashboard workspace">
         <section id="projects" class="js-reveal rounded-[22px] border border-white/[0.08] bg-slate-900/55 p-3 opacity-0 shadow-soft backdrop-blur-2xl transition duration-500">
           <div class="mb-3 flex items-center justify-between gap-3">
             <div>

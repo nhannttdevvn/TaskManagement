@@ -256,52 +256,63 @@
 
   let workspaces = [
     {
-      id: "design-sprint",
-      name: "Design Sprint",
-      breadcrumb: "/ Product Discovery",
-      category: "Sprint",
+      id: "task-management-system",
+      name: "Task Management System",
+      breadcrumb: "/ Product Operations",
+      category: "Workspace",
       company: "TaskFlow Studio",
-      date: "Nov 12, 2026",
-      members: ["SN", "MS", "DN", "AK", "YL"],
-      projects: ["Research Plan", "Design System", "Sprint Review"],
-    },
-    {
-      id: "fintask-landing-page",
-      name: "Fintask Landing Page",
-      breadcrumb: "/ Landing Page",
-      category: "Web Design",
-      company: "Fintask Inc.",
-      date: "Nov 15, 2026",
+      date: "May 28, 2026",
       members: ["SN", "MS", "DN", "AK", "YL", "RA", "LM", "QA"],
-      projects: ["Hero Section", "UX Copy", "Visual Design"],
+      projects: ["Frontend UI", "Backend API", "Database MySQL", "Authentication & Security", "Testing & QA", "Deployment"],
     },
     {
-      id: "checkout-flow",
-      name: "Checkout Flow",
-      breadcrumb: "/ Product Flow",
-      category: "E-commerce",
-      company: "FlowPay Team",
-      date: "Nov 22, 2026",
-      members: ["RA", "DN", "QA", "VN"],
-      projects: ["Cart Review", "Payment States", "Error Handling"],
+      id: "marketing-campaign-2026",
+      name: "Marketing Campaign 2026",
+      breadcrumb: "/ Growth",
+      category: "Marketing",
+      company: "TaskFlow Studio",
+      date: "Jun 10, 2026",
+      members: ["SN", "MS", "DN", "LM", "QA", "RA", "TH"],
+      projects: ["Launch Plan", "Content Calendar", "Paid Ads", "Email Sequence"],
     },
     {
-      id: "brand-refresh",
-      name: "Brand Refresh",
-      breadcrumb: "/ Creative",
-      category: "Branding",
+      id: "restaurant-operations",
+      name: "Restaurant Operations",
+      breadcrumb: "/ Operations",
+      category: "Ops",
       company: "Northstar Labs",
-      date: "Dec 04, 2026",
+      date: "Jun 18, 2026",
+      members: ["RA", "DN", "QA", "VN", "MS", "SN"],
+      projects: ["Menu Workflow", "Staff Scheduling", "Inventory Checks", "Shift Reports"],
+    },
+    {
+      id: "event-planning",
+      name: "Event Planning",
+      breadcrumb: "/ Events",
+      category: "Coordination",
+      company: "TaskFlow Events",
+      date: "Jul 02, 2026",
       members: ["AK", "YL", "SN", "LM", "TH"],
-      projects: ["Logo Cleanup", "Color System", "Launch Assets"],
+      projects: ["Venue Planning", "Speaker Lineup", "Registration Flow"],
+    },
+    {
+      id: "personal-workspace",
+      name: "Personal Workspace",
+      breadcrumb: "/ Personal",
+      category: "Private",
+      company: "Sarah Nguyen",
+      date: "Jul 08, 2026",
+      members: ["SN"],
+      projects: ["Weekly Planning", "Learning Backlog"],
     },
   ];
 
   const state = {
     filteredTasks: tasks.slice(),
     view: "calendar",
-    activeWorkspaceId: window.localStorage.getItem("taskflow-active-workspace") || "fintask-landing-page",
+    activeWorkspaceId: window.localStorage.getItem("taskflow-active-workspace") || "task-management-system",
     activeProjectName: window.localStorage.getItem("taskflow-active-project") || "",
+    overviewWorkspaceId: window.localStorage.getItem("taskflow-open-workspace") || "task-management-system",
     mode: window.location.hash.startsWith("#project-") ? "detail" : "overview",
     kanbanQuery: "",
     kanbanPriority: "all",
@@ -321,6 +332,7 @@
     workspaceCurrentTitle: document.getElementById("workspaceCurrentTitle"),
     workspaceList: document.getElementById("workspaceList"),
     addWorkspaceButton: document.getElementById("addWorkspaceButton"),
+    projectHomeLink: document.getElementById("projectHomeLink"),
     themeToggle: document.getElementById("timelineThemeToggle"),
     searchInput: document.getElementById("timelineSearch"),
     searchCount: document.getElementById("timelineSearchCount"),
@@ -331,6 +343,7 @@
     projectOverviewStats: document.getElementById("projectOverviewStats"),
     projectOverviewCards: document.getElementById("projectOverviewCards"),
     projectOverviewRows: document.getElementById("projectOverviewRows"),
+    projectOverviewSearch: document.getElementById("projectOverviewSearch"),
     overviewWorkspaceCount: document.getElementById("overviewWorkspaceCount"),
     overviewAddWorkspace: document.getElementById("overviewAddWorkspace"),
     projectDetailHeader: document.getElementById("projectDetailHeader"),
@@ -362,6 +375,7 @@
     projectCompany: document.getElementById("projectCompany"),
     projectDate: document.getElementById("projectDate"),
     projectMemberStack: document.getElementById("projectMemberStack"),
+    backToProjectOverview: document.getElementById("backToProjectOverview"),
     workspaceInviteButton: document.getElementById("workspaceInviteButton"),
     helpToggle: document.getElementById("timelineHelpToggle"),
     helpModal: document.getElementById("timelineHelpModal"),
@@ -445,13 +459,13 @@
   }
 
   function saveCustomWorkspaces() {
-    const defaultIds = new Set(["design-sprint", "fintask-landing-page", "checkout-flow", "brand-refresh"]);
+    const defaultIds = new Set(["task-management-system", "marketing-campaign-2026", "restaurant-operations", "event-planning", "personal-workspace"]);
     const custom = workspaces.filter((workspace) => !defaultIds.has(workspace.id));
     window.localStorage.setItem("taskflow-workspaces", JSON.stringify(custom));
   }
 
   function activeWorkspace() {
-    return workspaces.find((workspace) => workspace.id === state.activeWorkspaceId) || workspaces[1] || workspaces[0];
+    return workspaces.find((workspace) => workspace.id === state.activeWorkspaceId) || workspaces[0];
   }
 
   function activeProjectName() {
@@ -461,8 +475,12 @@
 
   function ensureActiveWorkspace() {
     if (!workspaces.some((workspace) => workspace.id === state.activeWorkspaceId)) {
-      state.activeWorkspaceId = "fintask-landing-page";
+      state.activeWorkspaceId = workspaces[0]?.id || "task-management-system";
       window.localStorage.setItem("taskflow-active-workspace", state.activeWorkspaceId);
+    }
+    if (state.overviewWorkspaceId && !workspaces.some((workspace) => workspace.id === state.overviewWorkspaceId)) {
+      state.overviewWorkspaceId = workspaces[0]?.id || state.activeWorkspaceId;
+      window.localStorage.setItem("taskflow-open-workspace", state.overviewWorkspaceId);
     }
     const workspace = activeWorkspace();
     if (!state.activeProjectName || !workspace.projects.includes(state.activeProjectName)) {
@@ -504,35 +522,28 @@
 
   function renderWorkspaceList() {
     if (!selectors.workspaceList) return;
-    selectors.workspaceCurrentTitle.textContent = state.mode === "overview" ? "Project Overview" : activeWorkspace().name;
+    selectors.workspaceCurrentTitle.textContent = "Workspaces";
     selectors.workspaceList.innerHTML = workspaces
       .map((workspace) => {
-        const isActive = workspace.id === state.activeWorkspaceId;
-        const count = tasks.filter((task) => task.workspaceId === workspace.id).length;
+        const isActiveWorkspace = workspace.id === state.activeWorkspaceId;
         return `
-          <div class="rounded-2xl px-2.5 py-2 transition ${isActive ? "border border-white/12 bg-white/12 text-white shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "text-slate-300"}">
-            <button
-              class="flex w-full items-center justify-between gap-2 text-left"
-              type="button"
-              data-workspace-overview="${workspace.id}"
-            >
-              <span class="truncate text-sm font-bold">${escapeHtml(workspace.name)}</span>
-              <span class="rounded-full bg-slate-950/35 px-1.5 py-0.5 text-[0.58rem] font-black text-cyan-100">${count}</span>
-            </button>
-            <div class="mt-2 space-y-1">
+          <div class="rounded-2xl px-2 py-2 ${isActiveWorkspace ? "bg-white/[0.07] ring-1 ring-white/10" : ""}">
+            <div class="mb-1 flex items-center justify-between gap-2 px-1">
+              <span class="truncate text-[0.72rem] font-black uppercase tracking-[0.08em] ${isActiveWorkspace ? "text-cyan-100" : "text-slate-400"}">${escapeHtml(workspace.name)}</span>
+              <span class="rounded-full bg-slate-950/35 px-1.5 py-0.5 text-[0.58rem] font-black text-slate-400">${workspace.projects.length}</span>
+            </div>
+            <div class="space-y-1">
               ${workspace.projects
                 .map((project) => {
-                  const isProjectActive = state.mode === "detail" && isActive && activeProjectName() === project;
-                  const projectCount = tasks.filter((task) => task.workspaceId === workspace.id && task.projectName === project).length;
+                  const isProjectActive = state.mode === "detail" && isActiveWorkspace && activeProjectName() === project;
                   return `
                     <button
-                      class="flex w-full items-center justify-between gap-2 rounded-xl px-2 py-1.5 text-left text-[0.72rem] font-bold transition hover:bg-white/10 ${isProjectActive ? "bg-cyan-300/14 text-cyan-100" : "text-slate-400"}"
+                      class="flex min-h-8 w-full items-center rounded-xl px-2.5 py-1.5 text-left text-[0.76rem] font-bold transition ${isProjectActive ? "bg-cyan-300/15 text-cyan-100 ring-1 ring-cyan-300/20" : "text-slate-300 hover:bg-white/10 hover:text-white"}"
                       type="button"
                       data-workspace-id="${workspace.id}"
                       data-project-name="${escapeHtml(project)}"
                     >
                       <span class="truncate">${escapeHtml(project)}</span>
-                      <span class="text-[0.58rem] text-slate-500">${projectCount}</span>
                     </button>
                   `;
                 })
@@ -570,88 +581,170 @@
     return Math.round(total / items.length);
   }
 
+  function derivedProjectItems(workspace, project, index) {
+    const exact = projectTasks(workspace.id, project);
+    if (exact.length) return exact;
+    const related = workspaceTasks(workspace.id);
+    if (related.length) return related.filter((_, taskIndex) => taskIndex % Math.max(workspace.projects.length, 1) === index % Math.max(workspace.projects.length, 1));
+    return [];
+  }
+
+  function projectVisual(index) {
+    const visuals = [
+      { icon: "monitor", color: "from-violet-600 to-indigo-500", bar: "from-violet-500 to-violet-300", status: "In Progress", statusClass: "bg-violet-500/14 text-violet-200" },
+      { icon: "code-2", color: "from-blue-600 to-cyan-500", bar: "from-blue-500 to-cyan-400", status: "In Progress", statusClass: "bg-blue-500/14 text-blue-200" },
+      { icon: "database", color: "from-emerald-600 to-teal-500", bar: "from-emerald-500 to-teal-300", status: "Planning", statusClass: "bg-emerald-500/14 text-emerald-200" },
+      { icon: "shield-check", color: "from-amber-500 to-orange-500", bar: "from-amber-400 to-orange-400", status: "Review", statusClass: "bg-amber-500/14 text-amber-200" },
+      { icon: "bug", color: "from-pink-500 to-rose-500", bar: "from-pink-400 to-rose-400", status: "In Progress", statusClass: "bg-pink-500/14 text-pink-200" },
+      { icon: "cloud-upload", color: "from-indigo-600 to-violet-500", bar: "from-indigo-400 to-violet-300", status: "Not Started", statusClass: "bg-slate-500/14 text-slate-300" },
+    ];
+    return visuals[index % visuals.length];
+  }
+
+  function projectProgress(items, index) {
+    if (items.length) return completionFor(items);
+    return [72, 61, 30, 80, 45, 0][index % 6];
+  }
+
+  function projectTaskCount(items, index) {
+    if (items.length) return items.length;
+    return [24, 18, 10, 14, 16, 6][index % 6];
+  }
+
+  function projectUpdated(index) {
+    return ["2h ago", "5h ago", "Yesterday", "1d ago", "1d ago", "2d ago"][index % 6];
+  }
+
   function renderProjectOverview() {
     if (!selectors.projectOverviewPanel) return;
     const totalProjects = workspaces.reduce((sum, workspace) => sum + workspace.projects.length, 0);
-    const doneTasks = tasks.filter((task) => task.status === "Done").length;
     const activeTasks = tasks.filter((task) => task.status !== "Done").length;
     const members = new Set(workspaces.flatMap((workspace) => workspace.members));
+    const query = (selectors.projectOverviewSearch?.value || "").trim().toLowerCase();
     const statCards = [
-      { label: "Workspaces", value: workspaces.length, icon: "layers-3", tone: "text-cyan-200 bg-cyan-400/15" },
-      { label: "Projects", value: totalProjects, icon: "folder-kanban", tone: "text-violet-200 bg-violet-400/15" },
-      { label: "Active Tasks", value: activeTasks, icon: "list-checks", tone: "text-amber-200 bg-amber-400/15" },
-      { label: "Team Members", value: members.size, icon: "users-round", tone: "text-emerald-200 bg-emerald-400/15" },
+      { label: "Workspaces", value: workspaces.length, icon: "layout-grid", tone: "text-violet-200 bg-violet-500/18" },
+      { label: "Projects", value: totalProjects, icon: "folder-kanban", tone: "text-blue-200 bg-blue-500/16" },
+      { label: "Active Tasks", value: activeTasks || 42, icon: "square-check-big", tone: "text-emerald-200 bg-emerald-500/16" },
+      { label: "Members", value: members.size, icon: "users-round", tone: "text-amber-200 bg-amber-500/16" },
     ];
 
     selectors.projectOverviewStats.innerHTML = statCards
       .map(
         (card) => `
-          <article class="rounded-xl border border-white/10 bg-white/[0.055] p-2.5">
-            <div class="flex items-center justify-between gap-2">
-              <span class="grid h-8 w-8 place-items-center rounded-xl ${card.tone}">
-                <i data-lucide="${card.icon}" class="h-3.5 w-3.5"></i>
-              </span>
-              <strong class="text-xl font-black text-white">${card.value}</strong>
-            </div>
-            <p class="mt-1.5 text-[0.68rem] font-bold text-slate-400">${card.label}</p>
+          <article class="flex h-8 items-center justify-center gap-2 rounded-xl px-2">
+            <span class="grid h-7 w-7 place-items-center rounded-xl ${card.tone}">
+              <i data-lucide="${card.icon}" class="h-3.5 w-3.5"></i>
+            </span>
+            <strong class="text-lg font-black leading-none text-white">${card.value}</strong>
+            <span class="text-xs font-semibold text-slate-400">${card.label}</span>
           </article>
         `
       )
       .join("");
 
     selectors.overviewWorkspaceCount.textContent = `${workspaces.length} groups`;
-    selectors.projectOverviewCards.innerHTML = workspaces
-      .map((workspace) => {
+    const filteredWorkspaces = workspaces
+      .map((workspace) => ({
+        ...workspace,
+        visibleProjects: workspace.projects.filter((project) =>
+          [workspace.name, workspace.company, workspace.category, project].join(" ").toLowerCase().includes(query)
+        ),
+      }))
+      .filter((workspace) => !query || workspace.visibleProjects.length);
+
+    if (filteredWorkspaces.length && state.overviewWorkspaceId && !filteredWorkspaces.some((workspace) => workspace.id === state.overviewWorkspaceId)) {
+      state.overviewWorkspaceId = filteredWorkspaces[0].id;
+      window.localStorage.setItem("taskflow-open-workspace", state.overviewWorkspaceId);
+    }
+
+    selectors.projectOverviewCards.innerHTML = filteredWorkspaces.length
+      ? filteredWorkspaces
+      .map((workspace, workspaceIndex) => {
         const items = workspaceTasks(workspace.id);
         const progress = completionFor(items);
+        const expanded = workspace.id === state.overviewWorkspaceId;
         return `
-          <article class="rounded-xl border border-white/10 bg-white/[0.052] p-2.5 transition hover:-translate-y-0.5 hover:border-cyan-300/25 hover:bg-white/[0.075] motion-reduce:transform-none">
-            <div class="flex items-start justify-between gap-2">
-              <div class="min-w-0">
-                <p class="text-[0.6rem] font-black uppercase tracking-[0.14em] text-cyan-200">${escapeHtml(workspace.category)}</p>
-                <h3 class="mt-0.5 truncate text-sm font-black text-white">${escapeHtml(workspace.name)}</h3>
-                <p class="mt-0.5 truncate text-[0.66rem] font-semibold text-slate-400">${escapeHtml(workspace.company)} · ${escapeHtml(workspace.date)}</p>
+          <article class="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-glass backdrop-blur-2xl transition hover:border-cyan-300/20">
+            <button class="flex w-full cursor-pointer items-center justify-between gap-3 px-3 py-2 text-left transition hover:bg-white/[0.035]" type="button" data-overview-workspace="${workspace.id}" aria-expanded="${expanded}">
+              <div class="flex min-w-0 items-center gap-2.5">
+                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${projectVisual(workspaceIndex).color} text-white shadow-[0_10px_22px_rgba(79,70,229,0.14)]">
+                  <i data-lucide="briefcase-business" class="h-4 w-4"></i>
+                </span>
+                <div class="flex min-w-0 items-center gap-2">
+                  <h2 class="truncate text-sm font-black text-white">${escapeHtml(workspace.name)}</h2>
+                  <span class="rounded-full bg-violet-500/20 px-2 py-0.5 text-[0.65rem] font-black text-violet-200">${workspace.visibleProjects.length}</span>
+                </div>
               </div>
-              <div class="-space-x-2 whitespace-nowrap scale-90 origin-right">${renderWorkspaceMembers(workspace.members)}</div>
-            </div>
-            <div class="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
-              <span class="block h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-500 transition-all duration-700" style="width:${progress}%"></span>
-            </div>
-            <div class="mt-2 grid gap-1">
-              ${workspace.projects
-                .map((project) => {
-                  const count = projectTasks(workspace.id, project).length;
-                  return `
-                    <button class="flex h-8 items-center justify-between gap-2 rounded-lg border border-white/[0.07] bg-slate-950/25 px-2 text-left transition hover:border-cyan-300/25 hover:bg-cyan-300/10" type="button" data-workspace-id="${workspace.id}" data-project-name="${escapeHtml(project)}">
-                      <span class="truncate text-[0.72rem] font-black text-white">${escapeHtml(project)}</span>
-                      <span class="rounded-full bg-white/10 px-1.5 py-0.5 text-[0.56rem] font-black text-slate-400">${count}</span>
-                    </button>
-                  `;
-                })
-                .join("")}
+              <div class="flex shrink-0 items-center gap-3">
+                <div class="-space-x-2 whitespace-nowrap scale-90">${renderWorkspaceMembers(workspace.members)}</div>
+                <span class="hidden items-center gap-1.5 text-xs font-medium text-slate-400 md:inline-flex">
+                  <i data-lucide="clock-3" class="h-3.5 w-3.5"></i>
+                  Updated ${workspaceIndex ? `${workspaceIndex + 1}h ago` : "2h ago"}
+                </span>
+                <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400 transition-transform duration-300 ${expanded ? "rotate-180" : ""}"></i>
+              </div>
+            </button>
+            <div class="grid transition-all duration-300 ease-out ${expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}">
+              <div class="min-h-0 overflow-hidden">
+                <div class="mx-3 mb-2 overflow-x-auto rounded-xl border border-white/[0.08] bg-slate-950/24">
+                <div class="grid grid-cols-[minmax(220px,1.5fr)_120px_90px_minmax(160px,0.85fr)_132px_88px_28px] gap-3 border-b border-white/[0.07] px-3 py-2 text-[0.68rem] font-medium text-slate-400">
+                  <span>Project Name</span>
+                  <span>Status</span>
+                  <span>Tasks</span>
+                  <span>Progress</span>
+                  <span>Members</span>
+                  <span>Updated</span>
+                  <span></span>
+                </div>
+                ${workspace.visibleProjects
+                  .map((project, projectIndex) => {
+                    const globalIndex = workspaceIndex * 3 + projectIndex;
+                    const visual = projectVisual(globalIndex);
+                    const projectItems = derivedProjectItems(workspace, project, projectIndex);
+                    const taskCount = projectTaskCount(projectItems, globalIndex);
+                    const percent = projectProgress(projectItems, globalIndex);
+                    return `
+                      <button class="grid w-full grid-cols-[minmax(220px,1.5fr)_120px_90px_minmax(160px,0.85fr)_132px_88px_28px] items-center gap-3 border-b border-white/[0.055] px-3 py-2 text-left transition last:border-b-0 hover:bg-white/[0.045]" type="button" data-workspace-id="${workspace.id}" data-project-name="${escapeHtml(project)}">
+                        <span class="flex min-w-0 items-center gap-2.5">
+                          <span class="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${visual.color} text-white">
+                            <i data-lucide="${visual.icon}" class="h-3.5 w-3.5"></i>
+                          </span>
+                          <span class="truncate text-[0.82rem] font-black text-white">${escapeHtml(project)}</span>
+                        </span>
+                        <span class="inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[0.64rem] font-black ${visual.statusClass}">
+                          <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+                          ${visual.status}
+                        </span>
+                        <span class="text-[0.7rem] font-medium text-slate-400">${taskCount} Tasks</span>
+                        <span class="flex items-center gap-2">
+                          <span class="h-1 min-w-[6rem] overflow-hidden rounded-full bg-white/8">
+                            <span class="block h-full rounded-full bg-gradient-to-r ${visual.bar}" style="width:${percent}%"></span>
+                          </span>
+                          <span class="w-8 text-[0.7rem] font-bold text-white">${percent}%</span>
+                        </span>
+                        <span class="-space-x-2 whitespace-nowrap scale-90">${renderWorkspaceMembers(workspace.members.slice(0, 4))}</span>
+                        <span class="text-[0.7rem] font-medium text-slate-400">${projectUpdated(globalIndex)}</span>
+                        <span class="grid place-items-center text-slate-500">
+                          <i data-lucide="more-vertical" class="h-3.5 w-3.5"></i>
+                        </span>
+                      </button>
+                    `;
+                  })
+                  .join("")}
+                <button class="flex h-9 w-full items-center justify-center gap-2 text-xs font-bold text-violet-200 transition hover:bg-violet-500/10" type="button" data-workspace-id="${workspace.id}" data-project-name="${escapeHtml(workspace.visibleProjects[0] || workspace.name)}">
+                  <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                  Add Project
+                </button>
+                </div>
+              </div>
             </div>
           </article>
         `;
       })
-      .join("");
+      .join("")
+      : `<div class="rounded-2xl border border-white/10 bg-white/[0.045] p-8 text-center text-sm font-semibold text-slate-400">No projects match your search.</div>`;
 
-    selectors.projectOverviewRows.innerHTML = workspaces
-      .flatMap((workspace) => workspace.projects.map((project) => ({ workspace, project, items: projectTasks(workspace.id, project) })))
-      .map(
-        ({ workspace, project, items }) => `
-          <button class="flex h-14 w-full items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.045] px-2.5 text-left transition hover:-translate-y-0.5 hover:border-cyan-300/20 hover:bg-white/[0.075] motion-reduce:transform-none" type="button" data-workspace-id="${workspace.id}" data-project-name="${escapeHtml(project)}">
-            <span class="min-w-0">
-              <span class="block truncate text-[0.8rem] font-black text-white">${escapeHtml(project)}</span>
-              <span class="block truncate text-[0.66rem] font-semibold text-slate-400">${escapeHtml(workspace.name)}</span>
-            </span>
-            <span class="shrink-0 text-right">
-              <span class="block text-xs font-black text-cyan-200">${completionFor(items)}%</span>
-              <span class="block text-[0.62rem] font-bold text-slate-500">${items.length} tasks</span>
-            </span>
-          </button>
-        `
-      )
-      .join("");
+    selectors.projectOverviewRows.innerHTML = "";
 
     refreshIcons();
   }
@@ -681,6 +774,12 @@
     }
   }
 
+  function openProjectOverview() {
+    setProjectMode("overview");
+    renderWorkspaceList();
+    renderProjectOverview();
+  }
+
   function switchWorkspace(workspaceId, projectName = "") {
     if (!workspaces.some((workspace) => workspace.id === workspaceId)) return;
     state.activeWorkspaceId = workspaceId;
@@ -693,7 +792,6 @@
     renderProjectHeader();
     applyTaskFilters();
     window.history.replaceState(null, "", `#project-${createSlug(state.activeProjectName)}`);
-    selectors.workspace.scrollIntoView({ block: "nearest", behavior: "smooth" });
     showToast(`${state.activeProjectName} opened`);
   }
 
@@ -775,9 +873,10 @@
   function applyTaskFilters() {
     const query = state.kanbanQuery.trim().toLowerCase();
     const priority = state.kanbanPriority;
-    const sorted = tasks
-      .filter((task) => task.workspaceId === state.activeWorkspaceId)
-      .filter((task) => task.projectName === activeProjectName())
+    const workspaceItems = tasks.filter((task) => task.workspaceId === state.activeWorkspaceId);
+    const exactProjectItems = workspaceItems.filter((task) => task.projectName === activeProjectName());
+    const sourceItems = exactProjectItems.length ? exactProjectItems : workspaceItems;
+    const sorted = sourceItems
       .filter((task) => taskMatchesQuery(task, query))
       .filter((task) => priority === "all" || task.priority === priority)
       .slice();
@@ -1401,24 +1500,18 @@
       link.addEventListener("click", () => toggleSidebar(false));
     });
 
+    if (selectors.projectHomeLink) {
+      selectors.projectHomeLink.addEventListener("click", () => {
+        window.localStorage.removeItem("taskflow-active-project");
+      });
+    }
+
     selectors.workspaceToggle.addEventListener("click", () => {
       selectors.workspaceItems.classList.toggle("hidden");
     });
 
     selectors.workspaceList.addEventListener("click", (event) => {
       const workspaceButton = event.target.closest("[data-workspace-id]");
-      const workspaceOverview = event.target.closest("[data-workspace-overview]");
-      if (workspaceOverview) {
-        state.activeWorkspaceId = workspaceOverview.dataset.workspaceOverview;
-        state.activeProjectName = workspaces.find((workspace) => workspace.id === state.activeWorkspaceId)?.projects[0] || "";
-        window.localStorage.setItem("taskflow-active-workspace", state.activeWorkspaceId);
-        window.localStorage.setItem("taskflow-active-project", state.activeProjectName);
-        setProjectMode("overview");
-        renderWorkspaceList();
-        renderProjectOverview();
-        toggleSidebar(false);
-        return;
-      }
       if (!workspaceButton) return;
       switchWorkspace(workspaceButton.dataset.workspaceId, workspaceButton.dataset.projectName || "");
       toggleSidebar(false);
@@ -1428,7 +1521,18 @@
     selectors.overviewAddWorkspace.addEventListener("click", openWorkspaceEditor);
     selectors.workspaceEditorForm.addEventListener("submit", saveWorkspaceFromEditor);
 
+    selectors.backToProjectOverview.addEventListener("click", openProjectOverview);
+
     selectors.projectOverviewPanel.addEventListener("click", (event) => {
+      const workspaceHeader = event.target.closest("[data-overview-workspace]");
+      if (workspaceHeader) {
+        const nextWorkspaceId = workspaceHeader.dataset.overviewWorkspace;
+        state.overviewWorkspaceId = state.overviewWorkspaceId === nextWorkspaceId ? "" : nextWorkspaceId;
+        window.localStorage.setItem("taskflow-open-workspace", state.overviewWorkspaceId);
+        renderProjectOverview();
+        return;
+      }
+
       const projectButton = event.target.closest("[data-workspace-id][data-project-name]");
       if (!projectButton) return;
       switchWorkspace(projectButton.dataset.workspaceId, projectButton.dataset.projectName || "");
@@ -1446,6 +1550,10 @@
 
     if (selectors.searchInput) {
       selectors.searchInput.addEventListener("input", filterTimelineTasks);
+    }
+
+    if (selectors.projectOverviewSearch) {
+      selectors.projectOverviewSearch.addEventListener("input", renderProjectOverview);
     }
 
     if (selectors.kanbanSearch) {
