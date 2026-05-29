@@ -23,10 +23,6 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     path("api/", include("apps.tasks.api.urls")),
-    path("dashboard/", TemplateView.as_view(template_name="dashboard/index.html"), name="dashboard"),
-    path("project/", TemplateView.as_view(template_name="timeline/index.html"), name="project"),
-    path("timeline/", TemplateView.as_view(template_name="timeline/index.html"), name="timeline"),
-    path("team/", TemplateView.as_view(template_name="team/index.html"), name="team"),
     # ── FE: Settings / Files / Auth (added by feature/ui-components) ──
     path("settings/", TemplateView.as_view(template_name="settings/index.html"), name="settings"),
     path("files/", TemplateView.as_view(template_name="files/index.html"), name="files"),

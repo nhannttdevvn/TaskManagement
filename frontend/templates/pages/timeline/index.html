@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 {% load static %}
 
 {% block title %}Project Timeline | TaskFlow{% endblock %}
 
 {% block vendor_styles %}
-{% include "includes/app_design_tokens.html" %}
+{% include "partials/design_tokens.html" %}
 <style>
   #timelineApp {
     color-scheme: dark;
@@ -63,6 +63,9 @@
 {% block page_shell %}
 <div
   id="timelineApp"
+  data-project-url="{% url 'api_project_data' %}"
+  data-invite-url="{% url 'api_team_invitations' 1 %}"
+  data-allow-demo-fallback="true"
   class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(79,70,229,0.22),transparent_30%),linear-gradient(225deg,rgba(14,165,233,0.16),transparent_34%),linear-gradient(180deg,#050816_0%,#0f172a_52%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
 >
   <div
@@ -111,6 +114,8 @@
 
       <section class="mt-4 flex min-h-0 flex-1 flex-col rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
         <button id="workspaceToggle" class="flex w-full shrink-0 items-center justify-between text-left" type="button">
+=======
+  
           <span>
             <span class="block text-xs font-extrabold uppercase text-cyan-200">Workspace</span>
             <span id="workspaceCurrentTitle" class="block text-sm font-bold text-white">Fintask Landing Page</span>
@@ -134,10 +139,10 @@
           <p class="truncate text-xs text-slate-300">Product Manager</p>
         </div>
       </div>
-      <a class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20" href="{% url 'logout' %}">
+      <button class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20" type="button">
         <i data-lucide="log-out" class="h-4 w-4"></i>
         Logout
-      </a>
+      </button>
     </div>
   </aside>
 
@@ -207,6 +212,7 @@
     </header>
 
     <main id="timelineOverview" class="flex min-h-0 flex-col gap-2 overflow-y-auto px-3 py-2 sm:px-4 lg:flex-1 lg:overflow-hidden">
+<<<<<<< HEAD:frontend/templates/timeline/index.html
       <section id="projectOverviewPanel" class="flex min-h-0 flex-col gap-2 lg:flex-1 lg:overflow-hidden">
         <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -233,6 +239,46 @@
         <div id="projectOverviewCards" class="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1"></div>
         <span id="overviewWorkspaceCount" class="hidden"></span>
         <div id="projectOverviewRows" class="hidden"></div>
+=======
+      <section id="projectOverviewPanel" class="theme-panel flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-2xl lg:flex-1 lg:overflow-hidden">
+        <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p class="text-[0.66rem] font-extrabold uppercase tracking-[0.14em] text-cyan-200">Project Overview</p>
+            <h1 class="mt-0.5 text-xl font-black leading-tight text-white">All project workspaces</h1>
+            <p class="mt-0.5 max-w-2xl text-xs font-semibold leading-5 text-slate-400">Open a project under each workspace to manage timeline, kanban, and task ownership.</p>
+          </div>
+          <button id="overviewAddWorkspace" class="inline-flex h-8 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-3 text-xs font-black text-white shadow-[0_10px_24px_rgba(79,70,229,0.18)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
+            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+            Add Workspace
+          </button>
+        </div>
+
+        <div id="projectOverviewStats" class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4"></div>
+
+        <div class="mt-3 grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.75fr)]">
+          <section class="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/30 p-2.5">
+            <div class="mb-2 flex shrink-0 items-center justify-between">
+              <div>
+                <h2 class="text-sm font-black text-white">Workspace groups</h2>
+                <p class="text-[0.68rem] font-semibold text-slate-400">Choose a project to open timeline.</p>
+              </div>
+              <span id="overviewWorkspaceCount" class="rounded-full bg-cyan-400/15 px-2 py-1 text-[0.65rem] font-black text-cyan-200"></span>
+            </div>
+            <div id="projectOverviewCards" class="grid min-h-0 flex-1 content-start gap-2 overflow-y-auto pr-1 md:grid-cols-2 2xl:grid-cols-3"></div>
+          </section>
+
+          <section class="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/30 p-2.5">
+            <div class="mb-2 flex shrink-0 items-center justify-between">
+              <div>
+                <h2 class="text-sm font-black text-white">Recent projects</h2>
+                <p class="text-[0.68rem] font-semibold text-slate-400">Quick access.</p>
+              </div>
+              <i data-lucide="folder-open" class="h-4 w-4 text-cyan-200"></i>
+            </div>
+            <div id="projectOverviewRows" class="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1"></div>
+          </section>
+        </div>
+>>>>>>> 8420ce20d5130a0bc5bc835724d6ee0a842b3a42:frontend/templates/pages/timeline/index.html
       </section>
 
       <section id="projectDetailHeader" class="theme-panel hidden rounded-2xl border border-white/10 bg-white/10 px-3 py-2 shadow-glass backdrop-blur-2xl lg:shrink-0">
@@ -467,6 +513,7 @@
       <p class="text-xs font-extrabold uppercase text-cyan-200">Workspace invite</p>
       <h2 id="projectInviteTitle" class="mb-4 text-xl font-black text-white">Invite Member</h2>
       <form id="projectInviteForm" class="space-y-3" data-invite-url="{% url 'api_team_invitations' 1 %}">
+        {% csrf_token %}
         <label class="grid gap-1.5">
           <span class="text-xs font-bold text-slate-400">Email or username</span>
           <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="email" type="email" placeholder="colleague@example.com" required>
@@ -511,14 +558,19 @@
     </section>
   </div>
 
-  <div id="timelineToast" class="fixed bottom-5 right-5 z-[80] hidden rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white shadow-[0_20px_70px_rgba(2,6,23,0.34)] backdrop-blur-2xl"></div>
+  {% include "partials/toast.html" with toast_id="timelineToast" %}
 </div>
 {% endblock %}
 
 {% block vendor_scripts %}
-<script src="https://unpkg.com/lucide@latest"></script>
+{% include "partials/vendor_lucide.html" %}
 {% endblock %}
 
 {% block extra_scripts %}
+<<<<<<< HEAD:frontend/templates/timeline/index.html
 <script src="{% static 'js/timeline.js' %}?v=20260529-1"></script>
+=======
+<script src="{% static 'js/pages/timeline/api.js' %}?v=20260527-1"></script>
+<script src="{% static 'js/pages/timeline.js' %}?v=20260527-1"></script>
+>>>>>>> 8420ce20d5130a0bc5bc835724d6ee0a842b3a42:frontend/templates/pages/timeline/index.html
 {% endblock %}
