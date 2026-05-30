@@ -31,7 +31,7 @@ def auth_signup(request):
     if not email or not password:
         return error("Email and password are required.", status=400)
 
-    if User.objects.filter(username=email).exists():
+    if User.objects.filter(username=email).exists() or User.objects.filter(email=email).exists():
         return error("An account with this email already exists.", status=400)
 
     # Split full name into first and last name
