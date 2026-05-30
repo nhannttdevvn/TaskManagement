@@ -171,8 +171,31 @@
     });
     profileForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      dirtyBadge?.classList.add("hidden");
-      showToast("Profile đã được cập nhật");
+      const formData = new FormData(profileForm);
+      const payload = {
+        full_name: formData.get("full_name"),
+        email: formData.get("email"),
+      };
+      const curPwd = formData.get("current_password");
+      const newPwd = formData.get("new_password");
+      if (newPwd) {
+        payload.current_password = curPwd;
+        payload.new_password = newPwd;
+      }
+
+      window.TaskFlow.api.patch("/api/users/me/", payload, { root: profileForm })
+        .then(() => {
+          dirtyBadge?.classList.add("hidden");
+          showToast("Profile đã được cập nhật thành công");
+          const curPwdInput = profileForm.querySelector('input[name="current_password"]');
+          const newPwdInput = profileForm.querySelector('input[name="new_password"]');
+          if (curPwdInput) curPwdInput.value = "";
+          if (newPwdInput) newPwdInput.value = "";
+          setTimeout(() => location.reload(), 1000);
+        })
+        .catch((err) => {
+          showToast(err.message || "Lỗi cập nhật profile");
+        });
     });
     profileForm.addEventListener("reset", () => {
       dirtyBadge?.classList.add("hidden");
@@ -240,12 +263,43 @@
    *  Team & Permissions tab – render rows + invite modal
    * ============================================================ */
   const memberList = document.getElementById("teamMemberList");
-  const state = { members: initialMembers.slice() };
+  const state = { members: [], activeTeamId: null };
+
+  const currentRole = app.dataset.workspaceRole || "Member";
+  const isAuthorized = currentRole === "Owner" || currentRole === "Admin";
+
+  function fetchTeamData() {
+    window.TaskFlow.api.get("/api/teams/")
+      .then((teams) => {
+        if (teams && teams.length > 0) {
+          state.activeTeamId = teams[0].id;
+          return window.TaskFlow.api.get(`/api/teams/${state.activeTeamId}/members/`);
+        }
+        return [];
+      })
+      .then((members) => {
+        state.members = members;
+        renderMembers();
+      })
+      .catch((err) => {
+        console.error("Error fetching team members:", err);
+      });
+  }
+
+  if (memberList) {
+    fetchTeamData();
+  }
 
   function renderMembers() {
     if (!memberList) return;
+    if (state.members.length === 0) {
+      memberList.innerHTML = `<p class="p-4 text-center text-sm text-slate-400">Chưa có thành viên nào.</p>`;
+      return;
+    }
     memberList.innerHTML = state.members.map((m) => {
       const accent = roleAccent[m.role] || roleAccent.Member;
+      const selectDisabled = (!isAuthorized || m.role === "Owner") ? "disabled" : "";
+      const removeBtnStyle = (!isAuthorized || m.role === "Owner") ? "style='display:none;'" : "";
       return `
         <div class="js-member-row flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-900/40 p-3" data-id="${m.id}">
           <div class="flex min-w-0 items-center gap-3">
@@ -261,12 +315,12 @@
           <div class="flex shrink-0 items-center gap-2">
             <span class="hidden rounded-full px-2.5 py-1 text-[0.65rem] font-black uppercase tracking-wider sm:inline-flex ${accent.chip}">${m.role}</span>
             <label class="relative">
-              <select class="js-role-select appearance-none rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-2 pr-8 text-xs font-bold text-white outline-none transition focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" aria-label="Role for ${m.name}">
+              <select class="js-role-select appearance-none rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-2 pr-8 text-xs font-bold text-white outline-none transition focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" aria-label="Role for ${m.name}" ${selectDisabled}>
                 ${ROLES.map((r) => `<option ${r === m.role ? "selected" : ""}>${r}</option>`).join("")}
               </select>
               <i data-lucide="chevron-down" class="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"></i>
             </label>
-            <button class="js-remove-member grid h-9 w-9 place-items-center rounded-2xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-rose-500/15 hover:text-rose-200" type="button" aria-label="Remove ${m.name}">
+            <button class="js-remove-member grid h-9 w-9 place-items-center rounded-2xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-rose-500/15 hover:text-rose-200" type="button" aria-label="Remove ${m.name}" ${removeBtnStyle}>
               <i data-lucide="user-minus" class="h-4 w-4"></i>
             </button>
           </div>
@@ -274,19 +328,27 @@
     }).join("");
     refreshIcons();
   }
-  renderMembers();
 
   memberList?.addEventListener("change", (e) => {
     const sel = e.target.closest(".js-role-select");
     if (!sel) return;
     const row = sel.closest(".js-member-row");
     const id = row?.dataset.id;
-    const m = state.members.find((x) => x.id === id);
-    if (m) {
-      m.role = sel.value;
-      renderMembers();
-      showToast(`${m.name} → ${m.role}`);
-    }
+    const newRole = sel.value;
+
+    window.TaskFlow.api.patch(`/api/teams/${state.activeTeamId}/members/${id}/`, { role: newRole }, { root: memberList })
+      .then((updated) => {
+        const m = state.members.find((x) => String(x.id) === String(id));
+        if (m) {
+          m.role = updated.role;
+        }
+        renderMembers();
+        showToast("Đã cập nhật vai trò thành công");
+      })
+      .catch((err) => {
+        showToast(err.message || "Không thể cập nhật vai trò");
+        fetchTeamData();
+      });
   });
 
   memberList?.addEventListener("click", (e) => {
@@ -294,15 +356,28 @@
     if (!btn) return;
     const row = btn.closest(".js-member-row");
     const id = row?.dataset.id;
-    state.members = state.members.filter((x) => x.id !== id);
-    renderMembers();
-    showToast("Đã xoá thành viên");
+
+    if (confirm("Bạn có chắc muốn xóa thành viên này khỏi workspace?")) {
+      window.TaskFlow.api.delete(`/api/teams/${state.activeTeamId}/members/${id}/`, { root: memberList })
+        .then(() => {
+          state.members = state.members.filter((x) => String(x.id) !== String(id));
+          renderMembers();
+          showToast("Đã xoá thành viên thành công");
+        })
+        .catch((err) => {
+          showToast(err.message || "Không thể xóa thành viên");
+        });
+    }
   });
 
   // Invite modal
   const inviteModal = document.getElementById("inviteSettingsModal");
   function toggleInvite(open) {
     if (!inviteModal) return;
+    if (!isAuthorized && open) {
+      showToast("Chỉ Owner hoặc Admin mới có quyền gửi lời mời.");
+      return;
+    }
     if (open) {
       inviteModal.classList.remove("hidden");
       inviteModal.classList.add("flex");
@@ -332,24 +407,21 @@
     const email = (data.get("email") || "").toString().trim();
     const role = (data.get("role") || "Member").toString();
     if (!email) return;
-    const id = email.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    state.members.push({
-      id,
-      name: email.split("@")[0].replace(/\./g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-      email,
-      role,
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(email)}&backgroundType=gradientLinear`,
-      online: false,
-    });
-    renderMembers();
-    toggleInvite(false);
-    e.target.reset();
-    showToast(`Đã mời ${email} với vai trò ${role}`);
+
+    window.TaskFlow.api.post(`/api/teams/${state.activeTeamId}/invitations/`, { email, role }, { root: e.target })
+      .then(() => {
+        toggleInvite(false);
+        e.target.reset();
+        showToast(`Đã mời ${email} với vai trò ${role} thành công`);
+      })
+      .catch((err) => {
+        showToast(err.message || "Lỗi gửi lời mời");
+      });
   });
 
   document.getElementById("teamPermissionsForm")?.addEventListener("submit", (e) => {
     e.preventDefault();
-    showToast("Đã lưu phân quyền team");
+    showToast("Cài đặt phân quyền team đã được lưu");
   });
 
   /* ============================================================

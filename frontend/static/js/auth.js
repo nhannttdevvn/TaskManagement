@@ -1,174 +1,207 @@
 (function () {
   "use strict";
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const loginForm = document.getElementById("loginForm");
-    const loginSubmit = document.getElementById("loginSubmit");
-    const authToast = document.getElementById("authToast");
-    const authTabs = document.querySelectorAll(".js-auth-tab");
-    const signupOnlyElements = document.querySelectorAll(".js-signup-only");
-    const signinOnlyElements = document.querySelectorAll(".js-signin-only");
-    const togglePasswordBtn = document.querySelector(".js-toggle-password");
-    const passwordInput = document.querySelector(".js-password");
+  const loginApp = document.getElementById("loginApp");
+  const logoutApp = document.getElementById("logoutApp");
+  if (!loginApp && !logoutApp) return;
 
-    let currentMode = "signin"; // 'signin' or 'signup'
-
-    // Init Lucide icons
-    if (window.lucide) {
+  function refreshIcons() {
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
       window.lucide.createIcons();
     }
+  }
+  refreshIcons();
 
-    // Toggle password visibility
-    if (togglePasswordBtn && passwordInput) {
-      togglePasswordBtn.addEventListener("click", function () {
-        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
-        passwordInput.setAttribute("type", type);
-        
-        const icon = togglePasswordBtn.querySelector("i");
-        if (icon && window.lucide) {
-          icon.setAttribute("data-lucide", type === "password" ? "eye" : "eye-off");
-          window.lucide.createIcons();
-        }
+  /* ============================================================
+   *  Theme — auth pages giữ dark theme là chính, nhưng vẫn tôn
+   *  trọng preference đã lưu để đồng bộ với các trang khác.
+   * ============================================================ */
+  const THEME_KEY = "taskflow-theme";
+  document.documentElement.classList.toggle(
+    "dark",
+    (localStorage.getItem(THEME_KEY) || "dark") !== "light"
+  );
+
+  /* ============================================================
+   *  Password eye toggle (chung cho cả login + logout)
+   * ============================================================ */
+  document.querySelectorAll(".js-toggle-password").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = btn.parentElement.querySelector("input");
+      if (!input) return;
+      const isPwd = input.type === "password";
+      input.type = isPwd ? "text" : "password";
+      const icon = btn.querySelector("[data-lucide]");
+      if (icon) {
+        icon.setAttribute("data-lucide", isPwd ? "eye-off" : "eye");
+        refreshIcons();
+      }
+    });
+  });
+
+  /* ============================================================
+   *  Toast helper
+   * ============================================================ */
+  function showToast(targetId, message) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    el.textContent = message;
+    el.classList.remove("hidden");
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => el.classList.add("hidden"), 2400);
+  }
+
+  /* ============================================================
+   *  LOGIN PAGE
+   * ============================================================ */
+  if (loginApp) {
+    const form = document.getElementById("loginForm");
+    const submitBtn = document.getElementById("loginSubmit");
+    const emailInput = document.getElementById("loginEmail");
+    const passwordInput = document.getElementById("loginPassword");
+    const fullNameInput = form?.querySelector('input[name="full_name"]');
+
+    // Tab Sign in / Sign up
+    const tabs = document.querySelectorAll(".js-auth-tab");
+    function setMode(mode) {
+      const nextMode = mode === "signup" ? "signup" : "signin";
+      tabs.forEach((t) => {
+        const isActive = t.dataset.mode === nextMode;
+        t.setAttribute("aria-selected", isActive ? "true" : "false");
+        t.classList.toggle("bg-gradient-to-r", isActive);
+        t.classList.toggle("from-violet-600", isActive);
+        t.classList.toggle("via-blue-600", isActive);
+        t.classList.toggle("to-cyan-500", isActive);
+        t.classList.toggle("text-white", isActive);
+        t.classList.toggle("shadow-[0_8px_24px_rgba(79,70,229,0.28)]", isActive);
+        t.classList.toggle("text-slate-400", !isActive);
       });
+      document.querySelectorAll(".js-signin-only").forEach((el) => el.classList.toggle("hidden", nextMode !== "signin"));
+      document.querySelectorAll(".js-signup-only").forEach((el) => el.classList.toggle("hidden", nextMode !== "signup"));
+      passwordInput?.setAttribute("autocomplete", nextMode === "signup" ? "new-password" : "current-password");
+      form && form.setAttribute("data-mode", nextMode);
     }
+    tabs.forEach((t) => t.addEventListener("click", () => setMode(t.dataset.mode)));
+    setMode(new URLSearchParams(window.location.search).get("mode"));
 
-    // Switch between Sign in and Sign up modes
-    authTabs.forEach(function (tab) {
-      tab.addEventListener("click", function () {
-        const targetMode = tab.getAttribute("data-mode");
-        if (targetMode && targetMode !== currentMode) {
-          switchMode(targetMode);
-        }
-      });
+    // Validation helpers
+    function showError(name, msg) {
+      const el = form.querySelector(`[data-error-for="${name}"]`);
+      if (el) {
+        el.textContent = msg;
+        el.classList.remove("hidden");
+      }
+    }
+    function clearErrors() {
+      form.querySelectorAll(".js-error").forEach((e) => e.classList.add("hidden"));
+    }
+    form && form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      clearErrors();
+      const mode = form.getAttribute("data-mode") || "signin";
+
+      const email = (emailInput.value || "").trim();
+      const password = passwordInput.value || "";
+      const fullName = mode === "signup" ? (fullNameInput?.value || "").trim() : "";
+      let valid = true;
+
+      if (!/^[\w.+-]+@[\w.-]+\.[a-z]{2,}$/i.test(email)) {
+        showError("email", "Email không hợp lệ");
+        valid = false;
+      }
+      if (password.length < 8) {
+        showError("password", "Mật khẩu tối thiểu 8 ký tự");
+        valid = false;
+      }
+      if (mode === "signup" && !fullName) {
+        showError("full_name", "Họ và tên là bắt buộc");
+        valid = false;
+      }
+      if (!valid) return;
+
+      submitBtn.disabled = true;
+      const original = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> ' + (mode === "signin" ? "Đang đăng nhập..." : "Đang tạo tài khoản...");
+      refreshIcons();
+
+      const url = mode === "signin" ? "/api/auth/login/" : "/api/auth/signup/";
+      const payload = { email, password };
+      if (mode === "signup") {
+        payload.full_name = fullName;
+      }
+
+      window.TaskFlow.api.post(url, payload, { root: form })
+        .then(() => {
+          showToast("authToast", mode === "signin" ? "Đăng nhập thành công, đang chuyển..." : "Tạo tài khoản thành công");
+          const queryNext = new URLSearchParams(window.location.search).get("next");
+          const redirectUrl =
+            submitBtn.dataset.next ||
+            (typeof window.TF_NEXT_URL === "string" ? window.TF_NEXT_URL : null) ||
+            queryNext ||
+            "/dashboard/";
+          setTimeout(() => (window.location.href = redirectUrl), 700);
+        })
+        .catch((err) => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = original;
+          refreshIcons();
+          showToast("authToast", err.message || "Có lỗi xảy ra");
+          if (err.message.includes("Email") || err.message.includes("tài khoản")) {
+            showError("email", err.message);
+          } else if (err.message.includes("mật khẩu") || err.message.includes("Mật khẩu")) {
+            showError("password", err.message);
+          }
+        });
     });
 
-    function switchMode(mode) {
-      currentMode = mode;
-      clearErrors();
-      loginForm.reset();
+  }
 
-      // Update tabs UI
-      authTabs.forEach(function (tab) {
-        const tabMode = tab.getAttribute("data-mode");
-        if (tabMode === currentMode) {
-          tab.className = "js-auth-tab flex-1 rounded-xl bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-3 py-2 text-white shadow-[0_8px_24px_rgba(79,70,229,0.28)]";
-          tab.setAttribute("aria-selected", "true");
-        } else {
-          tab.className = "js-auth-tab flex-1 rounded-xl px-3 py-2 text-slate-400 transition hover:text-white";
-          tab.setAttribute("aria-selected", "false");
-        }
-      });
+  /* ============================================================
+   *  LOGOUT PAGE
+   * ============================================================ */
+  if (logoutApp) {
+    const form = document.getElementById("logoutForm");
+    const submitBtn = document.getElementById("logoutSubmit");
+    const confirmCard = document.getElementById("logoutConfirmCard");
+    const successCard = document.getElementById("logoutSuccessCard");
+    const countdownEl = document.getElementById("logoutCountdown");
 
-      // Update form fields visibility
-      if (currentMode === "signup") {
-        signupOnlyElements.forEach(el => el.classList.remove("hidden"));
-        signinOnlyElements.forEach(el => el.classList.add("hidden"));
-      } else {
-        signupOnlyElements.forEach(el => el.classList.add("hidden"));
-        signinOnlyElements.forEach(el => el.classList.remove("hidden"));
-      }
-    }
+    form && form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      const original = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Đang đăng xuất...';
+      refreshIcons();
 
-    // Client-side validations
-    function validateForm(data) {
-      let isValid = true;
-      clearErrors();
+      const allDevices = document.getElementById("logoutAllDevices")?.checked;
+      window.TaskFlow.api.post("/api/auth/logout/", {}, { root: form })
+        .then(() => {
+          confirmCard.classList.add("hidden");
+          successCard.classList.remove("hidden");
+          refreshIcons();
+          showToast("logoutToast", allDevices ? "Đã đăng xuất khỏi tất cả thiết bị" : "Đã đăng xuất khỏi thiết bị này");
 
-      // Validate Email
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!data.email) {
-        showFieldError("email", "Email không được để trống");
-        isValid = false;
-      } else if (!emailRegex.test(data.email)) {
-        showFieldError("email", "Email không hợp lệ");
-        isValid = false;
-      }
-
-      // Validate Password
-      if (!data.password) {
-        showFieldError("password", "Mật khẩu không được để trống");
-        isValid = false;
-      } else if (data.password.length < 8) {
-        showFieldError("password", "Mật khẩu phải chứa ít nhất 8 ký tự");
-        isValid = false;
-      }
-
-      // Validate Name (Sign up only)
-      if (currentMode === "signup" && !data.full_name.trim()) {
-        showFieldError("full_name", "Vui lòng nhập họ và tên");
-        isValid = false;
-      }
-
-      return isValid;
-    }
-
-    function showFieldError(fieldName, message) {
-      const errorEl = document.querySelector(`.js-error[data-error-for="${fieldName}"]`);
-      if (errorEl) {
-        errorEl.textContent = message;
-        errorEl.classList.remove("hidden");
-      }
-      const inputEl = loginForm.querySelector(`[name="${fieldName}"]`);
-      if (inputEl) {
-        inputEl.classList.add("border-rose-500/50");
-      }
-    }
-
-    function clearErrors() {
-      const errors = loginForm.querySelectorAll(".js-error");
-      errors.forEach(el => el.classList.add("hidden"));
-      
-      const inputs = loginForm.querySelectorAll("input");
-      inputs.forEach(el => el.classList.remove("border-rose-500/50"));
-    }
-
-    // Submit form handler
-    if (loginForm) {
-      loginForm.addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const formData = new FormData(loginForm);
-        const data = Object.fromEntries(formData.entries());
-
-        if (!validateForm(data)) {
-          return;
-        }
-
-        // Disable button & show loading state
-        loginSubmit.disabled = true;
-        const originalBtnHtml = loginSubmit.innerHTML;
-        loginSubmit.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...`;
-
-        try {
-          let response;
-          if (currentMode === "signin") {
-            // Map 'email' to 'username' for Django authenticate backend
-            response = await window.TaskFlow.api.post("/api/auth/login/", {
-              username: data.email,
-              password: data.password,
-            });
-          } else {
-            response = await window.TaskFlow.api.post("/api/auth/signup/", {
-              email: data.email,
-              password: data.password,
-              full_name: data.full_name,
-            });
-          }
-
-          if (response && response.ok !== false) {
-            window.TaskFlow.toast.show(authToast, currentMode === "signin" ? "Đăng nhập thành công!" : "Tạo tài khoản thành công!", { duration: 1500 });
-            setTimeout(() => {
-              window.location.href = "/dashboard/";
-            }, 1200);
-          } else {
-            throw new Error(response.error || "Có lỗi xảy ra, vui lòng thử lại.");
-          }
-        } catch (error) {
-          window.TaskFlow.toast.show(authToast, error.message || "Không thể kết nối tới server.");
-          loginSubmit.disabled = false;
-          loginSubmit.innerHTML = originalBtnHtml;
-        }
-      });
-    }
-  });
+          // Countdown auto redirect
+          let s = 5;
+          const tick = setInterval(() => {
+            s -= 1;
+            if (countdownEl) countdownEl.textContent = String(s);
+            if (s <= 0) {
+              clearInterval(tick);
+              const next =
+                window.TF_LOGIN_URL ||
+                document.querySelector('a[href*="login"]')?.href ||
+                "/login/";
+              window.location.href = next;
+            }
+          }, 1000);
+        })
+        .catch((err) => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = original;
+          refreshIcons();
+          showToast("logoutToast", err.message || "Lỗi đăng xuất");
+        });
+    });
+  }
 })();

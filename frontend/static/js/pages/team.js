@@ -8,120 +8,7 @@
   const toast = window.TaskFlow?.toast;
   const allowDemoFallback = app.dataset.allowDemoFallback === "true";
 
-  let members = [
-    {
-      id: "mostafa",
-      name: "Mostafa Ahmed",
-      role: "Design Lead",
-      status: "online",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80",
-      messages: [
-        { body: "Can you review the landing page timeline before standup?", time: "09:32 AM" },
-        { body: "I pushed the visual notes into the shared workspace.", time: "09:44 AM" },
-        { body: "Looks clean. I will align the hero copy with the final mockup.", time: "10:05 AM" },
-        { body: "Keep the member cards compact so the chat stays usable on laptop screens.", time: "10:12 AM" },
-        { body: "The Team page should match the Dashboard shell exactly.", time: "10:18 AM" },
-        { body: "I will send the invite list after the design review.", time: "10:24 AM" },
-        { body: "Great. The internal scroll behavior is the main thing to verify.", time: "10:29 AM" },
-      ],
-    },
-    {
-      id: "sarah",
-      name: "Sarah Nguyen",
-      role: "Product Manager",
-      status: "online",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80",
-      messages: [
-        { body: "The roadmap sync is ready for the team review.", time: "08:20 AM" },
-        { body: "Please keep the sprint board focused on launch blockers.", time: "08:36 AM" },
-      ],
-    },
-    {
-      id: "daniel",
-      name: "Daniel Reyes",
-      role: "Frontend Engineer",
-      status: "away",
-      avatar: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=160&q=80",
-      messages: [
-        { body: "I am wrapping up the responsive pass now.", time: "11:12 AM" },
-        { body: "The dashboard shell is stable on laptop viewports.", time: "11:18 AM" },
-      ],
-    },
-    {
-      id: "aisha",
-      name: "Aisha Khan",
-      role: "UX Writer",
-      status: "online",
-      avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=160&q=80",
-      messages: [
-        { body: "I updated the empty states and notification text.", time: "01:06 PM" },
-        { body: "The new labels should feel lighter and more product-led.", time: "01:14 PM" },
-      ],
-    },
-    {
-      id: "leo",
-      name: "Leo Martins",
-      role: "QA Specialist",
-      status: "offline",
-      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&q=80",
-      messages: [
-        { body: "QA notes are in the release checklist.", time: "Yesterday" },
-        { body: "No blockers on the timeline view after the last pass.", time: "Yesterday" },
-      ],
-    },
-    {
-      id: "nina",
-      name: "Nina Patel",
-      role: "Product Designer",
-      status: "away",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=160&q=80",
-      messages: [
-        { body: "I added the updated avatar stack references.", time: "02:22 PM" },
-        { body: "Spacing tokens look consistent across the two pages.", time: "02:31 PM" },
-      ],
-    },
-    {
-      id: "omar",
-      name: "Omar Hassan",
-      role: "Backend Engineer",
-      status: "online",
-      avatar: "https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=160&q=80",
-      messages: [
-        { body: "API mocks are ready whenever the frontend needs them.", time: "03:10 PM" },
-        { body: "I will keep the data contract lightweight for now.", time: "03:18 PM" },
-      ],
-    },
-    {
-      id: "mei",
-      name: "Mei Lin",
-      role: "Research Lead",
-      status: "offline",
-      avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=160&q=80",
-      messages: [
-        { body: "Research notes are grouped by persona in the workspace.", time: "Yesterday" },
-      ],
-    },
-    {
-      id: "jules",
-      name: "Jules Carter",
-      role: "Motion Designer",
-      status: "away",
-      avatar: "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=160&q=80",
-      messages: [
-        { body: "I kept the hover transitions subtle for the SaaS dashboard tone.", time: "12:08 PM" },
-      ],
-    },
-    {
-      id: "elena",
-      name: "Elena Rossi",
-      role: "Customer Success",
-      status: "online",
-      avatar: "https://images.unsplash.com/photo-1546961329-78bef0414d7c?auto=format&fit=crop&w=160&q=80",
-      messages: [
-        { body: "Customer feedback is grouped by priority for the next sync.", time: "04:02 PM" },
-      ],
-    },
-  ];
+  let members = [];
 
   let notifications = [
     "Aisha mentioned you in UX copy updates.",
@@ -655,6 +542,14 @@
     initialized = true;
     setTheme(window.localStorage.getItem("taskflow-team-theme") || "dark");
     await loadTeamData();
+
+    // Enforce role restrictions
+    const userRole = app.dataset.userRole || "viewer";
+    if (userRole === "viewer" || userRole === "member") {
+      if (selectors.inviteButton) selectors.inviteButton.classList.add("hidden");
+      if (selectors.deleteConversationButton) selectors.deleteConversationButton.classList.add("hidden");
+    }
+
     renderNotifications();
     renderMembers();
     renderChat();

@@ -13,7 +13,7 @@
 <div
   id="dashboardApp"
   data-dashboard-url="{% url 'api_dashboard_data' %}"
-  data-allow-demo-fallback="true"
+  data-allow-demo-fallback="false"
   class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(59,42,143,0.36),transparent_32%),linear-gradient(225deg,rgba(91,61,245,0.22),transparent_34%),linear-gradient(180deg,#050816_0%,#0d1326_54%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
 >
   <div
@@ -50,11 +50,11 @@
         <i data-lucide="users-round" class="h-4 w-4"></i>
         <span>Team</span>
       </a>
-      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#settings">
+      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'settings' %}">
         <i data-lucide="settings" class="h-4 w-4"></i>
         <span>Settings</span>
       </a>
-      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#files">
+      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
         <i data-lucide="files" class="h-4 w-4"></i>
         <span>Files</span>
       </a>
@@ -118,11 +118,28 @@
               <i data-lucide="moon" class="h-4 w-4"></i>
             </button>
 
-            <img
-              class="h-9 w-9 rounded-xl border border-white/20 object-cover shadow-glass"
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
-              alt="Sarah avatar"
-            >
+            <div class="relative">
+              <button data-profile-toggle class="block rounded-xl transition hover:-translate-y-0.5 motion-reduce:transform-none" type="button" aria-label="Open profile menu">
+                <img class="h-9 w-9 rounded-xl border border-white/20 object-cover shadow-glass" src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear" alt="{{ user.get_full_name|default:user.username }} avatar">
+              </button>
+              <div data-profile-dropdown class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-56 rounded-2xl border border-white/10 bg-slate-950/90 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
+                <div class="flex items-center gap-3 rounded-xl bg-white/5 p-2">
+                  <img class="h-9 w-9 rounded-xl border border-white/20 object-cover" src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear" alt="{{ user.get_full_name|default:user.username }} avatar">
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-bold text-white">{{ user.get_full_name|default:user.username }}</p>
+                    <p class="truncate text-xs text-slate-400">{{ user.email }}</p>
+                  </div>
+                </div>
+                <a href="{% url 'settings' %}" class="mt-2 flex h-9 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white" style="text-decoration: none;">
+                  <i data-lucide="user-round" class="h-4 w-4"></i>
+                  Account settings
+                </a>
+                <a href="{% url 'logout' %}" class="flex h-9 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white" style="text-decoration: none;">
+                  <i data-lucide="log-out" class="h-4 w-4"></i>
+                  Logout
+                </a>
+              </div>
+            </div>
 
         </div>
       </div>

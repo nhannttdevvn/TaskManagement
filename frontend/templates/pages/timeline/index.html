@@ -55,6 +55,22 @@
   #timelineApp[data-theme="light"] .theme-content [class*="border-white"] {
     border-color: rgba(148, 163, 184, 0.34) !important;
   }
+
+  .resize-handle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    cursor: ew-resize;
+    z-index: 10;
+    border-top-right-radius: inherit;
+    border-bottom-right-radius: inherit;
+    transition: background-color 0.2s;
+  }
+  .resize-handle:hover {
+    background-color: rgba(34, 211, 238, 0.25);
+  }
 </style>
 {% endblock %}
 
@@ -65,7 +81,7 @@
   id="timelineApp"
   data-project-url="{% url 'api_project_data' %}"
   data-invite-url="{% url 'api_team_invitations' 1 %}"
-  data-allow-demo-fallback="true"
+  data-allow-demo-fallback="false"
   class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(79,70,229,0.22),transparent_30%),linear-gradient(225deg,rgba(14,165,233,0.16),transparent_34%),linear-gradient(180deg,#050816_0%,#0f172a_52%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
 >
   <div
@@ -103,11 +119,11 @@
           <i data-lucide="users-round" class="h-4 w-4"></i>
           <span>Team</span>
         </a>
-        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#settings">
+        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'settings' %}">
           <i data-lucide="settings" class="h-4 w-4"></i>
           <span>Settings</span>
         </a>
-        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#files">
+        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
           <i data-lucide="files" class="h-4 w-4"></i>
           <span>Files</span>
         </a>
@@ -137,16 +153,16 @@
 
     <div class="mt-3 shrink-0 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
       <div class="flex items-center gap-3">
-        <img class="h-9 w-9 rounded-xl border border-white/20 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Sarah profile">
+        <img class="h-9 w-9 rounded-xl border border-white/20 object-cover" src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear" alt="{{ user.get_full_name|default:user.username }} profile">
         <div class="min-w-0">
-          <p class="truncate text-sm font-semibold text-white">Sarah Nguyen</p>
-          <p class="truncate text-xs text-slate-300">Product Manager</p>
+          <p class="truncate text-sm font-semibold text-white">{{ user.get_full_name|default:user.username }}</p>
+          <p class="truncate text-xs text-slate-300">{{ workspace_role }}</p>
         </div>
       </div>
-      <button class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20" type="button">
+      <a href="{% url 'logout' %}" class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20" style="text-decoration: none;">
         <i data-lucide="log-out" class="h-4 w-4"></i>
         Logout
-      </button>
+      </a>
     </div>
   </aside>
 
@@ -190,24 +206,24 @@
 
             <div class="relative">
               <button id="timelineProfileToggle" class="block rounded-xl transition hover:-translate-y-0.5 motion-reduce:transform-none" type="button" aria-label="Open profile menu">
-                <img class="h-9 w-9 rounded-xl border border-white/20 object-cover shadow-glass" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Sarah avatar">
+                <img class="h-9 w-9 rounded-xl border border-white/20 object-cover shadow-glass" src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear" alt="{{ user.get_full_name|default:user.username }} avatar">
               </button>
               <div id="timelineProfileDropdown" class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-56 rounded-2xl border border-white/10 bg-slate-950/90 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
                 <div class="flex items-center gap-3 rounded-xl bg-white/5 p-2">
-                  <img class="h-9 w-9 rounded-xl border border-white/20 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Sarah profile">
+                  <img class="h-9 w-9 rounded-xl border border-white/20 object-cover" src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear" alt="{{ user.get_full_name|default:user.username }} avatar">
                   <div class="min-w-0">
-                    <p class="truncate text-sm font-bold text-white">Sarah Nguyen</p>
-                    <p class="truncate text-xs text-slate-400">Product Manager</p>
+                    <p class="truncate text-sm font-bold text-white">{{ user.get_full_name|default:user.username }}</p>
+                    <p class="truncate text-xs text-slate-400">{{ user.email }}</p>
                   </div>
                 </div>
-                <button class="mt-2 flex h-9 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white" type="button">
+                <a href="{% url 'settings' %}" class="mt-2 flex h-9 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white" style="text-decoration: none;">
                   <i data-lucide="user-round" class="h-4 w-4"></i>
                   Account settings
-                </button>
-                <button class="flex h-9 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white" type="button">
+                </a>
+                <a href="{% url 'logout' %}" class="flex h-9 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white" style="text-decoration: none;">
                   <i data-lucide="log-out" class="h-4 w-4"></i>
                   Logout
-                </button>
+                </a>
               </div>
             </div>
         </div>
@@ -289,6 +305,11 @@
             </div>
           </div>
           <div class="flex shrink-0 flex-wrap items-center justify-end gap-2 text-xs text-slate-400">
+            <div class="flex max-w-full items-center gap-1 rounded-xl border border-white/[0.08] bg-slate-950/45 px-1.5 py-1 text-slate-300">
+              <i data-lucide="calendar" class="h-3.5 w-3.5 shrink-0 text-slate-500"></i>
+              <div id="kanbanDayPicker" class="flex max-w-[17rem] items-center gap-1 overflow-x-auto"></div>
+              <button id="clearKanbanDayFilter" class="hidden h-6 shrink-0 rounded-lg px-2 text-xs font-black text-cyan-200 hover:bg-white/10 hover:text-white" type="button">All</button>
+            </div>
             <span id="timelineStatus" class="rounded-full bg-emerald-400/15 px-2.5 py-1 font-bold text-emerald-200">Live sync</span>
             <span id="timelineViewMeta" class="hidden sm:inline">Scale: 1h = 142px</span>
             <div class="flex items-center gap-1">
@@ -538,6 +559,12 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/pages/timeline/api.js' %}?v=20260527-1"></script>
-<script src="{% static 'js/pages/timeline.js' %}?v=20260527-1"></script>
+<script src="{% static 'js/pages/timeline/api.js' %}?v=20260530-1"></script>
+<script src="{% static 'js/pages/timeline/core.js' %}?v=20260530-1"></script>
+<script src="{% static 'js/pages/timeline/helpers.js' %}?v=20260530-1"></script>
+<script src="{% static 'js/pages/timeline/renderers.js' %}?v=20260530-1"></script>
+<script src="{% static 'js/pages/timeline/modals.js' %}?v=20260530-1"></script>
+<script src="{% static 'js/pages/timeline/actions.js' %}?v=20260530-1"></script>
+<script src="{% static 'js/pages/timeline/interactions.js' %}?v=20260530-1"></script>
+<script src="{% static 'js/pages/timeline.js' %}?v=20260530-1"></script>
 {% endblock %}

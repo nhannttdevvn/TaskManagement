@@ -44,7 +44,7 @@ def auth_signup(request):
         first_name=first_name,
         last_name=last_name
     )
-    login(request, user)
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     return ok(current_user_payload(user))
 
 

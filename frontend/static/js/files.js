@@ -39,6 +39,7 @@
       { label: "Other",     used: 18,  total: 70,  icon: "file",       color: "from-emerald-400 to-cyan-500"  },
     ],
     folderFilter: "all",
+    activeFolderId: null,
     activityRange: "week",
     sort: { key: "modified", dir: "desc" },
   };
@@ -147,7 +148,10 @@
     const btn = e.target.closest(".js-folder-card");
     if (!btn) return;
     const folder = state.folders.find((f) => f.id === btn.dataset.id);
-    if (folder) showToast(`Mở folder ${folder.name}`);
+    if (folder) {
+      state.activeFolderId = folder.id;
+      showToast(`Đã chọn folder: ${folder.name}`);
+    }
   });
 
   document.getElementById("showAllFolders")?.addEventListener("click", () => {
@@ -213,10 +217,24 @@
     });
   });
 
-  document.getElementById("recentFilesBody")?.addEventListener("click", (e) => {
+  document.getElementById("recentFilesBody")?.addEventListener("click", async (e) => {
     const btn = e.target.closest(".js-row-action");
     if (!btn) return;
-    showToast("Mở menu hành động cho file");
+    const fileId = btn.dataset.id;
+    const file = state.recentFiles.find((f) => String(f.id) === String(fileId));
+    if (!file) return;
+
+    if (confirm(`Bạn có chắc muốn xoá file "${file.name}"?`)) {
+      try {
+        await window.TaskFlow.api.delete(`/api/attachments/${fileId}/`, { root: btn });
+        state.recentFiles = state.recentFiles.filter((f) => String(f.id) !== String(fileId));
+        renderRecent();
+        await loadFilesData();
+        showToast("Đã xoá file thành công");
+      } catch (err) {
+        showToast(err.message || "Lỗi khi xoá file");
+      }
+    }
   });
 
   /* ============================================================
@@ -359,25 +377,31 @@
   document.getElementById("createFolderButton")?.addEventListener("click", () => toggleFolderModal(true));
   document.querySelectorAll("[data-close-folder]").forEach((b) => b.addEventListener("click", () => toggleFolderModal(false)));
 
-  document.getElementById("createFolderForm")?.addEventListener("submit", (e) => {
+  document.getElementById("createFolderForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = (new FormData(e.target).get("name") || "").toString().trim();
     if (!name) return;
     const palette = FOLDER_PALETTE.find((p) => p.id === selectedColor) || FOLDER_PALETTE[0];
-    state.folders.unshift({
-      id: "f-" + Date.now(),
-      name,
-      count: 0,
-      color: palette.id,
-      icon: palette.icon,
-      members: 1,
-      shared: false,
-      updatedAt: 0,
-    });
-    renderFolders();
-    toggleFolderModal(false);
-    e.target.reset();
-    showToast(`Đã tạo folder "${name}"`);
+    
+    try {
+      const response = await window.TaskFlow.api.post("/api/files/folders/", {
+        name,
+        color: palette.id,
+        icon: palette.icon
+      }, { root: e.target });
+      
+      if (!response.ok) {
+        throw new Error(response.message || "Failed to create folder");
+      }
+      
+      state.folders.unshift(response.data);
+      renderFolders();
+      toggleFolderModal(false);
+      e.target.reset();
+      showToast(`Đã tạo folder "${name}"`);
+    } catch (err) {
+      showToast(err.message || "Lỗi tạo folder");
+    }
   });
 
   /* ============================================================
@@ -386,10 +410,30 @@
   document.getElementById("uploadFileButton")?.addEventListener("click", () => {
     const input = document.createElement("input");
     input.type = "file";
-    input.multiple = true;
-    input.addEventListener("change", (e) => {
-      const n = e.target.files ? e.target.files.length : 0;
-      if (n) showToast(`Đã chọn ${n} file để upload`);
+    input.multiple = false;
+    input.addEventListener("change", async (e) => {
+      const file = e.target.files ? e.target.files[0] : null;
+      if (!file) return;
+
+      showToast(`Đang upload ${file.name}...`);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      if (state.activeFolderId) {
+        formData.append("folder_id", state.activeFolderId);
+      }
+
+      try {
+        const response = await window.TaskFlow.api.post("/api/files/upload/", formData, { root: document.getElementById("uploadFileButton") });
+        if (!response.ok) {
+          throw new Error(response.message || "Failed to upload file");
+        }
+        
+        await loadFilesData();
+        showToast("Upload thành công!");
+      } catch (err) {
+        showToast(err.message || "Lỗi khi upload file");
+      }
     });
     input.click();
   });
@@ -458,8 +502,24 @@
   /* ============================================================
    *  Bootstrap render
    * ============================================================ */
-  renderFolders();
-  renderRecent();
-  renderStorage();
+  async function loadFilesData() {
+    try {
+      const response = await window.TaskFlow.api.get("/api/files/");
+      if (response && response.ok) {
+        state.folders = response.data.folders;
+        state.recentFiles = response.data.recentFiles;
+        state.storageBreakdown = response.data.storageBreakdown;
+        
+        renderFolders();
+        renderRecent();
+        renderStorage();
+      }
+    } catch (err) {
+      console.error("Error loading files data:", err);
+      showToast("Lỗi tải dữ liệu files từ server.");
+    }
+  }
+
+  loadFilesData();
   renderChart("week");
 })();
