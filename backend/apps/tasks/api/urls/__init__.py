@@ -15,4 +15,5 @@ urlpatterns = [
     path("conversations/", include("apps.tasks.api.urls.conversations")),
     path("calls/", include("apps.tasks.api.urls.calls")),
     path("notifications/", include("apps.tasks.api.urls.notifications")),
+    path("friends/", include("apps.tasks.api.urls.friends")),
 ]

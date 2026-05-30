@@ -4,6 +4,37 @@
   const app = document.getElementById("settingsApp");
   if (!app) return;
 
+  // Get initials from a name (e.g., "Aisha Rahman" -> "AR")
+  function getInitials(name) {
+    if (!name) return "";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+
+  // Get a deterministic gradient based on member ID or name
+  function getAvatarGradient(memberId) {
+    const gradients = [
+      "from-cyan-400 to-blue-500",
+      "from-violet-500 to-fuchsia-500",
+      "from-emerald-400 to-teal-500",
+      "from-amber-400 to-orange-500",
+      "from-rose-400 to-pink-500",
+      "from-indigo-500 to-purple-600",
+      "from-sky-400 to-indigo-500",
+      "from-pink-500 to-rose-500"
+    ];
+    let hash = 0;
+    const str = String(memberId || "");
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % gradients.length;
+    return gradients[index];
+  }
+
   /* ============================================================
    *  DATA – mock cho settings (Profile / Preferences / Account /
    *  Team & Permissions). BE sẽ thay bằng API thật, FE chỉ giữ
@@ -300,11 +331,15 @@
       const accent = roleAccent[m.role] || roleAccent.Member;
       const selectDisabled = (!isAuthorized || m.role === "Owner") ? "disabled" : "";
       const removeBtnStyle = (!isAuthorized || m.role === "Owner") ? "style='display:none;'" : "";
+      const gradient = getAvatarGradient(m.id);
+      const initials = getInitials(m.name);
       return `
         <div class="js-member-row flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-900/40 p-3" data-id="${m.id}">
           <div class="flex min-w-0 items-center gap-3">
             <div class="relative shrink-0">
-              <img class="h-11 w-11 rounded-2xl border border-white/15 object-cover shadow-glass" src="${m.avatar}" alt="${m.name}">
+              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-gradient-to-br ${gradient} text-white font-bold text-sm shadow-glass uppercase font-sans">
+                ${initials}
+              </div>
               <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-slate-900 ${m.online ? 'bg-emerald-400' : 'bg-slate-500'}" aria-hidden="true"></span>
             </div>
             <div class="min-w-0">

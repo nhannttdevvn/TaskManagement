@@ -44,7 +44,7 @@
         <i data-lucide="folder-kanban" class="h-4 w-4"></i>
         <span>Projects</span>
       </a>
-      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}#teamWorkspace">
+      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}">
         <i data-lucide="users-round" class="h-4 w-4"></i>
         <span>Team</span>
       </a>
@@ -65,11 +65,9 @@
 
     <div class="mt-auto rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
       <div class="flex items-center gap-3">
-        <img
-          class="h-9 w-9 rounded-xl border border-white/20 object-cover"
-          src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear"
-          alt="{{ user.get_full_name|default:user.username }} profile"
-        >
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase">
+          {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+        </div>
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold text-white">{{ user.get_full_name|default:user.username }}</p>
           <p class="truncate text-xs text-slate-300">{{ workspace_role }}</p>
@@ -117,11 +115,15 @@
 
           <div class="relative">
             <button data-profile-toggle class="block rounded-xl transition hover:-translate-y-0.5 motion-reduce:transform-none" type="button" aria-label="Open profile menu">
-              <img class="h-9 w-9 rounded-xl border border-white/20 object-cover shadow-glass" src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear" alt="{{ user.get_full_name|default:user.username }} avatar">
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase">
+                {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+              </div>
             </button>
             <div data-profile-dropdown class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-56 rounded-2xl border border-white/10 bg-slate-950/90 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
               <div class="flex items-center gap-3 rounded-xl bg-white/5 p-2">
-                <img class="h-9 w-9 rounded-xl border border-white/20 object-cover" src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear" alt="{{ user.get_full_name|default:user.username }} avatar">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase">
+                  {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+                </div>
                 <div class="min-w-0">
                   <p class="truncate text-sm font-bold text-white">{{ user.get_full_name|default:user.username }}</p>
                   <p class="truncate text-xs text-slate-400">{{ user.email }}</p>
@@ -205,7 +207,7 @@
               <form id="profileForm" class="space-y-4">
                 <div class="flex items-center gap-4 rounded-2xl border border-white/10 bg-slate-900/40 p-4">
                   <div class="relative">
-                    <img id="profileAvatarPreview" class="h-16 w-16 rounded-2xl border border-white/20 object-cover shadow-glass" src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear" alt="Profile avatar">
+                    <img id="profileAvatarPreview" class="h-16 w-16 rounded-2xl border border-white/20 object-cover shadow-glass" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100%25' height='100%25' fill='%236366f1'/%3E%3Ctext x='50%25' y='50%25' font-size='40' font-family='sans-serif' font-weight='bold' fill='%23ffffff' dominant-baseline='middle' text-anchor='middle'%3E{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2"|upper }}{% endif %}%3C/text%3E%3C/svg%3E" alt="Profile avatar">
                     <span class="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-xl border border-white/25 bg-gradient-to-br from-violet-500 to-cyan-400 text-white shadow-[0_10px_24px_rgba(124,77,255,0.4)]">
                       <i data-lucide="user-round" class="h-3.5 w-3.5"></i>
                     </span>

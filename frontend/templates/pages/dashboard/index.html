@@ -46,7 +46,7 @@
         <i data-lucide="folder-kanban" class="h-4 w-4"></i>
         <span>Projects</span>
       </a>
-      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}#teamWorkspace">
+      <a class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}">
         <i data-lucide="users-round" class="h-4 w-4"></i>
         <span>Team</span>
       </a>
@@ -66,20 +66,18 @@
 
     <div class="mt-auto rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
       <div class="flex items-center gap-3">
-        <img
-          class="h-9 w-9 rounded-xl border border-white/20 object-cover"
-          src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
-          alt="Sarah profile"
-        >
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase">
+          {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+        </div>
         <div class="min-w-0">
-          <p class="truncate text-sm font-semibold text-white">Sarah Nguyen</p>
-          <p class="truncate text-xs text-slate-300">Product Manager</p>
+          <p class="truncate text-sm font-semibold text-white">{{ user.get_full_name|default:user.username }}</p>
+          <p class="truncate text-xs text-slate-300">{{ workspace_role }}</p>
         </div>
       </div>
-      <button class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20">
+      <a href="{% url 'logout' %}" class="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20" style="text-decoration: none;">
         <i data-lucide="log-out" class="h-4 w-4"></i>
         Logout
-      </button>
+      </a>
     </div>
   </aside>
 
@@ -120,11 +118,15 @@
 
             <div class="relative">
               <button data-profile-toggle class="block rounded-xl transition hover:-translate-y-0.5 motion-reduce:transform-none" type="button" aria-label="Open profile menu">
-                <img class="h-9 w-9 rounded-xl border border-white/20 object-cover shadow-glass" src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear" alt="{{ user.get_full_name|default:user.username }} avatar">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase">
+                  {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+                </div>
               </button>
               <div data-profile-dropdown class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-56 rounded-2xl border border-white/10 bg-slate-950/90 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
                 <div class="flex items-center gap-3 rounded-xl bg-white/5 p-2">
-                  <img class="h-9 w-9 rounded-xl border border-white/20 object-cover" src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.email|urlencode }}&backgroundType=gradientLinear" alt="{{ user.get_full_name|default:user.username }} avatar">
+                  <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase">
+                    {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+                  </div>
                   <div class="min-w-0">
                     <p class="truncate text-sm font-bold text-white">{{ user.get_full_name|default:user.username }}</p>
                     <p class="truncate text-xs text-slate-400">{{ user.email }}</p>

@@ -1,3 +1,10 @@
+from .friends import (
+    search_users,
+    send_friend_request,
+    respond_friend_request,
+    list_friends,
+    list_pending_requests,
+)
 from .auth import auth_login, auth_logout, auth_signup, users_me
 from .conversations import (
     call_end,
@@ -94,4 +101,9 @@ __all__ = [
     "user_presence",
     "users_me",
     "auth_signup",
+    "search_users",
+    "send_friend_request",
+    "respond_friend_request",
+    "list_friends",
+    "list_pending_requests",
 ]
