@@ -32,4 +32,4 @@ RUN python manage.py collectstatic --no-input
 EXPOSE 8000
 
 # Start Daphne ASGI server
-CMD daphne -b 0.0.0.0 -p $PORT config.asgi:application
+CMD python manage.py migrate && daphne -b 0.0.0.0 -p $PORT config.asgi:application
