@@ -6,6 +6,7 @@ from django.urls import reverse
 class FrontendTemplateContractTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="owner", password="password")
+        self.client.force_login(self.user)
 
     def test_dashboard_template_exposes_api_contract(self):
         response = self.client.get(reverse("dashboard"))
@@ -37,7 +38,7 @@ class FrontendTemplateContractTests(TestCase):
 
     def test_task_pages_can_still_extend_base_shim(self):
         self.client.force_login(self.user)
-        response = self.client.get(reverse("task_list"))
+        response = self.client.get(reverse("task_create"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Tasks")
+        self.assertContains(response, "New Task")

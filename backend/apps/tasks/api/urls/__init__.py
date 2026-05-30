@@ -1,6 +1,8 @@
 from django.urls import include, path
+from apps.tasks.api.views import auth as auth_views
 
 urlpatterns = [
+    path("debug/info/", auth_views.debug_info, name="api_debug_info"),
     path("auth/", include("apps.tasks.api.urls.auth")),
     path("users/", include("apps.tasks.api.urls.users")),
     path("dashboard/", include("apps.tasks.api.urls.dashboard")),
@@ -15,4 +17,5 @@ urlpatterns = [
     path("conversations/", include("apps.tasks.api.urls.conversations")),
     path("calls/", include("apps.tasks.api.urls.calls")),
     path("notifications/", include("apps.tasks.api.urls.notifications")),
+    path("friends/", include("apps.tasks.api.urls.friends")),
 ]
