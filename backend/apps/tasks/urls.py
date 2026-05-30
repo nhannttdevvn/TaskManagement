@@ -1,11 +1,11 @@
 from django.urls import path
 
+from django.views.generic import RedirectView
 from . import views
 
-
 urlpatterns = [
-    path("", views.TaskListView.as_view(), name="task_list"),
-    path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
+    path("", views.DashboardView.as_view(), name="dashboard"),
+    path("dashboard/", RedirectView.as_view(pattern_name="dashboard", permanent=True)),
     path("project/", views.ProjectView.as_view(), name="project"),
     path("timeline/", views.ProjectView.as_view(), name="timeline"),
     path("team/", views.TeamView.as_view(), name="team"),

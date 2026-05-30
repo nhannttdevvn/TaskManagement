@@ -167,7 +167,7 @@
                 ? window.TF_NEXT_URL
                 : null) ||
               queryNext ||
-              "/dashboard/";
+              "/";
             setTimeout(() => (window.location.href = redirectUrl), 700);
           })
           .catch((err) => {

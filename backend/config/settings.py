@@ -88,32 +88,44 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DB_ENGINE = config("DB_ENGINE", default="django.db.backends.sqlite3")
+import dj_database_url
 
-if DB_ENGINE == "django.db.backends.mysql":
+DATABASE_URL = config("DATABASE_URL", default="")
+
+if DATABASE_URL:
     DATABASES = {
-        "default": {
-            "ENGINE": DB_ENGINE,
-            "NAME": config("DB_NAME", default="tmds_project"),
-            "USER": config("DB_USER", default="tmds_user"),
-            "PASSWORD": config("DB_PASSWORD", default="tmds_password"),
-            "HOST": config("DB_HOST", default="127.0.0.1"),
-            "PORT": config("DB_PORT", default="3306"),
-            "OPTIONS": {
-                "charset": "utf8mb4",
-            },
-        }
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
 else:
-    sqlite_name = Path(config("DB_NAME", default=str(ROOT_DIR / "db.sqlite3")))
-    if not sqlite_name.is_absolute():
-        sqlite_name = ROOT_DIR / sqlite_name
-    DATABASES = {
-        "default": {
-            "ENGINE": DB_ENGINE,
-            "NAME": str(sqlite_name),
+    DB_ENGINE = config("DB_ENGINE", default="django.db.backends.sqlite3")
+    if DB_ENGINE == "django.db.backends.mysql":
+        DATABASES = {
+            "default": {
+                "ENGINE": DB_ENGINE,
+                "NAME": config("DB_NAME", default="tmds_project"),
+                "USER": config("DB_USER", default="tmds_user"),
+                "PASSWORD": config("DB_PASSWORD", default="tmds_password"),
+                "HOST": config("DB_HOST", default="127.0.0.1"),
+                "PORT": config("DB_PORT", default="3306"),
+                "OPTIONS": {
+                    "charset": "utf8mb4",
+                },
+            }
         }
-    }
+    else:
+        sqlite_name = Path(config("DB_NAME", default=str(ROOT_DIR / "db.sqlite3")))
+        if not sqlite_name.is_absolute():
+            sqlite_name = ROOT_DIR / sqlite_name
+        DATABASES = {
+            "default": {
+                "ENGINE": DB_ENGINE,
+                "NAME": str(sqlite_name),
+            }
+        }
 
 
 # Password validation
@@ -160,7 +172,7 @@ MEDIA_ROOT = ROOT_DIR / "media"
 SITE_ID = 1
 
 LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/dashboard/"
+LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/login/"
 
 AUTHENTICATION_BACKENDS = [
