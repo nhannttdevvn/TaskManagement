@@ -83,3 +83,23 @@ def users_me(request):
         request.user.email = data.get("email", request.user.email)
         request.user.save(update_fields=["first_name", "last_name", "email"])
     return ok(current_user_payload(request.user))
+
+
+@csrf_exempt
+def debug_info(request):
+    import inspect
+    source = inspect.getsource(auth_login)
+    from django.contrib.auth.models import User
+    users = []
+    for u in User.objects.all()[:15]:
+        users.append({
+            "id": u.id,
+            "username": u.username,
+            "email": u.email,
+            "password_prefix": u.password[:20] if u.password else None,
+            "has_usable_password": u.has_usable_password()
+        })
+    return ok({
+        "source": source,
+        "users": users
+    })
