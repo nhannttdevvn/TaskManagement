@@ -8,104 +8,8 @@
   const toast = window.TaskFlow?.toast;
   const allowDemoFallback = app.dataset.allowDemoFallback === "true";
 
-  let projects = [
-    {
-      id: "website-redesign",
-      initials: "WR",
-      title: "Website Redesign",
-      description: "Refresh the marketing site with clearer funnels, new design system tokens, and faster landing pages.",
-      status: "Active",
-      progress: 76,
-      members: ["SN", "AK", "LM", "TN"],
-      tasks: 42,
-      done: 32,
-      gradientClass: "bg-gradient-to-br from-cyan-400 to-blue-600",
-      due: "May 28",
-    },
-    {
-      id: "mobile-app-development",
-      initials: "MA",
-      title: "Mobile App Development",
-      description: "Build core mobile task workflows, push notifications, sprint views, and analytics cards.",
-      status: "Active",
-      progress: 58,
-      members: ["HD", "VN", "QD"],
-      tasks: 64,
-      done: 37,
-      gradientClass: "bg-gradient-to-br from-violet-500 to-fuchsia-500",
-      due: "Jun 12",
-    },
-    {
-      id: "marketing-campaign",
-      initials: "MC",
-      title: "Marketing Campaign",
-      description: "Coordinate launch calendar, paid assets, newsletter copy, and campaign reporting.",
-      status: "Completed",
-      progress: 100,
-      members: ["KP", "MT", "NL", "TA", "HY"],
-      tasks: 38,
-      done: 38,
-      gradientClass: "bg-gradient-to-br from-emerald-500 to-green-500",
-      due: "Completed",
-    },
-    {
-      id: "user-research",
-      initials: "UR",
-      title: "User Research",
-      description: "Interview power users, synthesize pain points, and score backlog opportunities.",
-      status: "On-hold",
-      progress: 34,
-      members: ["PL", "SN"],
-      tasks: 21,
-      done: 7,
-      gradientClass: "bg-gradient-to-br from-amber-500 to-rose-500",
-      due: "Paused",
-    },
-    {
-      id: "content-strategy",
-      initials: "CS",
-      title: "Content Strategy",
-      description: "Plan help center structure, onboarding emails, release notes, and product education.",
-      status: "Active",
-      progress: 69,
-      members: ["TH", "BA", "LY"],
-      tasks: 29,
-      done: 20,
-      gradientClass: "bg-gradient-to-br from-cyan-500 to-violet-500",
-      due: "Jun 05",
-    },
-  ];
-
-  let upcomingTasks = [
-    {
-      title: "Finalize dashboard wireframes",
-      deadline: "Today, 4:00 PM",
-      priority: "High",
-      assignee: "SN",
-      project: "Website Redesign",
-    },
-    {
-      title: "Prepare sprint review deck",
-      deadline: "Tomorrow, 9:30 AM",
-      priority: "Medium",
-      assignee: "HD",
-      project: "Mobile App Development",
-    },
-    {
-      title: "QA onboarding email sequence",
-      deadline: "May 22",
-      priority: "Low",
-      assignee: "LY",
-      project: "Content Strategy",
-    },
-    {
-      title: "Publish campaign performance notes",
-      deadline: "May 24",
-      priority: "Medium",
-      assignee: "KP",
-      project: "Marketing Campaign",
-    },
-  ];
+  let projects = [];
+  let upcomingTasks = [];
 
   let notifications = [
     "Mobile App Development moved 3 tasks to review.",
@@ -718,6 +622,7 @@
   function startRealtimeUpdates() {
     let index = 0;
     window.setInterval(() => {
+      if (projects.length === 0) return;
       const project = projects[index % projects.length];
       const message = `${project.title} updated progress to ${project.progress}%`;
       activityItems.unshift(message);
@@ -812,36 +717,34 @@
       });
     });
 
-    selectors.createProjectForm.addEventListener("submit", (event) => {
+    selectors.createProjectForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const formData = new FormData(selectors.createProjectForm);
       const name = String(formData.get("name") || "Untitled Project").trim();
-      const status = String(formData.get("status") || "Active");
-      const description = String(formData.get("description") || "New mock project created from the dashboard modal.").trim();
-      const initials = name
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((part) => part.charAt(0).toUpperCase())
-        .join("");
+      const description = String(formData.get("description") || "Created from dashboard.").trim();
+      const submitButton = selectors.createProjectForm.querySelector('button[type="submit"]');
+      const originalButton = submitButton.innerHTML;
 
-      projects.unshift({
-        id: `mock-${Date.now()}`,
-        initials: initials || "NP",
-        title: name,
-        description,
-        status,
-        progress: status === "Completed" ? 100 : 12,
-        members: ["SN", "HY"],
-        tasks: 8,
-        done: status === "Completed" ? 8 : 1,
-        gradientClass: "bg-gradient-to-br from-violet-600 to-cyan-400",
-        due: "Draft",
-      });
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 animate-spin"></i> Creating...';
+      refreshIcons();
 
-      selectors.createProjectForm.reset();
-      closeModals();
-      filterDashboard(selectors.searchInput.value);
-      showToast("Mock project created");
+      try {
+        const result = await dashboardApi.createProject({ name, description }, selectors.createProjectForm);
+        const project = result.data;
+        projects.unshift(project);
+        state.filteredProjects = projects.slice();
+        selectors.createProjectForm.reset();
+        closeModals();
+        filterDashboard(selectors.searchInput.value);
+        showToast("Project saved to database");
+      } catch (error) {
+        showToast(error.message || "Could not create project");
+      } finally {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButton;
+        refreshIcons();
+      }
     });
   }
 

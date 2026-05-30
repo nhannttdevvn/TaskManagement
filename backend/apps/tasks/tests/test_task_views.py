@@ -14,7 +14,7 @@ class TaskViewsTests(TestCase):
         response = self.client.get(reverse("task_list"))
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/admin/login/", response["Location"])
+        self.assertIn("/login/", response["Location"])
 
     def test_task_list_only_shows_current_user_tasks(self):
         owner_task = Task.objects.create(user=self.user, title="Owner task")

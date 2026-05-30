@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load socialaccount %}
 
 {% block title %}Sign in | TaskFlow{% endblock %}
 
@@ -73,9 +74,18 @@
 
         <div class="rounded-[26px] border border-white/[0.08] bg-slate-900/65 p-7 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-2xl">
           <header>
-            <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-200">Sign in</p>
-            <h2 class="mt-1 text-2xl font-black text-white">Đăng nhập vào TaskFlow</h2>
-            <p class="mt-1 text-sm text-slate-400">Quản lý dự án, theo dõi task và cộng tác với team mọi lúc.</p>
+            <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-200">
+              <span class="js-signin-only">Sign in</span>
+              <span class="js-signup-only hidden">Sign up</span>
+            </p>
+            <h2 class="mt-1 text-2xl font-black text-white">
+              <span class="js-signin-only">Đăng nhập vào TaskFlow</span>
+              <span class="js-signup-only hidden">Tạo tài khoản TaskFlow</span>
+            </h2>
+            <p class="mt-1 text-sm text-slate-400">
+              <span class="js-signin-only">Quản lý dự án, theo dõi task và cộng tác với team mọi lúc.</span>
+              <span class="js-signup-only hidden">Tạo workspace đầu tiên để bắt đầu quản lý project và team.</span>
+            </p>
           </header>
 
           {# Tab Sign in / Sign up #}
@@ -85,12 +95,14 @@
           </nav>
 
           <form id="loginForm" class="mt-5 space-y-4" novalidate>
+            {% csrf_token %}
             <div class="js-signup-only hidden grid gap-2">
               <span class="text-sm font-extrabold text-slate-400">Full name</span>
               <div class="relative">
                 <i data-lucide="user-round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
                 <input name="full_name" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="text" placeholder="Nguyen Van A">
               </div>
+              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="full_name">Họ và tên là bắt buộc</p>
             </div>
 
             <label class="grid gap-2">
@@ -139,21 +151,18 @@
               <span class="flex-1 border-t border-white/10"></span>
             </div>
 
-            <div class="grid grid-cols-3 gap-2">
-              <button class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10 motion-reduce:transform-none" type="button" data-provider="google">
+            <div class="grid gap-3">
+              {% if google_oauth_enabled %}
+              <a href="{% provider_login_url 'google' process='login' %}" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10 motion-reduce:transform-none">
                 <svg class="h-4 w-4" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.1l6.6 4.8C14.7 15 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.1z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.3 26.7 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5C9.6 39.5 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.6l6.2 5.2C40.8 35.6 44 30.3 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
                 Google
+              </a>
+              {% else %}
+              <button type="button" disabled title="Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in backend/.env" class="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm font-bold text-slate-400">
+                <svg class="h-4 w-4 grayscale" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.1l6.6 4.8C14.7 15 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.1z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.3 26.7 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5C9.6 39.5 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.6l6.2 5.2C40.8 35.6 44 30.3 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
+                Google
               </button>
-              <button class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10 motion-reduce:transform-none" type="button" data-provider="github">
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M12 .5C5.65.5.5 5.65.5 12.02c0 5.09 3.29 9.4 7.86 10.93.57.11.78-.25.78-.55v-1.92c-3.2.7-3.87-1.54-3.87-1.54-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.75.12 3.04.74.81 1.18 1.83 1.18 3.09 0 4.43-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.18c0 .31.21.67.79.55 4.57-1.53 7.85-5.84 7.85-10.93C23.5 5.65 18.35.5 12 .5Z"/>
-                </svg>
-                GitHub
-              </button>
-              <button class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10 motion-reduce:transform-none" type="button" data-provider="microsoft">
-                <svg class="h-4 w-4" viewBox="0 0 32 32" aria-hidden="true"><rect width="14" height="14" x="1" y="1" fill="#F25022"/><rect width="14" height="14" x="17" y="1" fill="#7FBA00"/><rect width="14" height="14" x="1" y="17" fill="#00A4EF"/><rect width="14" height="14" x="17" y="17" fill="#FFB900"/></svg>
-                Microsoft
-              </button>
+              {% endif %}
             </div>
           </form>
         </div>

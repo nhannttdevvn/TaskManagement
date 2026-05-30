@@ -59,6 +59,26 @@
     <script src="{% static 'js/core/dom.js' %}"></script>
     <script src="{% static 'js/core/storage.js' %}"></script>
     {% endblock %}
+    <script>
+      // Global profile dropdown toggle
+      document.addEventListener("click", (e) => {
+        const toggleBtn = e.target.closest("[data-profile-toggle]") || e.target.closest("#timelineProfileToggle");
+        if (toggleBtn) {
+          e.stopPropagation();
+          const dropdown = toggleBtn.parentElement.querySelector("[data-profile-dropdown]") || toggleBtn.parentElement.querySelector("#timelineProfileDropdown");
+          if (dropdown) {
+            dropdown.classList.toggle("hidden");
+          }
+        } else {
+          const dropdowns = document.querySelectorAll("[data-profile-dropdown], #timelineProfileDropdown");
+          dropdowns.forEach((d) => {
+            if (!e.target.closest("[data-profile-toggle]") && !e.target.closest("#timelineProfileToggle") && !e.target.closest("[data-profile-dropdown]") && !e.target.closest("#timelineProfileDropdown")) {
+              d.classList.add("hidden");
+            }
+          });
+        }
+      });
+    </script>
     {% block extra_scripts %}{% endblock %}
   </body>
 </html>

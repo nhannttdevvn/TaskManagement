@@ -19,6 +19,37 @@ def auth_login(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+def auth_signup(request):
+    from django.contrib.auth.models import User
+    data = payload(request)
+    email = data.get("email")
+    password = data.get("password")
+    full_name = data.get("full_name", "")
+
+    if not email or not password:
+        return error("Email and password are required.", status=400)
+
+    if User.objects.filter(username=email).exists():
+        return error("An account with this email already exists.", status=400)
+
+    # Split full name into first and last name
+    parts = full_name.strip().split(" ", 1)
+    first_name = parts[0] if parts else ""
+    last_name = parts[1] if len(parts) > 1 else ""
+
+    user = User.objects.create_user(
+        username=email,
+        email=email,
+        password=password,
+        first_name=first_name,
+        last_name=last_name
+    )
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    return ok(current_user_payload(user))
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def auth_logout(request):
     logout(request)
     return ok(message="Logged out")
