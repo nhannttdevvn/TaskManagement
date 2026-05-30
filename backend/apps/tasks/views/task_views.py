@@ -29,7 +29,7 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
     form_class = TaskForm
     template_name = "tasks/task_form.html"
-    success_url = reverse_lazy("task_list")
+    success_url = reverse_lazy("dashboard")
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -39,9 +39,9 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
 class TaskUpdateView(UserTaskQuerysetMixin, UpdateView):
     form_class = TaskForm
     template_name = "tasks/task_form.html"
-    success_url = reverse_lazy("task_list")
+    success_url = reverse_lazy("dashboard")
 
 
 class TaskDeleteView(UserTaskQuerysetMixin, DeleteView):
     template_name = "tasks/task_confirm_delete.html"
-    success_url = reverse_lazy("task_list")
+    success_url = reverse_lazy("dashboard")

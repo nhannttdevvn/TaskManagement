@@ -9,10 +9,24 @@ from apps.tasks.api.serializers import current_user_payload
 @csrf_exempt
 @require_http_methods(["POST"])
 def auth_login(request):
+    from django.contrib.auth.models import User
     data = payload(request)
     email = data.get("email") or data.get("username")
     password = data.get("password")
-    user = authenticate(request, username=email, password=password)
+
+    resolved_username = email
+    if email:
+        try:
+            user_obj = User.objects.get(email=email)
+            resolved_username = user_obj.username
+        except User.DoesNotExist:
+            try:
+                user_obj = User.objects.get(username=email)
+                resolved_username = user_obj.username
+            except User.DoesNotExist:
+                pass
+
+    user = authenticate(request, username=resolved_username, password=password)
     if not user:
         return error("Invalid username or password.", status=401)
     login(request, user)

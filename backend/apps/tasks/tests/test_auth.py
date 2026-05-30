@@ -105,3 +105,27 @@ class UserAuthApiTests(TestCase):
         res_data = response.json()
         self.assertTrue(res_data["ok"])
         self.assertEqual(res_data["message"], "Logged out")
+
+    def test_login_by_email_with_different_username(self):
+        # Create a user where username is not equal to email
+        different_user = User.objects.create_user(
+            username="different_user",
+            email="different@example.com",
+            password="password123",
+            first_name="Jane",
+            last_name="Doe"
+        )
+        # Login using email instead of username
+        response = self.client.post(
+            reverse("api_auth_login"),
+            data=json.dumps({
+                "email": "different@example.com",
+                "password": "password123"
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        res_data = response.json()
+        self.assertTrue(res_data["ok"])
+        self.assertEqual(res_data["data"]["email"], "different@example.com")
+        self.assertEqual(res_data["data"]["username"], "different_user")
