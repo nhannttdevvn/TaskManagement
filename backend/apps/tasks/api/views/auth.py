@@ -10,7 +10,9 @@ from apps.tasks.api.serializers import current_user_payload
 @require_http_methods(["POST"])
 def auth_login(request):
     data = payload(request)
-    user = authenticate(request, username=data.get("username"), password=data.get("password"))
+    email = data.get("email") or data.get("username")
+    password = data.get("password")
+    user = authenticate(request, username=email, password=password)
     if not user:
         return error("Invalid username or password.", status=401)
     login(request, user)
