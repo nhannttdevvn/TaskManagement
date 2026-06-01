@@ -31,5 +31,5 @@ RUN python manage.py collectstatic --no-input
 # Expose port (Railway overrides this with $PORT env var)
 EXPOSE 8000
 
-# Start Daphne ASGI server
-CMD python manage.py migrate && daphne -b 0.0.0.0 -p $PORT config.asgi:application
+# Start Daphne ASGI server. Run migrations separately from Railway when needed.
+CMD ["sh", "-c", "daphne -b 0.0.0.0 -p ${PORT:-8000} config.asgi:application"]
