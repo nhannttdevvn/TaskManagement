@@ -16,6 +16,20 @@ class TaskViewsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/login/", response["Location"])
 
+    def test_home_redirects_guest_to_login(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("login"))
+
+    def test_home_redirects_authenticated_user_to_dashboard(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("dashboard"))
+
     def test_task_create_assigns_current_user(self):
         self.client.force_login(self.user)
 
