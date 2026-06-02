@@ -57,7 +57,7 @@
   if (loginApp) {
     const form = document.getElementById("loginForm");
     const submitBtn = document.getElementById("loginSubmit");
-    const emailInput = document.getElementById("loginEmail");
+    const identifierInput = document.getElementById("loginEmail");
     const passwordInput = document.getElementById("loginPassword");
     const fullNameInput = form?.querySelector('input[name="full_name"]');
 
@@ -115,14 +115,18 @@
         clearErrors();
         const mode = form.getAttribute("data-mode") || "signin";
 
-        const email = (emailInput.value || "").trim();
+        const identifier = (identifierInput.value || "").trim();
         const password = passwordInput.value || "";
         const fullName =
           mode === "signup" ? (fullNameInput?.value || "").trim() : "";
         let valid = true;
 
-        if (!/^[\w.+-]+@[\w.-]+\.[a-z]{2,}$/i.test(email)) {
-          showError("email", "Email không hợp lệ");
+        if (!identifier) {
+          showError("identifier", "Email or username is required");
+          valid = false;
+        }
+        if (mode === "signup" && !/^[\w.+-]+@[\w.-]+\.[a-z]{2,}$/i.test(identifier)) {
+          showError("identifier", "A valid email is required for signup");
           valid = false;
         }
         if (password.length < 8) {
@@ -144,8 +148,12 @@
 
         const url =
           mode === "signin" ? "/api/auth/login/" : "/api/auth/signup/";
-        const payload = { email, password };
+        const payload = { identifier, username: identifier, password };
+        if (identifier.includes("@")) {
+          payload.email = identifier;
+        }
         if (mode === "signup") {
+          payload.email = identifier;
           payload.full_name = fullName;
         }
 
@@ -179,7 +187,7 @@
               err.message.includes("Email") ||
               err.message.includes("tài khoản")
             ) {
-              showError("email", err.message);
+              showError("identifier", err.message);
             } else if (
               err.message.includes("mật khẩu") ||
               err.message.includes("Mật khẩu")

@@ -106,12 +106,12 @@
             </div>
 
             <label class="grid gap-2">
-              <span class="text-sm font-extrabold text-slate-400">Email</span>
+              <span class="text-sm font-extrabold text-slate-400">Email or username</span>
               <div class="relative">
                 <i data-lucide="mail" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
-                <input id="loginEmail" name="email" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="email" placeholder="name@example.com" required autocomplete="email">
+                <input id="loginEmail" name="identifier" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="text" placeholder="name@example.com or username" required autocomplete="username">
               </div>
-              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="email">Email không hợp lệ</p>
+              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="identifier">Email or username is required</p>
             </label>
 
             <label class="grid gap-2">
@@ -188,5 +188,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/auth.js' %}?v=20260523-1"></script>
+<script src="{% static 'js/auth.js' %}?v=20260601-1"></script>
 {% endblock %}
