@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
@@ -9,25 +10,27 @@ from apps.tasks.api.serializers import current_user_payload
 @csrf_exempt
 @require_http_methods(["POST"])
 def auth_login(request):
-    from django.contrib.auth.models import User
     data = payload(request)
-    email = data.get("email") or data.get("username")
+    identifier = (data.get("identifier") or data.get("email") or data.get("username") or "").strip()
     password = data.get("password")
 
-    resolved_username = email
-    if email:
-        try:
-            user_obj = User.objects.get(email=email)
-            resolved_username = user_obj.username
-        except User.DoesNotExist:
-            try:
-                user_obj = User.objects.get(username=email)
-                resolved_username = user_obj.username
-            except User.DoesNotExist:
-                pass
+    if not identifier or not password:
+        return error("Username/email and password are required.", status=400)
 
-    user = authenticate(request, username=resolved_username, password=password)
-    if not user:
+    candidates = [identifier]
+    email_matches = list(User.objects.filter(email__iexact=identifier).values_list("username", flat=True)[:2])
+    username_matches = list(User.objects.filter(username__iexact=identifier).values_list("username", flat=True)[:2])
+    for username in email_matches + username_matches:
+        if username not in candidates:
+            candidates.append(username)
+
+    user = None
+    for username in candidates:
+        user = authenticate(request, username=username, password=password)
+        if user:
+            break
+
+    if not user or not user.is_active:
         return error("Invalid username or password.", status=401)
     login(request, user)
     return ok(current_user_payload(user))
@@ -36,7 +39,6 @@ def auth_login(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def auth_signup(request):
-    from django.contrib.auth.models import User
     data = payload(request)
     email = data.get("email")
     password = data.get("password")
