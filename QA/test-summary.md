@@ -22,9 +22,9 @@ Branch: test/quality-assurance
 
 ## Test result
 
-Total test cases: 15  
+Total test cases: 21  
 Passed: 4  
-Failed: 5  
+Failed: 11  
 Blocked: 6  
 Not run: 0  
 
@@ -40,6 +40,12 @@ Not run: 0
 3. TC-TASK-001: Tạo Task thành công
 4. TC-INV-001: Invite Member với email hợp lệ
 5. TC-UI-001: Chuyển Dark mode / Light mode
+6. TC-SET-001: Cập nhật Preferences thành công
+7. TC-SET-002: Cập nhật Profile thành công
+8. TC-SET-003: Đổi mật khẩu thành công
+9. TC-FILE-001: Truy cập tab Files
+10. TC-UPD-001: Truy cập tab All Updates
+11. TC-NAV-001: Truy cập về trang chủ TaskFlow sau khi đăng xuất
 
 ## Blocked test cases
 1. TC-PRJ-001: Tạo Project thành công
@@ -66,9 +72,19 @@ Not run: 0
 3. BUG-003: Tạo task mới nhưng task không hiển thị trên Kanban Board.
 4. BUG-004: Button Invite Member hiển thị vài giây rồi biến mất.
 5. BUG-005: Light mode bị lỗi màu chữ, chữ trắng bị chìm màu.
+6. BUG-006: Preferences hiển thị đã lưu nhưng thay đổi không được áp dụng.
+7. BUG-007: Profile hiển thị cập nhật thành công nhưng dữ liệu không thay đổi.
+8. BUG-008: Đổi mật khẩu báo thành công nhưng vẫn đăng nhập bằng mật khẩu cũ.
+9. BUG-009: Tab Files chưa hoạt động đúng.
+10. BUG-010: Tab All Updates không truy cập được.
+11. BUG-011: Bấm Về trang chủ TaskFlow sau khi đăng xuất hiển thị màn hình xám/lỗi.
 
 ## Notes
 - Một số test case bị blocked do thiếu tài khoản role riêng như Owner/Manager/Member/Viewer.
 - Một số test case bị blocked do dữ liệu Task không hiển thị trên Kanban Board.
 - Chưa kiểm tra trực tiếp database production vì tester chưa có quyền truy cập database.
 - Cần dev kiểm tra lại API hoặc state management ở các phần Workspace, Task, Dashboard và Team.
+- Phát hiện thêm nhiều lỗi ở Settings/Profile/Preferences: hệ thống hiển thị lưu thành công nhưng dữ liệu không được cập nhật thực tế.
+- Lỗi đổi mật khẩu là lỗi nghiêm trọng vì hệ thống báo thành công nhưng người dùng vẫn đăng nhập bằng mật khẩu cũ.
+- Tab Files và All Updates cần được kiểm tra lại vì chưa hoạt động đúng hoặc không truy cập được.
+- Navigation sau logout bị lỗi khi bấm về trang chủ TaskFlow.

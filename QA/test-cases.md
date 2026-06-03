@@ -403,3 +403,168 @@ Actual result:
 - Không hiển thị Task.
 
 ---
+---
+
+## TC-SET-001: Cập nhật Preferences thành công
+
+Module: Settings / Preferences  
+Priority: Medium  
+
+Steps:
+1. Đăng nhập vào hệ thống.
+2. Vào Settings.
+3. Chọn tab Preferences.
+4. Thay đổi Theme Mode hoặc Default Task View.
+5. Bấm Save Changes hoặc Save All.
+6. Reload trang hoặc chuyển sang tab khác rồi quay lại kiểm tra.
+
+Expected result:
+- Preferences được cập nhật thành công.
+- Sau khi reload hoặc chuyển tab, thay đổi vẫn được giữ lại.
+- Giao diện phản ánh đúng thiết lập người dùng đã chọn.
+
+Result:
+- FAIL
+
+Actual result:
+- Người dùng thay đổi Preferences và bấm Save Changes/Save All.
+- Hệ thống hiển thị trạng thái đã lưu/thành công.
+- Tuy nhiên thay đổi không được áp dụng hoặc không được lưu lại đúng sau khi kiểm tra lại.
+
+---
+
+## TC-SET-002: Cập nhật Profile thành công
+
+Module: Settings / Profile  
+Priority: High  
+
+Steps:
+1. Đăng nhập vào hệ thống.
+2. Vào Settings.
+3. Chọn tab Profile Settings.
+4. Thay đổi thông tin profile, ví dụ Full Name.
+5. Bấm Save Changes hoặc Save All.
+6. Reload trang hoặc đăng xuất rồi đăng nhập lại.
+7. Kiểm tra thông tin profile.
+
+Expected result:
+- Profile được cập nhật thành công.
+- Thông tin mới được hiển thị đúng sau khi reload hoặc đăng nhập lại.
+- Không hiển thị thông báo thành công nếu dữ liệu chưa được lưu thật.
+
+Result:
+- FAIL
+
+Actual result:
+- Khi cập nhật profile, hệ thống hiển thị thông báo/trạng thái cập nhật thành công.
+- Tuy nhiên thông tin profile không được cập nhật thực tế.
+- Sau khi kiểm tra lại, dữ liệu vẫn không thay đổi.
+
+---
+
+## TC-SET-003: Đổi mật khẩu thành công
+
+Module: Settings / Account Management  
+Priority: High  
+
+Steps:
+1. Đăng nhập vào hệ thống.
+2. Vào Settings.
+3. Chọn phần Profile Settings hoặc Account Management.
+4. Nhập Current Password.
+5. Nhập New Password hợp lệ.
+6. Bấm Save Changes hoặc Save All.
+7. Đăng xuất khỏi hệ thống.
+8. Đăng nhập lại bằng mật khẩu mới.
+9. Thử đăng nhập lại bằng mật khẩu cũ.
+
+Expected result:
+- Hệ thống đổi mật khẩu thành công.
+- Người dùng đăng nhập được bằng mật khẩu mới.
+- Người dùng không đăng nhập được bằng mật khẩu cũ.
+
+Result:
+- FAIL
+
+Actual result:
+- Sau khi đổi mật khẩu, hệ thống hiển thị thông báo thành công.
+- Tuy nhiên khi đăng xuất và đăng nhập lại, mật khẩu mới không dùng được.
+- Người dùng vẫn đăng nhập được bằng mật khẩu cũ.
+- Điều này cho thấy mật khẩu chưa được cập nhật thực tế.
+
+---
+
+## TC-FILE-001: Truy cập tab Files
+
+Module: Files  
+Priority: Medium  
+
+Steps:
+1. Đăng nhập vào hệ thống.
+2. Click tab Files ở sidebar.
+3. Quan sát màn hình Files.
+4. Thử click các chức năng như Create New Folder hoặc Upload nếu có.
+
+Expected result:
+- Tab Files mở đúng màn hình quản lý file.
+- Người dùng có thể thao tác với folder/file nếu có quyền.
+- Dữ liệu file/folder phải hiển thị đúng.
+- Các button Create New Folder và Upload hoạt động đúng.
+
+Result:
+- FAIL
+
+Actual result:
+- Khi ấn vào tab Files, giao diện không hoạt động đúng.
+- Tab Files hiển thị dữ liệu/giao diện nhưng các chức năng chưa dùng được hoặc không phản hồi như mong đợi.
+- Người dùng chưa thể thao tác quản lý file/folder.
+
+---
+
+## TC-UPD-001: Truy cập tab All Updates
+
+Module: All Updates  
+Priority: Medium  
+
+Steps:
+1. Đăng nhập vào hệ thống.
+2. Click tab All Updates ở sidebar.
+3. Quan sát màn hình All Updates.
+
+Expected result:
+- Tab All Updates mở đúng màn hình cập nhật hoạt động.
+- Hiển thị danh sách update/activity nếu có dữ liệu.
+- Không bị lỗi trang hoặc chuyển sai màn hình.
+
+Result:
+- FAIL
+
+Actual result:
+- Khi ấn vào tab All Updates, hệ thống không mở được trang All Updates.
+- Người dùng không thể xem danh sách cập nhật/hoạt động.
+
+---
+
+## TC-NAV-001: Truy cập về trang chủ TaskFlow sau khi đăng xuất
+
+Module: Navigation / Logout  
+Priority: High  
+
+Steps:
+1. Đăng nhập vào hệ thống.
+2. Bấm Logout.
+3. Ở màn hình đăng xuất thành công, bấm Về trang chủ TaskFlow.
+4. Quan sát màn hình được chuyển đến.
+
+Expected result:
+- Người dùng được chuyển về trang chủ hoặc trang login hợp lệ.
+- Không hiển thị màn hình lỗi.
+- Không bị blank page hoặc màn hình xám.
+
+Result:
+- FAIL
+
+Actual result:
+- Sau khi đăng xuất, hệ thống hiển thị màn hình đăng xuất thành công.
+- Khi bấm Về trang chủ TaskFlow, hệ thống chuyển sang màn hình xám/lỗi.
+- Người dùng không vào được trang chủ đúng như mong đợi.
