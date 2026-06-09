@@ -1,7 +1,8 @@
-{% extends "layouts/base.html" %} {% load static %} {% block title %}Project Dashboard | TaskFlow{% endblock %}
-{% block vendor_styles %} {% include "partials/design_tokens.html" %} {% endblock %}
-{% block body_class %}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %}
-{% block page_shell %}
+{% extends "layouts/base.html" %} {% load static %} {% block title %}Project
+Dashboard | TaskFlow{% endblock %} {% block vendor_styles %} {% include
+"partials/design_tokens.html" %} {% endblock %} {% block body_class
+%}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %} {% block
+page_shell %}
 <div
   id="dashboardApp"
   data-dashboard-url="{% url 'api_dashboard_data' %}"
@@ -90,7 +91,8 @@
         <div
           class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase"
         >
-          {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+          {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if
+          not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
         </div>
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold text-white">
@@ -188,7 +190,9 @@
               <div
                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase"
               >
-                {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+                {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"
+                }}{% if not user.first_name %}{{ user.username|slice:":2" }}{%
+                endif %}
               </div>
             </button>
             <div
@@ -199,7 +203,9 @@
                 <div
                   class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase"
                 >
-                  {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+                  {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"
+                  }}{% if not user.first_name %}{{ user.username|slice:":2" }}{%
+                  endif %}
                 </div>
                 <div class="min-w-0">
                   <p class="truncate text-sm font-bold text-white">
