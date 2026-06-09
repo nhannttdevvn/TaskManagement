@@ -1,111 +1,165 @@
 /* ============================================================
- * TaskFlow — Light theme + compact narrow sidebar
+ * TaskFlow — Light theme + wide sidebar
  * ----------------------------------------------------------
  * Kích hoạt khi <html> KHÔNG có class `dark` (light mode).
  * Đồng bộ cross-page qua theme-toggle.js (4 keys localStorage).
  * ============================================================ */
 
 /* ============================================================
- * NARROW ICON SIDEBAR (áp dụng cho mọi theme — dark + light)
- * Yêu cầu: sidebar compact icon-style như screenshot user gửi.
+ * WIDE APP SIDEBAR (áp dụng cho mọi theme — dark + light)
+ * Yêu cầu: sidebar rộng, đủ logo, nhãn menu và user card như ảnh mẫu.
  * ============================================================ */
 aside[id$="Sidebar"],
 aside#sidebar {
-  width: 84px !important;
-  padding-left: 8px !important;
-  padding-right: 8px !important;
+  width: min(230px, calc(100vw - 1rem)) !important;
+  padding: 18px 12px !important;
 }
 
-/* Sidebar brand block (TF logo + "TaskFlow") → chỉ giữ logo */
+/* Sidebar brand block */
 aside[id$="Sidebar"] > div:first-child,
 aside#sidebar > div:first-child {
-  justify-content: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
 }
 aside[id$="Sidebar"] > div:first-child > div:not(.grid),
 aside#sidebar > div:first-child > div:not(.grid) {
-  display: none !important;
+  display: block !important;
+}
+aside[id$="Sidebar"] > div:first-child > .grid,
+aside#sidebar > div:first-child > .grid {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 16px !important;
+  font-size: 1rem !important;
+}
+aside[id$="Sidebar"] > div:first-child p,
+aside#sidebar > div:first-child p {
+  font-size: 0.68rem !important;
+  letter-spacing: 0.08em !important;
+}
+aside[id$="Sidebar"] > div:first-child h1,
+aside#sidebar > div:first-child h1 {
+  font-size: 0.95rem !important;
+  line-height: 1.15 !important;
 }
 
-/* Nav items: stack icon trên, label nhỏ dưới, căn giữa */
+/* Nav items */
 aside[id$="Sidebar"] nav,
 aside#sidebar nav {
-  gap: 8px !important;
+  margin-top: 26px !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
 }
 aside[id$="Sidebar"] nav a,
 aside#sidebar nav a {
-  flex-direction: column !important;
+  flex-direction: row !important;
   align-items: center !important;
-  justify-content: center !important;
-  text-align: center !important;
-  height: auto !important;
-  min-height: 56px;
-  padding: 8px 4px !important;
-  gap: 4px !important;
-  border-radius: 14px !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  height: 40px !important;
+  padding: 0 12px !important;
+  gap: 10px !important;
+  border-radius: 15px !important;
 }
 aside[id$="Sidebar"] nav a span,
 aside#sidebar nav a span {
-  font-size: 0.625rem !important;
-  font-weight: 500 !important;
-  line-height: 1 !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  line-height: 1.1 !important;
 }
 aside[id$="Sidebar"] nav a i,
 aside#sidebar nav a i {
-  width: 1.25rem !important;
-  height: 1.25rem !important;
+  width: 1rem !important;
+  height: 1rem !important;
+  flex: 0 0 auto !important;
 }
 
-/* Hide các sub-section nội bộ sidebar (Workspace card của timeline,
-   member list của team) để gọn — sẽ hiện trên topbar */
+/* Keep internal sidebar sections visible on wider sidebar */
 aside[id$="Sidebar"] > section,
 aside#sidebar > section {
-  display: none !important;
+  display: block !important;
 }
 
-/* Bottom user card: collapse — chỉ giữ avatar nhỏ */
+/* Bottom user card */
 aside[id$="Sidebar"] > div.mt-auto,
 aside#sidebar > div.mt-auto {
-  padding: 6px !important;
-  background: transparent !important;
-  border: none !important;
+  padding: 12px !important;
+  background: rgba(255, 255, 255, 0.11) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 18px !important;
+  flex-shrink: 0 !important;
 }
 aside[id$="Sidebar"] > div.mt-auto > div:first-child,
 aside#sidebar > div.mt-auto > div:first-child {
-  justify-content: center !important;
-  margin-bottom: 6px;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  margin-bottom: 10px;
 }
 aside[id$="Sidebar"] > div.mt-auto > div:first-child img,
 aside#sidebar > div.mt-auto > div:first-child img {
-  width: 36px !important;
-  height: 36px !important;
+  width: 40px !important;
+  height: 40px !important;
 }
 aside[id$="Sidebar"] > div.mt-auto > div:first-child > div:not(.grid),
 aside#sidebar > div.mt-auto > div:first-child > div:not(.grid) {
-  display: none !important;
+  display: block !important;
 }
 
-/* Logout button: stack icon + label vertical */
+/* Logout button */
 aside[id$="Sidebar"] > div.mt-auto a,
 aside#sidebar > div.mt-auto a,
 aside[id$="Sidebar"] > div.mt-auto button,
 aside#sidebar > div.mt-auto button {
-  flex-direction: column !important;
-  height: auto !important;
-  min-height: 56px;
-  padding: 8px 4px !important;
-  gap: 4px !important;
-  font-size: 0.625rem !important;
+  flex-direction: row !important;
+  height: 44px !important;
+  padding: 0 14px !important;
+  gap: 8px !important;
+  font-size: 0.9rem !important;
   border-radius: 14px !important;
 }
 aside[id$="Sidebar"] > div.mt-auto a i,
 aside#sidebar > div.mt-auto a i {
-  width: 1.125rem !important;
-  height: 1.125rem !important;
+  width: 1.1rem !important;
+  height: 1.1rem !important;
 }
 
 /* Push main content right by new sidebar width */
 .lg\:pl-48 {
-  padding-left: 84px !important;
+  padding-left: 230px !important;
+}
+
+/* Projects sidebar: keep Logout fixed and scroll only the workspace list. */
+#timelineSidebar {
+  overflow: hidden !important;
+}
+#timelineSidebar > div:first-child,
+#timelineSidebar > nav,
+#timelineSidebar > div.mt-auto {
+  flex-shrink: 0 !important;
+}
+#timelineSidebar > section {
+  display: flex !important;
+  flex: 0 0 33.333% !important;
+  max-height: 33.333% !important;
+  min-height: 0 !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+#timelineSidebar #workspaceToggle,
+#timelineSidebar #addWorkspaceButton {
+  flex-shrink: 0 !important;
+}
+#timelineSidebar #workspaceItems {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+#timelineSidebar #workspaceList {
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
 }
 
 /* ============================================================
