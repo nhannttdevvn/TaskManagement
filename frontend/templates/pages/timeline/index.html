@@ -153,14 +153,7 @@ overflow-hidden{% endblock %} {% block page_shell %}
         </a>
       </nav>
 
-      <section
-        class="mt-4 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl"
-      >
-        <button
-          id="workspaceToggle"
-          class="flex w-full items-center justify-between text-left"
-          type="button"
-        >
+
           <span>
             <span class="block text-xs font-extrabold uppercase text-cyan-200"
               >Workspace</span
@@ -356,6 +349,9 @@ overflow-hidden{% endblock %} {% block page_shell %}
         <div
           class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between"
         >
+    <main id="timelineOverview" class="flex min-h-0 flex-col gap-2 overflow-y-auto px-3 py-2 sm:px-4 lg:flex-1 lg:overflow-hidden">
+      <section id="projectOverviewPanel" class="flex min-h-0 flex-col gap-2 lg:flex-1 lg:overflow-hidden">
+        <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p
               class="text-[0.66rem] font-extrabold uppercase tracking-[0.14em] text-cyan-200"
@@ -429,6 +425,27 @@ overflow-hidden{% endblock %} {% block page_shell %}
             ></div>
           </section>
         </div>
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label class="flex h-10 min-w-0 items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/45 px-3 text-slate-300 shadow-glass backdrop-blur-xl sm:w-[26rem]">
+              <i data-lucide="search" class="h-4 w-4 text-slate-500"></i>
+              <input id="projectOverviewSearch" class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-white outline-none placeholder:text-slate-500" type="search" placeholder="Search projects, tasks, members..." autocomplete="off">
+              <span class="rounded-lg border border-white/10 bg-white/5 px-1.5 py-0.5 text-[0.62rem] font-black text-slate-400">K</span>
+            </label>
+            <button class="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/8 px-4 text-sm font-bold text-slate-200 shadow-glass transition hover:bg-white/14 hover:text-white" type="button">
+              <i data-lucide="filter" class="h-4 w-4"></i>
+              Filter
+            </button>
+            <button id="overviewAddWorkspace" class="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-4 text-sm font-black text-white shadow-[0_10px_24px_rgba(79,70,229,0.18)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
+              <i data-lucide="plus" class="h-4 w-4"></i>
+              Add Workspace
+            </button>
+          </div>
+        </div>
+
+        <div id="projectOverviewStats" class="grid w-full grid-cols-4 gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-1.5 shadow-glass backdrop-blur-2xl"></div>
+        <div id="projectOverviewCards" class="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1"></div>
+        <span id="overviewWorkspaceCount" class="hidden"></span>
+        <div id="projectOverviewRows" class="hidden"></div>
       </section>
 
       <section
@@ -1111,4 +1128,12 @@ overflow-hidden{% endblock %} {% block page_shell %}
 <script src="{% static 'js/pages/timeline/actions.js' %}?v=20260530-1"></script>
 <script src="{% static 'js/pages/timeline/interactions.js' %}?v=20260530-1"></script>
 <script src="{% static 'js/pages/timeline.js' %}?v=20260530-1"></script>
+{% endblock %}
+
+{% block vendor_scripts %}
+{% include "partials/vendor_lucide.html" %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/timeline.js' %}?v=20260529-1"></script>
 {% endblock %}
