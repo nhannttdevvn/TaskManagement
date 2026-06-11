@@ -1,8 +1,19 @@
-{% extends "layouts/base.html" %} {% load static %} {% block title %}Project
-Dashboard | TaskFlow{% endblock %} {% block vendor_styles %} {% include
-"partials/design_tokens.html" %} {% endblock %} {% block body_class
-%}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %} {% block
-page_shell %}
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Project Dashboard | TaskFlow{% endblock %}
+
+{% block vendor_styles %}
+{% include "partials/design_tokens.html" %}
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/theme.css' %}?v=20260610-3" />
+{% endblock %}
+
+{% block body_class %}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %}
+
+{% block page_shell %}
 <div
   id="dashboardApp"
   data-dashboard-url="{% url 'api_dashboard_data' %}"
@@ -75,13 +86,6 @@ page_shell %}
         <i data-lucide="files" class="h-4 w-4"></i>
         <span>Files</span>
       </a>
-      <a
-        class="js-sidebar-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none"
-        href="#updates"
-      >
-        <i data-lucide="radio" class="h-4 w-4"></i>
-        <span>All Updates</span>
-      </a>
     </nav>
 
     <div
@@ -91,8 +95,7 @@ page_shell %}
         <div
           class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase"
         >
-          {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if
-          not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+          {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
         </div>
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold text-white">
@@ -145,7 +148,7 @@ page_shell %}
             >
               <i data-lucide="bell" class="h-4 w-4"></i>
               <span
-                class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-fuchsia-400 ring-2 ring-slate-950"
+                class="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-fuchsia-400"
               ></span>
             </button>
             <div
@@ -190,9 +193,7 @@ page_shell %}
               <div
                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase"
               >
-                {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"
-                }}{% if not user.first_name %}{{ user.username|slice:":2" }}{%
-                endif %}
+                {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
               </div>
             </button>
             <div
@@ -203,9 +204,7 @@ page_shell %}
                 <div
                   class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase"
                 >
-                  {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1"
-                  }}{% if not user.first_name %}{{ user.username|slice:":2" }}{%
-                  endif %}
+                  {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
                 </div>
                 <div class="min-w-0">
                   <p class="truncate text-sm font-bold text-white">
