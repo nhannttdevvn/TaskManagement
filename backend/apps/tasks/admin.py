@@ -3,6 +3,8 @@ from django.contrib import admin
 from .models import (
     Project,
     ProjectMember,
+    FileAsset,
+    FileFolder,
     Task,
     Team,
     TeamInvitation,
@@ -62,3 +64,19 @@ class ProjectMemberAdmin(admin.ModelAdmin):
     list_filter = ("role", "joined_at")
     search_fields = ("project__name", "user__username", "user__email")
     date_hierarchy = "joined_at"
+
+
+@admin.register(FileFolder)
+class FileFolderAdmin(admin.ModelAdmin):
+    list_display = ("name", "owner", "color", "shared", "updated_at")
+    list_filter = ("shared", "color", "updated_at")
+    search_fields = ("name", "owner__username", "owner__email")
+    date_hierarchy = "updated_at"
+
+
+@admin.register(FileAsset)
+class FileAssetAdmin(admin.ModelAdmin):
+    list_display = ("name", "owner", "folder", "file_type", "size_mb", "updated_at")
+    list_filter = ("file_type", "updated_at")
+    search_fields = ("name", "owner__username", "owner__email", "folder__name")
+    date_hierarchy = "updated_at"

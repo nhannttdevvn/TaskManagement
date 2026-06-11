@@ -176,6 +176,34 @@
     localStorage.setItem(THEME_KEY, t);
   });
 
+  const PREFS_KEY = "taskflow-preferences";
+  function loadPreferences() {
+    try {
+      return JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
+    } catch {
+      localStorage.removeItem(PREFS_KEY);
+      return {};
+    }
+  }
+  function applyStoredPreferences() {
+    const prefs = loadPreferences();
+    if (prefs.theme) {
+      applyTheme(prefs.theme);
+      localStorage.setItem(THEME_KEY, prefs.theme);
+    }
+    if (prefThemeSwitch) {
+      prefThemeSwitch.checked = (prefs.theme || localStorage.getItem(THEME_KEY) || "dark") !== "light";
+    }
+    const form = document.getElementById("preferencesForm");
+    if (!form) return;
+    if (prefs.language && form.elements.language) form.elements.language.value = prefs.language;
+    if (prefs.taskView && form.elements.task_view) form.elements.task_view.value = prefs.taskView;
+    if (typeof prefs.taskNotifications === "boolean" && form.elements.task_notifications) {
+      form.elements.task_notifications.checked = prefs.taskNotifications;
+    }
+  }
+  applyStoredPreferences();
+
   /* ============================================================
    *  Profile tab – avatar preview + dirty badge
    * ============================================================ */
@@ -245,6 +273,21 @@
   /* ============================================================
    *  Account tab – revoke devices + delete account
    * ============================================================ */
+  preferencesForm && preferencesForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const formData = new FormData(preferencesForm);
+    const prefs = {
+      theme: prefThemeSwitch?.checked ? "dark" : "light",
+      language: String(formData.get("language") || "en"),
+      taskNotifications: Boolean(formData.get("task_notifications")),
+      taskView: String(formData.get("task_view") || "Kanban"),
+    };
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    localStorage.setItem(THEME_KEY, prefs.theme);
+    applyTheme(prefs.theme);
+    showToast("Preferences saved");
+  });
+
   document.getElementById("deviceList")?.addEventListener("click", (e) => {
     const btn = e.target.closest(".js-revoke-device");
     if (!btn) return;
@@ -470,6 +513,11 @@
   /* ============================================================
    *  Search filter (lọc theo nhãn tab)
    * ============================================================ */
+  document.getElementById("settingsSaveAllButton")?.addEventListener("click", () => {
+    preferencesForm?.requestSubmit();
+    dirtyBadge?.classList.add("hidden");
+  });
+
   const searchInput = document.getElementById("settingsSearch");
   searchInput && searchInput.addEventListener("input", (e) => {
     const q = e.target.value.toLowerCase().trim();

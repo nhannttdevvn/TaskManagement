@@ -5,6 +5,7 @@ from .friends import (
     list_friends,
     list_pending_requests,
 )
+from .files import file_folders, file_upload, files_collection
 from .auth import auth_login, auth_logout, auth_signup, users_me
 from .conversations import (
     call_end,
@@ -101,6 +102,9 @@ __all__ = [
     "user_presence",
     "users_me",
     "auth_signup",
+    "file_folders",
+    "file_upload",
+    "files_collection",
     "search_users",
     "send_friend_request",
     "respond_friend_request",

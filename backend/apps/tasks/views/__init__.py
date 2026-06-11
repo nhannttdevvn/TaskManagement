@@ -1,4 +1,4 @@
-from .page_views import DashboardView, EquipmentView, ProjectView, RootRedirectView, TeamView
+from .page_views import DashboardView, EquipmentView, FilesView, ProjectView, RootRedirectView, SettingsView, TeamView, UpdatesView
 from .task_views import (
     TaskCreateView,
     TaskDeleteView,
@@ -13,6 +13,7 @@ from apps.tasks.services import invitation_actor_for_request
 __all__ = [
     "DashboardView",
     "EquipmentView",
+    "FilesView",
     "ProjectView",
     "RootRedirectView",
     "TaskCreateView",
@@ -21,6 +22,8 @@ __all__ = [
     "TaskListView",
     "TaskUpdateView",
     "TeamView",
+    "SettingsView",
+    "UpdatesView",
     "UserTaskQuerysetMixin",
     "invite_team_member",
     "invitation_actor_for_request",

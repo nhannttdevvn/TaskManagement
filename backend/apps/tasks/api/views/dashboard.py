@@ -1,5 +1,5 @@
 from apps.tasks.api import mock_data
-from apps.tasks.api.responses import ok
+from apps.tasks.api.responses import api_login_required, ok
 from apps.tasks.api.serializers import (
     dashboard_analytics_from_tasks,
     dashboard_status_from_tasks,
@@ -11,12 +11,13 @@ from apps.tasks.api.serializers import (
 from apps.tasks.selectors import database_projects, database_tasks
 
 
+@api_login_required
 def dashboard_summary(request):
-    tasks = database_tasks()
+    tasks = database_tasks(user=request.user)
     done_tasks = len([task for task in tasks if task.status == "done"])
     projects = [
-        project_payload(project, index, len(tasks), done_tasks)
-        for index, project in enumerate(database_projects())
+        project_payload(project, index)
+        for index, project in enumerate(database_projects(user=request.user))
     ]
     return ok(
         {
@@ -31,16 +32,19 @@ def dashboard_summary(request):
     )
 
 
+@api_login_required
 def dashboard_task_done(request):
     range_name = request.GET.get("range", "daily")
-    analytics = dashboard_analytics_from_tasks(database_tasks())
+    analytics = dashboard_analytics_from_tasks(database_tasks(user=request.user))
     return ok(analytics.get(range_name, analytics["daily"]))
 
 
+@api_login_required
 def dashboard_task_status(request):
-    return ok(dashboard_status_from_tasks(database_tasks()))
+    return ok(dashboard_status_from_tasks(database_tasks(user=request.user)))
 
 
+@api_login_required
 def dashboard_activity(request):
     return ok(
         {
@@ -50,10 +54,10 @@ def dashboard_activity(request):
     )
 
 
+@api_login_required
 def dashboard_frontend_data(request):
-    tasks = database_tasks()
-    projects = database_projects()
-    done_count = len([task for task in tasks if task.status == "done"])
+    tasks = database_tasks(user=request.user)
+    projects = database_projects(user=request.user)
     upcoming_tasks = [
         {
             "title": task.title,
@@ -68,7 +72,7 @@ def dashboard_frontend_data(request):
     return ok(
         {
             "projects": [
-                project_payload(project, index, len(tasks), done_count)
+                project_payload(project, index)
                 for index, project in enumerate(projects)
             ],
             "upcomingTasks": upcoming_tasks,

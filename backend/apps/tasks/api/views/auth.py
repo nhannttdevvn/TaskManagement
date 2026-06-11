@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -80,10 +80,32 @@ def users_me(request):
         if not request.user.is_authenticated:
             return error("Authentication required.", status=401)
         data = payload(request)
-        request.user.first_name = data.get("firstName", request.user.first_name)
-        request.user.last_name = data.get("lastName", request.user.last_name)
-        request.user.email = data.get("email", request.user.email)
-        request.user.save(update_fields=["first_name", "last_name", "email"])
+        full_name = data.get("full_name") or data.get("fullName")
+        if full_name is not None:
+            parts = str(full_name).strip().split(" ", 1)
+            request.user.first_name = parts[0] if parts else ""
+            request.user.last_name = parts[1] if len(parts) > 1 else ""
+        else:
+            request.user.first_name = data.get("firstName", request.user.first_name)
+            request.user.last_name = data.get("lastName", request.user.last_name)
+
+        email = (data.get("email") or request.user.email or "").strip()
+        if email and User.objects.exclude(id=request.user.id).filter(email__iexact=email).exists():
+            return error("An account with this email already exists.", status=400)
+        request.user.email = email
+
+        new_password = data.get("new_password") or data.get("newPassword")
+        if new_password:
+            current_password = data.get("current_password") or data.get("currentPassword")
+            if not request.user.check_password(current_password or ""):
+                return error("Current password is incorrect.", status=400)
+            if len(new_password) < 8:
+                return error("New password must be at least 8 characters.", status=400)
+            request.user.set_password(new_password)
+
+        request.user.save()
+        if new_password:
+            update_session_auth_hash(request, request.user)
     return ok(current_user_payload(request.user))
 
 

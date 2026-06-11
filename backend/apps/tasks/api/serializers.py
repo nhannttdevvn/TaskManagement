@@ -125,9 +125,16 @@ def dashboard_analytics_from_tasks(tasks):
     }
 
 
-def project_payload(project, index, task_count, done_count):
+def project_payload(project, index, tasks=None):
+    tasks = list(tasks if tasks is not None else project.tasks.all())
+    task_count = len(tasks)
+    done_count = len([task for task in tasks if task.status == "done"])
     progress = round((done_count / task_count) * 100) if task_count else 0
     status = "Completed" if progress == 100 and task_count else "Active"
+    members = [
+        initials(display_name(member.user))
+        for member in project.members.all()
+    ] or [initials(display_name(project.user))]
     return {
         "id": slugify(project.name) or f"project-{project.id}",
         "databaseId": project.id,
@@ -136,7 +143,7 @@ def project_payload(project, index, task_count, done_count):
         "description": project.description or "Project created from MySQL database.",
         "status": status,
         "progress": progress,
-        "members": [initials(display_name(project.user))],
+        "members": members,
         "tasks": task_count,
         "done": done_count,
         "gradientClass": PROJECT_GRADIENTS[index % len(PROJECT_GRADIENTS)],
@@ -148,11 +155,13 @@ def task_payload(task, index=0):
     color, text = TASK_COLORS[index % len(TASK_COLORS)]
     return {
         "id": str(task.id),
+        "projectId": str(task.project_id) if task.project_id else None,
+        "project": task.project.name if task.project_id else "Unassigned",
         "title": task.title,
         "subtitle": task.description or "No description yet",
-        "start": 9 + ((index % 6) * 1.15),
-        "duration": 1.1 + ((index % 3) * 0.45),
-        "row": index % 4,
+        "start": task.start,
+        "duration": task.duration,
+        "row": task.row,
         "color": color,
         "text": text,
         "members": [initials(display_name(task.user))],
@@ -161,6 +170,7 @@ def task_payload(task, index=0):
         "status": task_status_label(task),
         "owner": display_name(task.user),
         "due": due_label(task),
+        "dueDate": task.due_date.isoformat() if task.due_date else None,
         "progress": task_progress(task),
         "comments": 0,
         "attachments": 0,

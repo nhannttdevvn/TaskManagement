@@ -146,7 +146,7 @@ overflow-hidden{% endblock %} {% block page_shell %}
         </a>
         <a
           class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none"
-          href="#updates"
+          href="{% url 'updates' %}"
         >
           <i data-lucide="radio" class="h-4 w-4"></i>
           <span>All Updates</span>

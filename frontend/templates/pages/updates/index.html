@@ -1,0 +1,52 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}All Updates | TaskFlow{% endblock %}
+
+{% block vendor_styles %}
+{% include "partials/design_tokens.html" %}
+{% endblock %}
+
+{% block body_class %}bg-slate-950 p-0 font-sans antialiased{% endblock %}
+
+{% block page_shell %}
+<div class="min-h-screen bg-[linear-gradient(135deg,rgba(59,42,143,0.32),transparent_32%),linear-gradient(180deg,#050816_0%,#111827_100%)] px-4 py-6 text-white">
+  <main class="mx-auto max-w-5xl">
+    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-cyan-200">Activity</p>
+        <h1 class="mt-2 text-2xl font-black">All Updates</h1>
+      </div>
+      <a class="inline-flex h-10 items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-bold text-slate-100 transition hover:bg-white/15" href="{% url 'dashboard' %}">
+        <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+        Dashboard
+      </a>
+    </header>
+
+    <section class="mt-6 grid gap-3">
+      <article class="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+        <p class="text-sm font-bold">Workspace data is now connected to the database.</p>
+        <p class="mt-1 text-xs text-slate-400">Projects, tasks, files and team actions should persist between pages.</p>
+      </article>
+      <article class="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+        <p class="text-sm font-bold">Kanban tasks are filtered by selected calendar day.</p>
+        <p class="mt-1 text-xs text-slate-400">Choose a date in Projects to see only missions for that day.</p>
+      </article>
+      <article class="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+        <p class="text-sm font-bold">Account settings are saved through the backend.</p>
+        <p class="mt-1 text-xs text-slate-400">Profile and password changes now update the authenticated user.</p>
+      </article>
+    </section>
+  </main>
+</div>
+{% endblock %}
+
+{% block vendor_scripts %}
+<script src="https://unpkg.com/lucide@latest"></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  window.lucide && window.lucide.createIcons();
+</script>
+{% endblock %}
