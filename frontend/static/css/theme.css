@@ -123,6 +123,16 @@ aside#sidebar > div.mt-auto a i {
   height: 1.1rem !important;
 }
 
+/* Remove dark outlines from circular avatars, status dots and member stacks. */
+[class*="rounded-full"][class*="border-slate-950"],
+[class*="rounded-full"][class*="border-slate-900"] {
+  border-color: rgba(255, 255, 255, 0.78) !important;
+}
+[class*="rounded-full"][class*="ring-slate-950"],
+[class*="rounded-full"][class*="ring-slate-900"] {
+  --tw-ring-color: rgba(255, 255, 255, 0.78) !important;
+}
+
 /* Push main content right by new sidebar width */
 .lg\:pl-48 {
   padding-left: 230px !important;
@@ -246,6 +256,21 @@ html:not(.dark) header.sticky button:hover {
 html:not(.dark) header.sticky input[type="search"] {
   color: #1e293b !important;
 }
+html:not(.dark) header.sticky button[id$="NotificationToggle"] > span.absolute,
+html:not(.dark) header.sticky #notificationToggle > span.absolute {
+  border: 0 !important;
+  width: 0.9rem !important;
+  height: 0.9rem !important;
+  min-width: 0.9rem !important;
+  font-size: 0.55rem !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+}
 /* Floating theme toggle ở login/logout */
 html:not(.dark) #loginThemeToggle,
 html:not(.dark) #logoutThemeToggle {
@@ -254,14 +279,76 @@ html:not(.dark) #logoutThemeToggle {
   color: #475569 !important;
 }
 
-/* Keep gradient CTA buttons (Save All, New Folder, Upload, Invite) */
+/* Light mode sidebar workspace selection: white outline only. */
+html:not(.dark) aside[id$="Sidebar"] .workspace-group,
+html:not(.dark) aside#sidebar .workspace-group,
+html:not(.dark) #timelineSidebar #workspaceList button {
+  border: 1px solid transparent !important;
+}
+html:not(.dark) aside[id$="Sidebar"] .workspace-group.is-active,
+html:not(.dark) aside#sidebar .workspace-group.is-active,
+html:not(.dark) #timelineSidebar #workspaceList button[class*="from-violet-600"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+/* Light mode primary actions use the same purple family as the sidebar. */
 html:not(.dark) button[class*="from-violet-600"],
 html:not(.dark) button[class*="from-cyan-400"][class*="bg-gradient-to-r"],
 html:not(.dark) a[class*="from-violet-600"],
 html:not(.dark) form button[type="submit"][class*="from-violet-600"] {
-  background-image: linear-gradient(to right, #6366f1, #2563eb, #06b6d4) !important;
+  background-image: linear-gradient(160deg, #6366f1, #4f46e5) !important;
   color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
+  border-color: transparent !important;
+}
+html:not(.dark) button[class*="from-violet-600"] *,
+html:not(.dark) button[class*="from-cyan-400"][class*="bg-gradient-to-r"] *,
+html:not(.dark) a[class*="from-violet-600"] *,
+html:not(.dark) form button[type="submit"][class*="from-violet-600"] * {
+  color: #ffffff !important;
+}
+
+/* Invite actions follow the same light-mode primary button style. */
+html:not(.dark) #workspaceInviteButton,
+html:not(.dark) #projectInviteSubmit,
+html:not(.dark) #inviteTeammateButton,
+html:not(.dark) #inviteTeammateRowButton,
+html:not(.dark) #inviteSettingsForm button[type="submit"] {
+  background-color: #6366f1 !important;
+  background-image: linear-gradient(160deg, #6366f1, #4f46e5) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.22) !important;
+}
+html:not(.dark) #workspaceInviteButton *,
+html:not(.dark) #projectInviteSubmit *,
+html:not(.dark) #inviteTeammateButton *,
+html:not(.dark) #inviteTeammateRowButton *,
+html:not(.dark) #inviteSettingsForm button[type="submit"] * {
+  color: #ffffff !important;
+}
+html:not(.dark) #workspaceInviteButton:hover,
+html:not(.dark) #projectInviteSubmit:hover,
+html:not(.dark) #inviteTeammateButton:hover,
+html:not(.dark) #inviteTeammateRowButton:hover,
+html:not(.dark) #inviteSettingsForm button[type="submit"]:hover {
+  background-color: #4f46e5 !important;
+  background-image: linear-gradient(160deg, #5b5ff0, #4338ca) !important;
+  color: #ffffff !important;
+}
+
+/* Keep this after CTA rules so selected workspaces do not regain gradients. */
+html:not(.dark) aside[id$="Sidebar"] .workspace-group.is-active,
+html:not(.dark) aside#sidebar .workspace-group.is-active,
+html:not(.dark) #timelineSidebar #workspaceList button[class*="from-violet-600"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
 }
 
 /* ---------- CARDS / SURFACES — SOLID white để text rõ ràng ---------- */

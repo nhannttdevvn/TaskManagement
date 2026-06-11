@@ -486,15 +486,14 @@
         const count = tasks.filter((task) => task.workspaceId === workspace.id).length;
         return `
           <button
-            class="w-full rounded-2xl px-3 py-2 text-left transition hover:bg-white/10 ${isActive ? "border border-white/12 bg-white/12 text-white shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "text-slate-300"}"
+            class="w-full rounded-xl px-3 py-2 text-left text-xs transition hover:bg-white/10 hover:text-white ${isActive ? "bg-gradient-to-r from-violet-600/55 to-blue-600/35 font-bold text-white shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "font-semibold text-slate-300"}"
             type="button"
             data-workspace-id="${workspace.id}"
           >
-            <span class="flex items-center justify-between gap-2">
-              <span class="truncate text-sm font-bold">${escapeHtml(workspace.name)}</span>
-              <span class="rounded-full bg-slate-950/35 px-1.5 py-0.5 text-[0.58rem] font-black text-cyan-100">${count}</span>
+            <span class="flex items-center justify-between gap-2 leading-5">
+              <span class="truncate">${escapeHtml(workspace.name)}</span>
+              <span class="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-slate-950/30 px-1.5 text-[0.58rem] font-black text-cyan-100">${count}</span>
             </span>
-            <span class="mt-1 block truncate text-[0.62rem] font-semibold text-slate-400">${escapeHtml(workspace.projects.join(" · "))}</span>
           </button>
         `;
       })
