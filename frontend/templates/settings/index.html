@@ -16,6 +16,7 @@
 {% block page_shell %}
 <div
   id="settingsApp"
+  data-workspace-role="{{ workspace_role }}"
   class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(59,42,143,0.36),transparent_32%),linear-gradient(225deg,rgba(91,61,245,0.22),transparent_34%),linear-gradient(180deg,#050816_0%,#0d1326_54%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
 >
   <div
@@ -47,7 +48,7 @@
         <i data-lucide="folder-kanban" class="h-4 w-4"></i>
         <span>Projects</span>
       </a>
-      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}#teamWorkspace">
+      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}">
         <i data-lucide="users-round" class="h-4 w-4"></i>
         <span>Team</span>
       </a>

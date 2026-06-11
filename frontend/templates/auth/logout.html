@@ -48,18 +48,17 @@
           See you soon, <span class="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">Sarah</span>.
         </h2>
         <p class="mt-4 text-sm text-slate-300">
-          Đảm bảo bạn đã lưu công việc đang dở dang. Mọi thay đổi chưa lưu sẽ
-          không được tự động khôi phục ở lần đăng nhập tới.
+          Đăng xuất sẽ đóng phiên làm việc hiện tại. Các thay đổi đã lưu vẫn nằm trong workspace của bạn.
         </p>
 
         <div class="mt-8 space-y-3">
           <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
             <span class="grid h-9 w-9 place-items-center rounded-xl bg-cyan-400/15 text-cyan-200"><i data-lucide="save" class="h-4 w-4"></i></span>
-            <p class="text-sm text-slate-200">3 file đã lưu tự động lúc 09:42 hôm nay</p>
+            <p class="text-sm text-slate-200">Workspace được giữ nguyên sau khi bạn đăng xuất</p>
           </div>
           <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
             <span class="grid h-9 w-9 place-items-center rounded-xl bg-emerald-400/15 text-emerald-200"><i data-lucide="check-circle-2" class="h-4 w-4"></i></span>
-            <p class="text-sm text-slate-200">Tất cả task đã được đồng bộ với team</p>
+            <p class="text-sm text-slate-200">Bạn có thể đăng nhập lại bằng email hoặc Google</p>
           </div>
           <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
             <span class="grid h-9 w-9 place-items-center rounded-xl bg-violet-400/15 text-violet-200"><i data-lucide="shield-check" class="h-4 w-4"></i></span>
@@ -100,22 +99,7 @@
           </section>
 
           <form id="logoutForm" class="mt-5 space-y-4" novalidate>
-            <label class="grid gap-2">
-              <span class="text-sm font-extrabold text-slate-400">Xác nhận mật khẩu (tùy chọn)</span>
-              <div class="relative">
-                <i data-lucide="lock" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
-                <input id="logoutPassword" name="password" class="js-password w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="password" placeholder="••••••••" autocomplete="current-password">
-                <button class="js-toggle-password absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" aria-label="Show password">
-                  <i data-lucide="eye" class="h-4 w-4"></i>
-                </button>
-              </div>
-              <p class="text-[0.7rem] text-slate-500">Một số tổ chức yêu cầu xác nhận mật khẩu trước khi đăng xuất.</p>
-            </label>
-
-            <label class="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs">
-              <input id="logoutAllDevices" name="logout_all" type="checkbox" class="h-4 w-4 rounded border-white/10 bg-slate-800 accent-rose-400">
-              <span class="text-slate-200">Đăng xuất khỏi <span class="font-bold text-white">tất cả thiết bị</span> đang đăng nhập</span>
-            </label>
+            {% csrf_token %}
 
             <div class="grid grid-cols-2 gap-3">
               <a href="{% url 'dashboard' %}" class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm font-bold text-white transition hover:bg-white/10">
@@ -131,7 +115,7 @@
 
           <div class="mt-5 flex items-center justify-center gap-3 text-xs text-slate-500">
             <i data-lucide="clock" class="h-3.5 w-3.5"></i>
-            Lần đăng nhập gần nhất: <span class="font-bold text-slate-300">2 phút trước</span>
+            Phiên hiện tại: <span class="font-bold text-slate-300">đang hoạt động</span>
           </div>
         </div>
 
