@@ -27,7 +27,7 @@
 
   <aside
     id="filesSidebar"
-    class="fixed inset-y-0 left-0 z-40 flex w-48 -translate-x-full flex-col border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
+    class="fixed inset-y-0 left-0 z-40 flex w-[230px] -translate-x-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
     aria-label="Files navigation"
   >
     <div class="flex items-center gap-2 px-2">
@@ -38,24 +38,24 @@
       </div>
     </div>
 
-    <nav class="mt-7 space-y-1.5">
-      <a class="files-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'dashboard' %}">
+    <nav class="mt-7 shrink-0 space-y-1.5">
+      <a class="files-nav-link flex h-9 items-center gap-3 rounded-2xl px-3 text-xs font-medium text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'dashboard' %}">
         <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
         <span>Dashboard</span>
       </a>
-      <a class="files-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'project' %}">
+      <a class="files-nav-link flex h-9 items-center gap-3 rounded-2xl px-3 text-xs font-medium text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'project' %}">
         <i data-lucide="folder-kanban" class="h-4 w-4"></i>
         <span>Projects</span>
       </a>
-      <a class="files-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}">
+      <a class="files-nav-link flex h-9 items-center gap-3 rounded-2xl px-3 text-xs font-medium text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}">
         <i data-lucide="users-round" class="h-4 w-4"></i>
         <span>Team</span>
       </a>
-      <a class="files-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'settings' %}">
+      <a class="files-nav-link flex h-9 items-center gap-3 rounded-2xl px-3 text-xs font-medium text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'settings' %}">
         <i data-lucide="settings" class="h-4 w-4"></i>
         <span>Settings</span>
       </a>
-      <a class="files-nav-link relative flex h-10 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="#filesWorkspace">
+      <a class="files-nav-link relative flex h-9 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-xs font-semibold text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="#filesWorkspace">
         <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
         <i data-lucide="files" class="h-4 w-4"></i>
         <span>Files</span>
@@ -77,41 +77,46 @@
     </div>
   </aside>
 
-  <div class="min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-48">
-    {# ============= COMPACT HEADER ============= #}
-    <header class="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-1.5 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-5 lg:shrink-0">
-      <div class="flex items-center justify-between gap-3">
-        <div class="flex shrink-0 items-center gap-2">
-          <button id="filesSidebarToggle" class="grid h-8 w-8 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 lg:hidden motion-reduce:transform-none" type="button" aria-label="Open sidebar">
-            <i data-lucide="menu" class="h-4 w-4"></i>
+  <div class="min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-[230px]">
+    {# ============= SHARED HEADER ============= #}
+    <header class="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-2.5 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-5 lg:shrink-0">
+      <div class="flex items-center justify-between gap-5">
+        <div class="flex shrink-0 items-center gap-3">
+          <button id="filesSidebarToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 lg:hidden motion-reduce:transform-none" type="button" aria-label="Open sidebar">
+            <i data-lucide="menu" class="h-5 w-5"></i>
           </button>
-          <p class="text-[0.7rem] font-semibold text-cyan-200">Hi, Sarah</p>
+          <p class="text-xs font-semibold text-cyan-200">Hi, {{ user.first_name|default:user.username }}</p>
         </div>
 
-        <div class="flex shrink-0 items-center justify-end gap-2">
+        <div class="flex shrink-0 items-center justify-end gap-3">
           <div class="relative">
-            <button id="filesNotificationToggle" class="grid h-8 w-8 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 motion-reduce:transform-none" type="button" aria-label="Open notifications">
+            <button id="filesNotificationToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 motion-reduce:transform-none" type="button" aria-label="Open notifications">
               <i data-lucide="bell" class="h-4 w-4"></i>
-              <span class="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-fuchsia-400 ring-2 ring-slate-950"></span>
+              <span class="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-fuchsia-400"></span>
             </button>
-            <div id="filesNotificationDropdown" class="absolute right-0 top-[calc(100%+0.5rem)] hidden w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-slate-950/90 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
-              <div class="mb-2 flex items-center justify-between">
+            <div id="filesNotificationDropdown" class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-slate-950/90 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
+              <div class="mb-3 flex items-center justify-between">
                 <h3 class="text-sm font-bold text-white">Notifications</h3>
-                <span class="rounded-full bg-cyan-400/15 px-2 py-0.5 text-xs font-semibold text-cyan-200">3 new</span>
+                <span class="rounded-full bg-cyan-400/15 px-2 py-1 text-xs font-semibold text-cyan-200">3 new</span>
               </div>
-              <div id="filesNotificationList" class="space-y-2"></div>
+              <div id="filesNotificationList" class="space-y-3"></div>
             </div>
           </div>
 
-          <button class="grid h-8 w-8 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 motion-reduce:transform-none" type="button" aria-label="Help">
+          <button class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 motion-reduce:transform-none" type="button" aria-label="Help">
             <i data-lucide="circle-help" class="h-4 w-4"></i>
           </button>
 
-          <button id="filesThemeToggle" class="grid h-8 w-8 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 motion-reduce:transform-none" type="button" aria-label="Toggle dark mode" title="Toggle theme">
-            <i data-lucide="moon" class="h-4 w-4"></i>
+          <button id="filesThemeToggle" class="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-2.5 text-xs font-black text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 motion-reduce:transform-none" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+            <span class="grid h-6 w-6 place-items-center rounded-lg bg-cyan-300/15 text-cyan-100">
+              <i data-lucide="sun" class="h-3.5 w-3.5"></i>
+            </span>
+            <span class="hidden sm:inline">Light</span>
           </button>
 
-          <img class="h-8 w-8 rounded-xl border border-white/20 object-cover shadow-glass" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Sarah avatar">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase">
+            {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+          </div>
         </div>
       </div>
 

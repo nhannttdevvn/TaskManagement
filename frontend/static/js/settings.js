@@ -160,6 +160,19 @@
   const THEME_KEY = "taskflow-theme";
   function applyTheme(theme) {
     document.documentElement.classList.toggle("dark", theme !== "light");
+    const toggle = document.getElementById("settingsThemeToggle");
+    if (toggle) {
+      const isLight = theme === "light";
+      toggle.setAttribute("aria-label", isLight ? "Switch to dark mode" : "Switch to light mode");
+      toggle.setAttribute("title", isLight ? "Switch to dark mode" : "Switch to light mode");
+      toggle.innerHTML = `
+        <span class="grid h-6 w-6 place-items-center rounded-lg ${isLight ? "bg-violet-500/15 text-violet-700" : "bg-cyan-300/15 text-cyan-100"}">
+          <i data-lucide="${isLight ? "moon" : "sun"}" class="h-3.5 w-3.5"></i>
+        </span>
+        <span class="hidden sm:inline">${isLight ? "Dark" : "Light"}</span>
+      `;
+      refreshIcons();
+    }
   }
   applyTheme(localStorage.getItem(THEME_KEY) || "dark");
   document.getElementById("settingsThemeToggle")?.addEventListener("click", () => {

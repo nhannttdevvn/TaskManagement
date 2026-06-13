@@ -21,6 +21,7 @@
   data-user-role="{{ workspace_role|lower }}"
   data-user-name="{{ user.get_full_name|default:user.username }}"
   data-user-id="{{ user.id }}"
+  data-team-layout="compact"
   data-allow-demo-fallback="false"
   class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(59,42,143,0.36),transparent_32%),linear-gradient(225deg,rgba(91,61,245,0.22),transparent_34%),linear-gradient(180deg,#050816_0%,#0d1326_54%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
 >
@@ -33,7 +34,7 @@
 
   <aside
     id="teamSidebar"
-    class="fixed inset-y-0 left-0 z-40 flex w-[230px] -translate-x-full flex-col border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
+    class="fixed inset-y-0 left-0 z-40 flex w-[230px] -translate-x-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
     aria-label="Team navigation"
   >
     <div class="flex items-center gap-2 px-2">
@@ -44,25 +45,25 @@
       </div>
     </div>
 
-    <nav class="mt-7 space-y-1.5">
-      <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'dashboard' %}">
+    <nav class="mt-7 shrink-0 space-y-1.5">
+      <a class="team-nav-link flex h-9 items-center gap-3 rounded-2xl px-3 text-xs font-medium text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'dashboard' %}">
         <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
         <span>Dashboard</span>
       </a>
-      <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'project' %}">
+      <a class="team-nav-link flex h-9 items-center gap-3 rounded-2xl px-3 text-xs font-medium text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'project' %}">
         <i data-lucide="folder-kanban" class="h-4 w-4"></i>
         <span>Projects</span>
       </a>
-      <a class="team-nav-link relative flex h-10 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="{% url 'team' %}">
+      <a class="team-nav-link relative flex h-9 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-xs font-semibold text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="{% url 'team' %}">
         <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
         <i data-lucide="users-round" class="h-4 w-4"></i>
         <span>Team</span>
       </a>
-      <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'settings' %}">
+      <a class="team-nav-link flex h-9 items-center gap-3 rounded-2xl px-3 text-xs font-medium text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'settings' %}">
         <i data-lucide="settings" class="h-4 w-4"></i>
         <span>Settings</span>
       </a>
-      <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
+      <a class="team-nav-link flex h-9 items-center gap-3 rounded-2xl px-3 text-xs font-medium text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
         <i data-lucide="files" class="h-4 w-4"></i>
         <span>Files</span>
       </a>
@@ -105,20 +106,17 @@
             <i data-lucide="menu" class="h-5 w-5"></i>
           </button>
           <div>
-            <h1 class="text-xl font-black tracking-tight text-white">Team Collaboration</h1>
-            <p class="mt-0.5 text-xs font-medium text-slate-300">Communicate and collaborate with your team</p>
+            <p class="text-xs font-semibold text-cyan-200">
+              Hi, {{ user.first_name|default:user.username }}
+            </p>
           </div>
         </div>
 
         <div class="flex shrink-0 items-center justify-end gap-3">
-          <label class="flex h-10 w-full min-w-0 items-center gap-2.5 rounded-2xl border border-white/10 bg-slate-900/60 px-3 shadow-glass backdrop-blur-xl sm:max-w-[360px] lg:w-[320px]">
-            <i data-lucide="search" class="h-4 w-4 text-slate-400"></i>
-            <input id="teamSearch" class="min-w-0 flex-1 border-0 bg-transparent text-sm text-white outline-none placeholder:text-slate-400" type="search" placeholder="Search in group..." autocomplete="off">
-          </label>
           <div class="relative">
             <button id="teamNotificationToggle" class="relative grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15" type="button" aria-label="Open notifications">
               <i data-lucide="bell" class="h-4 w-4"></i>
-              <span class="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-rose-500 text-[0.55rem] font-medium leading-none text-white">3</span>
+              <span class="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-fuchsia-400"></span>
             </button>
             <div id="teamNotificationDropdown" class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-slate-950/90 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
               <div class="mb-3 flex items-center justify-between">
@@ -131,10 +129,15 @@
           <button class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15" type="button" aria-label="Help">
             <i data-lucide="circle-help" class="h-4 w-4"></i>
           </button>
-          <button id="teamThemeToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15" type="button" aria-label="Toggle dark mode">
-            <i data-lucide="moon" class="h-4 w-4"></i>
+          <button id="teamThemeToggle" class="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-2.5 text-xs font-black text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15" type="button" aria-label="Toggle dark mode">
+            <span class="grid h-6 w-6 place-items-center rounded-lg bg-cyan-300/15 text-cyan-100">
+              <i data-lucide="sun" class="h-3.5 w-3.5"></i>
+            </span>
+            <span class="hidden sm:inline">Light</span>
           </button>
-          <img class="h-9 w-9 rounded-xl border border-white/20 object-cover shadow-glass" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Sarah avatar">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-violet-600 to-indigo-500 text-xs font-bold text-white shadow-glass uppercase">
+            {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}{% if not user.first_name %}{{ user.username|slice:":2" }}{% endif %}
+          </div>
         </div>
       </div>
     </header>
@@ -260,5 +263,7 @@
 
 {% block extra_scripts %}
 <script src="{% static 'js/theme-toggle.js' %}?v=20260525-2"></script>
+<script src="{% static 'js/pages/team/api.js' %}?v=20260530-1"></script>
+<script src="{% static 'js/pages/team.js' %}?v=20260530-1"></script>
 <script src="{% static 'js/team.js' %}?v=20260610-3"></script>
 {% endblock %}

@@ -569,7 +569,15 @@
   function setTheme(theme) {
     app.dataset.theme = theme;
     document.documentElement.classList.toggle("dark", theme !== "light");
-    selectors.themeToggle.innerHTML = `<i data-lucide="${theme === "light" ? "sun" : "moon"}" class="h-4 w-4"></i>`;
+    const isLight = theme === "light";
+    selectors.themeToggle.setAttribute("aria-label", isLight ? "Switch to dark mode" : "Switch to light mode");
+    selectors.themeToggle.setAttribute("title", isLight ? "Switch to dark mode" : "Switch to light mode");
+    selectors.themeToggle.innerHTML = `
+      <span class="grid h-6 w-6 place-items-center rounded-lg ${isLight ? "bg-violet-500/15 text-violet-700" : "bg-cyan-300/15 text-cyan-100"}">
+        <i data-lucide="${isLight ? "moon" : "sun"}" class="h-3.5 w-3.5"></i>
+      </span>
+      <span class="hidden sm:inline">${isLight ? "Dark" : "Light"}</span>
+    `;
     createTaskDoneChart(state.currentRange);
     createStatusChart();
     refreshIcons();
