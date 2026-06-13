@@ -11,6 +11,7 @@ urlpatterns = [
     path("files/", TemplateView.as_view(template_name="files/index.html"), name="files"),
     path("login/", TemplateView.as_view(template_name="auth/login.html"), name="login"),
     path("logout/", TemplateView.as_view(template_name="auth/logout.html"), name="logout"),
+    path("updates/", TemplateView.as_view(template_name="updates/index.html"), name="updates"),
     path("admin/", admin.site.urls),
     path("", include("apps.tasks.urls")),
 ]
