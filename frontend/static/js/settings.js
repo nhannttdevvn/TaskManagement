@@ -313,7 +313,10 @@
         renderMembers();
       })
       .catch((err) => {
-        console.error("Error fetching team members:", err);
+        // Backend chưa có endpoint -> hiển thị empty-state thay vì để trống trơn.
+        console.warn("Team API chưa sẵn sàng:", err);
+        state.members = [];
+        renderMembers();
       });
   }
 

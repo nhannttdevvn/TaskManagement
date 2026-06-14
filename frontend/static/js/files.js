@@ -501,25 +501,32 @@
 
   /* ============================================================
    *  Bootstrap render
+   *  Render dữ liệu demo NGAY để trang luôn có nội dung (kể cả khi
+   *  backend chưa sẵn sàng). Sau đó gọi API để "nâng cấp" dữ liệu nếu có.
    * ============================================================ */
+  function renderAll() {
+    renderFolders();
+    renderRecent();
+    renderStorage();
+  }
+
   async function loadFilesData() {
     try {
       const response = await window.TaskFlow.api.get("/api/files/");
-      if (response && response.ok) {
-        state.folders = response.data.folders;
-        state.recentFiles = response.data.recentFiles;
-        state.storageBreakdown = response.data.storageBreakdown;
-        
-        renderFolders();
-        renderRecent();
-        renderStorage();
+      if (response && response.ok && response.data) {
+        state.folders = response.data.folders ?? state.folders;
+        state.recentFiles = response.data.recentFiles ?? state.recentFiles;
+        state.storageBreakdown = response.data.storageBreakdown ?? state.storageBreakdown;
+        renderAll();
       }
     } catch (err) {
-      console.error("Error loading files data:", err);
-      showToast("Lỗi tải dữ liệu files từ server.");
+      // Backend chưa có endpoint /api/files/ -> giữ dữ liệu demo đã render,
+      // không hiển thị toast lỗi gây hiểu nhầm là trang hỏng.
+      console.warn("Files API chưa sẵn sàng, dùng dữ liệu demo.", err);
     }
   }
 
+  renderAll();
   loadFilesData();
   renderChart("week");
 })();
