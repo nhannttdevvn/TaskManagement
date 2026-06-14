@@ -24,8 +24,6 @@
     activeGroupTitle: document.getElementById("activeGroupTitle"),
     activeGroupMeta: document.getElementById("activeGroupMeta"),
     groupAboutText: document.getElementById("groupAboutText"),
-    callButton: document.getElementById("teamCallButton"),
-    videoButton: document.getElementById("teamVideoButton"),
     moreButton: document.getElementById("teamMoreButton"),
     settingsButton: document.getElementById("teamSettingsButton"),
     deleteButton: document.getElementById("teamDeleteButton"),
@@ -233,8 +231,6 @@
       showToast("Message sent");
     });
 
-    selectors.callButton?.addEventListener("click", () => showToast("Voice call mock action"));
-    selectors.videoButton?.addEventListener("click", () => showToast("Video call mock action"));
     selectors.moreButton?.addEventListener("click", () => showToast("More options"));
     selectors.pinnedButton?.addEventListener("click", revealPinnedMessage);
     selectors.settingsButton?.addEventListener("click", () => showToast("Group settings"));
