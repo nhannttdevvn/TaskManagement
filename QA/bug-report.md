@@ -43,6 +43,9 @@ Screenshot/Video:
 
 ---
 
+**Status**: Resolved  
+**Resolution**: Template conflicts resolved and scripts updated. Dashboard analytics load and render correctly.
+
 ## BUG-002: Workspace bị tạo trùng và biến mất sau khi chuyển tab
 
 Environment:
@@ -81,6 +84,9 @@ Screenshot/Video:
 
 ---
 
+**Status**: Resolved  
+**Resolution**: Workspace list and tab switching state management fixed, preventing duplicate creations and workspace list disappearance.
+
 ## BUG-003: Tạo task mới nhưng task không hiển thị trên Kanban Board
 
 Environment:
@@ -115,6 +121,9 @@ Screenshot/Video:
 
 ---
 
+**Status**: Resolved  
+**Resolution**: Kanban board template and state loading scripts updated. New tasks now properly render on the Kanban board without manual page refresh.
+
 ## BUG-004: Button Invite Member hiển thị vài giây rồi biến mất
 
 Environment:
@@ -146,6 +155,9 @@ Screenshot/Video:
 
 ---
 
+**Status**: Resolved  
+**Resolution**: Corrected script references in team/index.html to include pages/team/api.js and pages/team.js. The Invite Member button is now persistent for authorized users.
+
 ## BUG-005: Light mode bị lỗi màu chữ, chữ trắng bị chìm màu
 
 Environment:
@@ -176,6 +188,9 @@ Priority: Medium
 Screenshot/Video:
 - Attached if available.
 ---
+
+**Status**: Resolved  
+**Resolution**: Theme toggle logic and stylesheet loading revised. Text color contrast issues in light mode are fully fixed and easily readable.
 
 ## BUG-006: Preferences hiển thị đã lưu nhưng thay đổi không được áp dụng
 
@@ -209,6 +224,9 @@ Screenshot/Video:
 - Attached if available.
 
 ---
+
+**Status**: Resolved  
+**Resolution**: Preferences updates are correctly serialized and persisted to backend settings API; preferences are correctly retained on reload.
 
 ## BUG-007: Profile hiển thị cập nhật thành công nhưng dữ liệu không thay đổi
 
@@ -244,6 +262,9 @@ Screenshot/Video:
 - Attached if available.
 
 ---
+
+**Status**: Resolved  
+**Resolution**: Profile updates are now correctly sent and saved via the backend API. Updated user details persist across sessions.
 
 ## BUG-008: Đổi mật khẩu báo thành công nhưng vẫn đăng nhập bằng mật khẩu cũ
 
@@ -281,6 +302,9 @@ Screenshot/Video:
 
 ---
 
+**Status**: Resolved  
+**Resolution**: Password update API corrected to ensure password updates are correctly processed by Django user model. New password works successfully for login.
+
 ## BUG-009: Tab Files chưa hoạt động đúng
 
 Environment:
@@ -313,6 +337,9 @@ Screenshot/Video:
 
 ---
 
+**Status**: Resolved  
+**Resolution**: Files tab layout, routing, and script hooks are updated. All file operations function properly.
+
 ## BUG-010: Tab All Updates không truy cập được
 
 Environment:
@@ -343,6 +370,9 @@ Screenshot/Video:
 
 ---
 
+**Status**: Resolved  
+**Resolution**: All Updates sidebar link and view rendering resolved. Updates list displays correctly.
+
 ## BUG-011: Bấm Về trang chủ TaskFlow sau khi đăng xuất hiển thị màn hình xám/lỗi
 
 Environment:
@@ -372,3 +402,6 @@ Priority: High
 
 Screenshot/Video:
 - Attached if available.
+
+**Status**: Resolved  
+**Resolution**: Logout redirection logic fixed. Base layout templates render without error, returning user cleanly to the login page.
