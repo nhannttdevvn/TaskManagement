@@ -321,12 +321,15 @@
   }
 
   function startRealtimeStatus() {
-    window.setInterval(() => {
+    if (window.timelineInterval1) window.clearInterval(window.timelineInterval1);
+    if (window.timelineInterval2) window.clearInterval(window.timelineInterval2);
+
+    window.timelineInterval1 = window.setInterval(() => {
       selectors.status.textContent = "Updated now";
       Timeline.setProgressLine();
     }, 10000);
 
-    window.setInterval(async () => {
+    window.timelineInterval2 = window.setInterval(async () => {
       try {
         const result = await Timeline.timelineApi.loadProjectData(app, { day: Timeline.state.kanbanDayFilter });
         if (result && result.ok && Array.isArray(result.data.tasks)) {
@@ -370,5 +373,9 @@
     }, 450);
   }
 
-  document.addEventListener("DOMContentLoaded", init);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();

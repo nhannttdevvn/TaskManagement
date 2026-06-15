@@ -621,7 +621,10 @@
 
   function startRealtimeUpdates() {
     let index = 0;
-    window.setInterval(() => {
+    if (window.dashboardInterval) {
+      window.clearInterval(window.dashboardInterval);
+    }
+    window.dashboardInterval = window.setInterval(() => {
       if (projects.length === 0) return;
       const project = projects[index % projects.length];
       const message = `${project.title} updated progress to ${project.progress}%`;
@@ -671,11 +674,15 @@
       selectors.notificationDropdown.classList.toggle("hidden");
     });
 
-    document.addEventListener("click", (event) => {
+    if (window.dashboardClick1) {
+      document.removeEventListener("click", window.dashboardClick1);
+    }
+    window.dashboardClick1 = (event) => {
       if (!selectors.notificationDropdown.contains(event.target) && !selectors.notificationToggle.contains(event.target)) {
         selectors.notificationDropdown.classList.add("hidden");
       }
-    });
+    };
+    document.addEventListener("click", window.dashboardClick1);
 
     selectors.themeToggle.addEventListener("click", toggleTheme);
     selectors.projectPrev.addEventListener("click", () => shiftProjects(-1));
@@ -685,24 +692,37 @@
     }
     selectors.newProjectButtonSearch.addEventListener("click", () => openModal(selectors.createProjectModal));
 
-    document.addEventListener("click", (event) => {
+    if (window.dashboardClick2) {
+      document.removeEventListener("click", window.dashboardClick2);
+    }
+    window.dashboardClick2 = (event) => {
       const closeTrigger = event.target.closest("[data-close-modal]");
       if (closeTrigger) closeModals();
 
       const projectCard = event.target.closest("[data-project-id]");
       if (projectCard) openProjectDetail(projectCard.dataset.projectId);
-    });
+    };
+    document.addEventListener("click", window.dashboardClick2);
 
-    document.addEventListener("keydown", (event) => {
+    if (window.dashboardKeydown) {
+      document.removeEventListener("keydown", window.dashboardKeydown);
+    }
+    window.dashboardKeydown = (event) => {
       if (event.key === "Escape") {
         closeModals();
         toggleSidebar(false);
         selectors.notificationDropdown.classList.add("hidden");
       }
-    });
+    };
+    document.addEventListener("keydown", window.dashboardKeydown);
 
     selectors.searchInput.addEventListener("input", (event) => filterDashboard(event.target.value));
-    window.addEventListener("resize", syncProjectPageSize);
+
+    if (window.dashboardResize) {
+      window.removeEventListener("resize", window.dashboardResize);
+    }
+    window.dashboardResize = syncProjectPageSize;
+    window.addEventListener("resize", window.dashboardResize);
 
     document.querySelectorAll(".js-chart-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
@@ -769,28 +789,39 @@
   }
 
   async function init() {
+    refreshIcons();
     const savedTheme = window.localStorage.getItem("tmds-dashboard-theme") || "dark";
     setTheme(savedTheme);
-    await loadDashboardData();
-    renderNotifications();
-    renderUpcomingTasks(upcomingTasks);
-    renderStatusTotals();
-    renderActivityFeed();
-    bindEvents();
-    animateCounters();
-    revealCards();
 
-    window.setTimeout(() => {
-      selectors.projectSkeleton.classList.add("hidden");
-      selectors.projectGrid.classList.remove("hidden");
-      renderProjects(projects);
-    }, 450);
+    try {
+      await loadDashboardData();
+      renderNotifications();
+      renderUpcomingTasks(upcomingTasks);
+      renderStatusTotals();
+      renderActivityFeed();
+      bindEvents();
+      animateCounters();
+      revealCards();
 
-    createTaskDoneChart(state.currentRange);
-    createStatusChart();
-    startRealtimeUpdates();
-    refreshIcons();
+      window.setTimeout(() => {
+        selectors.projectSkeleton.classList.add("hidden");
+        selectors.projectGrid.classList.remove("hidden");
+        renderProjects(projects);
+      }, 450);
+
+      createTaskDoneChart(state.currentRange);
+      createStatusChart();
+      startRealtimeUpdates();
+    } catch (error) {
+      console.error("Dashboard initialization failed:", error);
+    } finally {
+      refreshIcons();
+    }
   }
 
-  document.addEventListener("DOMContentLoaded", init);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();
