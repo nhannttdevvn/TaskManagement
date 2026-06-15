@@ -128,43 +128,85 @@
         )
         .join("");
 
-      Timeline.selectors.overviewWorkspaceCount.textContent = `${Timeline.workspaces.length} groups`;
-      Timeline.selectors.projectOverviewCards.innerHTML = Timeline.workspaces
+      // Workspace filtering
+      const activeWsId = Timeline.state.activeWorkspaceId;
+      const selectedWorkspace = activeWsId ? Timeline.workspaces.find(w => String(w.id) === String(activeWsId) || String(w.databaseId) === String(activeWsId)) : null;
+      
+      const workspacesToRender = selectedWorkspace ? [selectedWorkspace] : Timeline.workspaces;
+
+      // Update overview header text and render a back button if filtered
+      const overviewTitle = Timeline.selectors.projectOverviewPanel.querySelector("h1");
+      const overviewSub = Timeline.selectors.projectOverviewPanel.querySelector("p.max-w-2xl");
+      if (overviewTitle) {
+        if (selectedWorkspace) {
+          overviewTitle.innerHTML = `
+            <div class="flex flex-wrap items-center gap-3">
+              <span>${Timeline.helpers.escapeHtml(selectedWorkspace.name)} Workspace</span>
+              <button id="clearWorkspaceFilter" class="inline-flex h-6 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 text-[0.62rem] font-bold text-slate-300 transition hover:bg-white/10 hover:text-white" type="button">
+                <i data-lucide="arrow-left" class="h-3 w-3"></i> View All Workspaces
+              </button>
+            </div>
+          `;
+          overviewSub.textContent = `Viewing projects inside ${selectedWorkspace.name}. Click a project card to view its timeline and tasks.`;
+        } else {
+          overviewTitle.textContent = "All project workspaces";
+          overviewSub.textContent = "Open a project under each workspace to manage timeline, kanban, and task ownership.";
+        }
+      }
+
+      Timeline.selectors.overviewWorkspaceCount.textContent = `${workspacesToRender.length} group${workspacesToRender.length === 1 ? "" : "s"}`;
+      Timeline.selectors.projectOverviewCards.innerHTML = workspacesToRender
         .map((workspace) => {
           const items = Timeline.helpers.workspaceTasks(workspace.id);
           const progress = Timeline.helpers.completionFor(items);
           return `
             <article class="rounded-xl border border-white/10 bg-white/[0.052] p-2.5 transition hover:-translate-y-0.5 hover:border-cyan-300/25 hover:bg-white/[0.075] motion-reduce:transform-none">
               <div class="flex items-start justify-between gap-2">
-                <div class="min-w-0">
-                  <p class="text-[0.6rem] font-black uppercase tracking-[0.14em] text-cyan-200">${Timeline.helpers.escapeHtml(workspace.category)}</p>
-                  <h3 class="mt-0.5 truncate text-sm font-black text-white">${Timeline.helpers.escapeHtml(workspace.name)}</h3>
-                  <p class="mt-0.5 truncate text-[0.66rem] font-semibold text-slate-400">${Timeline.helpers.escapeHtml(workspace.company)} · ${Timeline.helpers.escapeHtml(workspace.date)}</p>
+                <div class="min-w-0 cursor-pointer select-none group/ws" data-workspace-card-select="${workspace.id}" title="Filter by this workspace">
+                  <p class="text-[0.6rem] font-black uppercase tracking-[0.14em] text-cyan-200 group-hover/ws:text-cyan-300 transition-colors">${Timeline.helpers.escapeHtml(workspace.category)}</p>
+                  <h3 class="mt-0.5 truncate text-sm font-black text-white group-hover/ws:text-cyan-100 transition-colors">${Timeline.helpers.escapeHtml(workspace.name)}</h3>
+                  <p class="mt-0.5 truncate text-[0.66rem] font-semibold text-slate-400 group-hover/ws:text-slate-300 transition-colors">${Timeline.helpers.escapeHtml(workspace.company)} · ${Timeline.helpers.escapeHtml(workspace.date)}</p>
                 </div>
-                <div class="-space-x-2 whitespace-nowrap scale-90 origin-right">${Timeline.renderers.renderWorkspaceMembers(workspace.members)}</div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <button class="grid h-6 w-6 place-items-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-white" type="button" data-create-project-in-workspace="${workspace.id}" title="Add Project to Workspace">
+                    <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                  </button>
+                  <div class="-space-x-2 whitespace-nowrap scale-90 origin-right">${Timeline.renderers.renderWorkspaceMembers(workspace.members)}</div>
+                </div>
               </div>
               <div class="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
                 <span class="block h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-500 transition-all duration-700" style="width:${progress}%"></span>
               </div>
               <div class="mt-2 grid gap-1">
-                ${workspace.projects
-                  .map((project) => {
-                    const count = Timeline.helpers.projectTasks(workspace.id, project).length;
-                    return `
-                      <button class="flex h-8 items-center justify-between gap-2 rounded-lg border border-white/[0.07] bg-slate-950/25 px-2 text-left transition hover:border-cyan-300/25 hover:bg-cyan-300/10" type="button" data-workspace-id="${workspace.id}" data-project-name="${Timeline.helpers.escapeHtml(project)}">
-                        <span class="truncate text-[0.72rem] font-black text-white">${Timeline.helpers.escapeHtml(project)}</span>
-                        <span class="rounded-full bg-white/10 px-1.5 py-0.5 text-[0.56rem] font-black text-slate-400">${count}</span>
-                      </button>
-                    `;
-                  })
-                  .join("")}
+                ${workspace.projects.length > 0
+                  ? workspace.projects
+                      .map((project) => {
+                        const count = Timeline.helpers.projectTasks(workspace.id, project).length;
+                        return `
+                          <button class="flex h-8 items-center justify-between gap-2 rounded-lg border border-white/[0.07] bg-slate-950/25 px-2 text-left transition hover:border-cyan-300/25 hover:bg-cyan-300/10" type="button" data-workspace-id="${workspace.id}" data-project-name="${Timeline.helpers.escapeHtml(project)}">
+                            <span class="truncate text-[0.72rem] font-black text-white">${Timeline.helpers.escapeHtml(project)}</span>
+                            <span class="rounded-full bg-white/10 px-1.5 py-0.5 text-[0.56rem] font-black text-slate-400">${count}</span>
+                          </button>
+                        `;
+                      })
+                      .join("")
+                  : `
+                      <div class="mt-1 text-center py-3.5 px-2 rounded-xl border border-dashed border-white/12 bg-slate-950/20">
+                        <p class="text-[0.66rem] font-bold text-slate-400 mb-2">No projects in this workspace</p>
+                        <button class="inline-flex h-7 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-cyan-500 px-3 text-[0.68rem] font-bold text-white transition hover:brightness-110" type="button" data-create-project-in-workspace="${workspace.id}">
+                          <i data-lucide="plus" class="h-3 w-3"></i>
+                          Create Project
+                        </button>
+                      </div>
+                    `
+                }
               </div>
             </article>
           `;
         })
         .join("");
 
-      Timeline.selectors.projectOverviewRows.innerHTML = Timeline.workspaces
+      Timeline.selectors.projectOverviewRows.innerHTML = workspacesToRender
         .flatMap((workspace) => workspace.projects.map((project) => ({ workspace, project, items: Timeline.helpers.projectTasks(workspace.id, project) })))
         .map(
           ({ workspace, project, items }) => `
@@ -180,6 +222,107 @@
             </button>
           `
         )
+        .join("");
+
+      Timeline.renderers.refreshIcons();
+    },
+
+    renderProjectsView() {
+      const projectsViewContainer = document.getElementById("projectsView");
+      if (!projectsViewContainer || projectsViewContainer.classList.contains("hidden")) return;
+
+      const workspace = Timeline.helpers.activeWorkspace();
+      if (!workspace) return;
+
+      const projectsListContent = document.getElementById("projectsListContent");
+      const projectsScheduleContent = document.getElementById("projectsScheduleContent");
+
+      if (!workspace.projects || workspace.projects.length === 0) {
+        projectsListContent.innerHTML = `
+          <div class="text-center py-8">
+            <p class="text-xs text-slate-400 font-bold mb-3">No projects in this workspace yet</p>
+            <button class="inline-flex h-8 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white" type="button" data-create-project-in-workspace="${workspace.id}">
+              <i data-lucide="plus" class="h-4 w-4"></i> Create First Project
+            </button>
+          </div>
+        `;
+        projectsScheduleContent.innerHTML = `
+          <p class="text-center text-xs text-slate-500 py-8">No schedule data available.</p>
+        `;
+        Timeline.renderers.refreshIcons();
+        return;
+      }
+
+      // Render projects list
+      projectsListContent.innerHTML = workspace.projects
+        .map((project) => {
+          const tasks = Timeline.helpers.projectTasks(workspace.id, project);
+          const progress = Timeline.helpers.completionFor(tasks);
+          const doneCount = tasks.filter(t => t.status === "Done").length;
+          const members = Array.from(new Set(tasks.flatMap(t => t.members || [])));
+
+          return `
+            <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex flex-col gap-2">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h5 class="text-sm font-black text-white">${Timeline.helpers.escapeHtml(project)}</h5>
+                  <p class="text-[0.66rem] font-semibold text-slate-400 mt-0.5">${tasks.length} tasks · ${doneCount} completed</p>
+                </div>
+                <span class="rounded-full bg-cyan-400/15 px-2 py-0.5 text-[0.62rem] font-extrabold text-cyan-200">Active</span>
+              </div>
+              <div>
+                <div class="flex items-center justify-between text-[0.66rem] font-bold text-slate-400 mb-1">
+                  <span>Progress</span>
+                  <span class="text-white">${progress}%</span>
+                </div>
+                <div class="h-1 rounded-full bg-white/10 overflow-hidden">
+                  <div class="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-500" style="width:${progress}%"></div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between gap-2 pt-1">
+                <div class="-space-x-1.5 flex origin-left scale-90">${Timeline.renderers.renderWorkspaceMembers(members)}</div>
+                <button class="h-7 rounded-lg border border-white/10 bg-white/5 px-2.5 text-[0.66rem] font-bold text-slate-300 hover:bg-white/10 hover:text-white" type="button" data-workspace-id="${workspace.id}" data-project-name="${Timeline.helpers.escapeHtml(project)}">
+                  View Tasks
+                </button>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      // Render Gantt-like project schedule timeline track
+      projectsScheduleContent.innerHTML = workspace.projects
+        .map((project) => {
+          const tasks = Timeline.helpers.projectTasks(workspace.id, project);
+          let startDay = 12;
+          let durationDays = 5;
+          let dateStr = "Nov 12 - Nov 17";
+
+          if (tasks.length > 0) {
+            const minStart = Math.min(...tasks.map(t => t.start || 12));
+            const maxEnd = Math.max(...tasks.map(t => (t.start || 12) + (t.duration || 2)));
+            startDay = Math.round(minStart);
+            durationDays = Math.max(Math.round(maxEnd - minStart), 1);
+            dateStr = `Nov ${startDay} - Nov ${startDay + durationDays}`;
+          }
+
+          const leftPercent = Math.min(Math.max((startDay - 9) * 8, 0), 80);
+          const widthPercent = Math.min(Math.max(durationDays * 8, 10), 100 - leftPercent);
+
+          return `
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between text-[0.72rem] font-bold">
+                <span class="text-white">${Timeline.helpers.escapeHtml(project)}</span>
+                <span class="text-slate-400 font-semibold">${dateStr}</span>
+              </div>
+              <div class="relative h-6 rounded-lg bg-slate-950/60 border border-white/5 overflow-hidden">
+                <div class="absolute h-full bg-gradient-to-r from-violet-500/20 to-cyan-500/20 border-l border-r border-cyan-400/40" style="left:${leftPercent}%; width:${widthPercent}%;">
+                  <span class="absolute inset-y-0 left-2 flex items-center text-[0.58rem] font-bold text-cyan-200 uppercase tracking-wider">In Progress</span>
+                </div>
+              </div>
+            </div>
+          `;
+        })
         .join("");
 
       Timeline.renderers.refreshIcons();

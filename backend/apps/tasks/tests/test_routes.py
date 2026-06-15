@@ -8,7 +8,8 @@ class RouteCompatibilityTests(SimpleTestCase):
         self.assertEqual(reverse("project"), "/project/")
         self.assertEqual(reverse("timeline"), "/timeline/")
         self.assertEqual(reverse("team"), "/team/")
-        self.assertEqual(reverse("task_list"), "/")
+        self.assertEqual(reverse("task_list"), "/tasks/")
+        self.assertEqual(reverse("root_redirect"), "/")
 
     def test_frontend_api_route_names_still_resolve(self):
         self.assertEqual(reverse("api_dashboard_data"), "/api/dashboard/data/")

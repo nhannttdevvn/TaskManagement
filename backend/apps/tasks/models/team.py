@@ -46,6 +46,7 @@ class TeamMember(models.Model):
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_MEMBER)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
+    positions = models.CharField(max_length=255, default="Member", help_text="Comma-separated positions/roles in workspace")
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

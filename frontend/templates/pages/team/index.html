@@ -47,7 +47,7 @@
       </a>
       <a class="team-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'project' %}">
         <i data-lucide="folder-kanban" class="h-4 w-4"></i>
-        <span>Projects</span>
+        <span>Workspaces</span>
       </a>
       <a class="team-nav-link relative flex h-10 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="{% url 'team' %}">
         <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
@@ -299,6 +299,11 @@
             <option value="admin">Admin</option>
             <option value="viewer">Viewer</option>
           </select>
+        </label>
+
+        <label class="block">
+          <span class="text-sm font-medium text-gray-300">Positions (e.g., Lead Developer, Designer)</span>
+          <input name="positions" class="mt-2 w-full rounded-xl border border-slate-600/50 bg-slate-800/90 px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-400 focus:border-cyan-400/40 focus:ring-2 focus:ring-purple-500/40" placeholder="Developer, Designer" value="Member">
         </label>
 
         <div>

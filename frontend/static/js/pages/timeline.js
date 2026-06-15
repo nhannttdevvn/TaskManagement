@@ -98,9 +98,13 @@
       const workspaceOverview = event.target.closest("[data-workspace-overview]");
       if (workspaceOverview) {
         Timeline.state.activeWorkspaceId = workspaceOverview.dataset.workspaceOverview;
-        Timeline.state.activeProjectName = Timeline.workspaces.find((workspace) => workspace.id === Timeline.state.activeWorkspaceId)?.projects[0] || "";
+        const workspaceObj = Timeline.workspaces.find((workspace) => workspace.id === Timeline.state.activeWorkspaceId);
+        Timeline.state.activeProjectName = workspaceObj?.projects[0] || "";
         window.localStorage.setItem("taskflow-active-workspace", Timeline.state.activeWorkspaceId);
         window.localStorage.setItem("taskflow-active-project", Timeline.state.activeProjectName);
+        if (workspaceObj) {
+          window.localStorage.setItem("taskflow-active-workspace-name", workspaceObj.name);
+        }
         setProjectMode("overview");
         Timeline.renderers.renderWorkspaceList();
         Timeline.renderers.renderProjectOverview();
@@ -115,8 +119,42 @@
     selectors.addWorkspaceButton.addEventListener("click", Timeline.modals.openWorkspaceEditor);
     selectors.overviewAddWorkspace.addEventListener("click", Timeline.modals.openWorkspaceEditor);
     selectors.workspaceEditorForm.addEventListener("submit", Timeline.actions.saveWorkspaceFromEditor);
+    if (selectors.projectEditorForm) {
+      selectors.projectEditorForm.addEventListener("submit", Timeline.actions.saveProjectFromEditor);
+    }
 
     selectors.projectOverviewPanel.addEventListener("click", (event) => {
+      const clearFilter = event.target.closest("#clearWorkspaceFilter");
+      if (clearFilter) {
+        Timeline.state.activeWorkspaceId = "";
+        Timeline.state.activeProjectName = "";
+        window.localStorage.removeItem("taskflow-active-workspace");
+        window.localStorage.removeItem("taskflow-active-workspace-name");
+        window.localStorage.removeItem("taskflow-active-project");
+        setProjectMode("overview");
+        Timeline.renderers.renderWorkspaceList();
+        Timeline.renderers.renderProjectOverview();
+        Timeline.renderers.renderProjectHeader();
+        return;
+      }
+
+      const workspaceSelect = event.target.closest("[data-workspace-card-select]");
+      if (workspaceSelect) {
+        Timeline.state.activeWorkspaceId = workspaceSelect.dataset.workspaceCardSelect;
+        const workspaceObj = Timeline.workspaces.find((w) => String(w.id) === String(Timeline.state.activeWorkspaceId) || String(w.databaseId) === String(Timeline.state.activeWorkspaceId));
+        Timeline.state.activeProjectName = workspaceObj?.projects[0] || "";
+        window.localStorage.setItem("taskflow-active-workspace", Timeline.state.activeWorkspaceId);
+        window.localStorage.setItem("taskflow-active-project", Timeline.state.activeProjectName);
+        if (workspaceObj) {
+          window.localStorage.setItem("taskflow-active-workspace-name", workspaceObj.name);
+        }
+        setProjectMode("overview");
+        Timeline.renderers.renderWorkspaceList();
+        Timeline.renderers.renderProjectOverview();
+        Timeline.renderers.renderProjectHeader();
+        return;
+      }
+
       const projectButton = event.target.closest("[data-workspace-id][data-project-name]");
       if (!projectButton) return;
       Timeline.actions.switchWorkspace(projectButton.dataset.workspaceId, projectButton.dataset.projectName || "");
@@ -237,6 +275,30 @@
         return;
       }
 
+      const createProjectInWorkspace = event.target.closest("[data-create-project-in-workspace]");
+      if (createProjectInWorkspace) {
+        Timeline.modals.openProjectEditor(createProjectInWorkspace.dataset.createProjectInWorkspace);
+        return;
+      }
+
+      const createActiveProj = event.target.closest("[data-create-project-in-workspace-active]");
+      if (createActiveProj) {
+        const activeWs = Timeline.state.activeWorkspaceId;
+        Timeline.modals.openProjectEditor(activeWs);
+        return;
+      }
+
+      const projectButton = event.target.closest("[data-workspace-id][data-project-name]");
+      if (projectButton && !event.target.closest("#workspaceList")) {
+        Timeline.actions.switchWorkspace(projectButton.dataset.workspaceId, projectButton.dataset.projectName || "");
+        return;
+      }
+
+      if (event.target.closest("[data-close-project-editor]")) {
+        Timeline.modals.closeProjectEditor();
+        return;
+      }
+
       if (event.target.closest("[data-close-project-invite]")) {
         Timeline.modals.closeProjectInviteModal();
         return;
@@ -265,6 +327,7 @@
         Timeline.modals.closeTaskModal();
         Timeline.modals.closeTaskEditor();
         Timeline.modals.closeWorkspaceEditor();
+        Timeline.modals.closeProjectEditor();
         Timeline.modals.closeProjectInviteModal();
         Timeline.modals.closeHelpModal();
         toggleSidebar(false);
@@ -292,6 +355,10 @@
         title: "Task List",
         meta: "Compact ownership view",
       },
+      projects: {
+        title: "Projects Hub",
+        meta: "Workspace project details and schedule",
+      }
     };
 
     selectors.viewTabs.forEach((tab) => {
@@ -316,6 +383,16 @@
     selectors.kanbanView.classList.toggle("flex", view === "kanban");
     selectors.listView.classList.toggle("hidden", view !== "list");
     selectors.listView.classList.toggle("flex", view === "list");
+
+    const projectsViewContainer = document.getElementById("projectsView");
+    if (projectsViewContainer) {
+      projectsViewContainer.classList.toggle("hidden", view !== "projects");
+      projectsViewContainer.classList.toggle("flex", view === "projects");
+    }
+
+    if (view === "projects") {
+      Timeline.renderers.renderProjectsView();
+    }
 
     Timeline.actions.showToast(`${viewConfig[view].title} enabled`);
   }

@@ -773,19 +773,29 @@
 
   async function loadFriendsList() {
     try {
-      const data = await api.get("/api/friends/list/");
-      members = data.data.map(m => ({
+      const activeWorkspaceId = window.localStorage.getItem("taskflow-active-workspace") || "";
+      const url = new URL("/api/teams/data/", window.location.origin);
+      if (activeWorkspaceId) {
+        url.searchParams.set("workspace_id", activeWorkspaceId);
+      }
+      const data = await api.get(`${url.pathname}${url.search}`);
+      members = (data.members || []).map(m => ({
         ...m,
         messages: m.messages || []
       }));
       state.filteredMembers = members.slice();
       
+      const memberCountBadge = document.querySelector("header span.rounded-full") || document.querySelector(".inline-flex.h-8.items-center.justify-center.rounded-full");
+      if (memberCountBadge) {
+        memberCountBadge.textContent = `${members.length} member${members.length === 1 ? "" : "s"}`;
+      }
+      
       if (members.length > 0 && !state.selectedId) {
         state.selectedId = members[0].id;
       }
     } catch (err) {
-      console.error("Error loading friends:", err);
-      showToast("Error loading friends list.");
+      console.error("Error loading workspace members:", err);
+      showToast("Error loading workspace members list.");
     }
   }
 
@@ -867,6 +877,7 @@
     return {
       email: String(formData.get("email") || "").trim(),
       role: String(formData.get("role") || "member").trim().toLowerCase(),
+      positions: String(formData.get("positions") || "Member").trim(),
       projects: formData.getAll("projects").map((project) => String(project).trim()).filter(Boolean),
       message: String(formData.get("message") || "").trim(),
     };
@@ -1186,6 +1197,12 @@
     if (userRole === "viewer" || userRole === "member") {
       if (selectors.inviteButton) selectors.inviteButton.classList.add("hidden");
       if (selectors.deleteConversationButton) selectors.deleteConversationButton.classList.add("hidden");
+    }
+
+    const activeWorkspaceName = window.localStorage.getItem("taskflow-active-project") || "TaskFlow Workspace";
+    const workspaceNameEl = document.querySelector("#teamSidebar p.text-sm.font-bold.text-white");
+    if (workspaceNameEl) {
+      workspaceNameEl.textContent = activeWorkspaceName;
     }
 
     renderNotifications();

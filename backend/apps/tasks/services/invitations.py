@@ -44,6 +44,7 @@ def create_team_invitation(
     actor,
     email,
     role="member",
+    positions="Member",
     message="",
     project_names=None,
     team=None,
@@ -51,6 +52,7 @@ def create_team_invitation(
 ):
     email, role, project_names = clean_invitation_payload(email, role, project_names or [])
     message = str(message or "").strip()
+    positions = str(positions or "Member").strip()
 
     if team is None and team_id is not None:
         team, _ = Team.objects.get_or_create(
@@ -76,6 +78,21 @@ def create_team_invitation(
         message=message,
         invited_by=actor,
     )
+
+    # Automatically add to TeamMember if user exists
+    from django.contrib.auth.models import User
+    from apps.tasks.models import TeamMember
+    invited_user = User.objects.filter(email=email).first() or User.objects.filter(username=email).first()
+    if invited_user:
+        TeamMember.objects.get_or_create(
+            team=team,
+            user=invited_user,
+            defaults={
+                "role": role,
+                "positions": positions,
+                "status": TeamMember.STATUS_ACTIVE
+            }
+        )
 
     linked_projects = []
     for project_name in project_names:

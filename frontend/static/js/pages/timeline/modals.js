@@ -130,6 +130,33 @@
       document.body.style.overflow = "";
     },
 
+    openProjectEditor(workspaceId) {
+      if (Timeline.selectors.projectEditorForm) {
+        Timeline.selectors.projectEditorForm.reset();
+        const wsIdInput = Timeline.selectors.projectEditorForm.querySelector("#projectEditorWorkspaceId");
+        if (wsIdInput) {
+          wsIdInput.value = workspaceId || "";
+        }
+      }
+      if (Timeline.selectors.projectEditorModal) {
+        Timeline.selectors.projectEditorModal.classList.remove("hidden");
+        Timeline.selectors.projectEditorModal.classList.add("grid");
+        document.body.style.overflow = "hidden";
+        const nameInput = Timeline.selectors.projectEditorForm?.elements?.name;
+        if (nameInput) {
+          nameInput.focus();
+        }
+      }
+    },
+
+    closeProjectEditor() {
+      if (Timeline.selectors.projectEditorModal) {
+        Timeline.selectors.projectEditorModal.classList.add("hidden");
+        Timeline.selectors.projectEditorModal.classList.remove("grid");
+      }
+      document.body.style.overflow = "";
+    },
+
     openProjectInviteModal() {
       Timeline.selectors.projectInviteForm.reset();
       Timeline.selectors.projectInviteModal.classList.remove("hidden");

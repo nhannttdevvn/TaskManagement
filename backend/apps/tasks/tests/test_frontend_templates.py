@@ -8,6 +8,7 @@ class FrontendTemplateContractTests(TestCase):
         self.user = User.objects.create_user(username="owner", password="password")
 
     def test_dashboard_template_exposes_api_contract(self):
+        self.client.force_login(self.user)
         response = self.client.get(reverse("dashboard"))
 
         self.assertContains(response, 'id="dashboardApp"')
@@ -17,6 +18,7 @@ class FrontendTemplateContractTests(TestCase):
         self.assertContains(response, "js/pages/dashboard.js")
 
     def test_team_template_exposes_api_contract(self):
+        self.client.force_login(self.user)
         response = self.client.get(reverse("team"))
 
         self.assertContains(response, 'id="teamApp"')
@@ -26,6 +28,7 @@ class FrontendTemplateContractTests(TestCase):
         self.assertContains(response, "js/pages/team.js")
 
     def test_timeline_template_exposes_api_contract_and_csrf(self):
+        self.client.force_login(self.user)
         response = self.client.get(reverse("timeline"))
 
         self.assertContains(response, 'id="timelineApp"')

@@ -1,4 +1,13 @@
-from .page_views import DashboardView, ProjectView, TeamView
+from .page_views import (
+    DashboardView,
+    ProjectView,
+    TeamView,
+    RootRedirectView,
+    LoginPageView,
+    LogoutPageView,
+    SettingsPageView,
+    FilesPageView,
+)
 from .task_views import (
     TaskCreateView,
     TaskDeleteView,
@@ -22,4 +31,9 @@ __all__ = [
     "UserTaskQuerysetMixin",
     "invite_team_member",
     "invitation_actor_for_request",
+    "RootRedirectView",
+    "LoginPageView",
+    "LogoutPageView",
+    "SettingsPageView",
+    "FilesPageView",
 ]

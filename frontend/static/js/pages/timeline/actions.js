@@ -51,6 +51,7 @@
       }
       const workspace = Timeline.helpers.activeWorkspace();
       if (workspace) {
+        window.localStorage.setItem("taskflow-active-workspace-name", workspace.name);
         if (!Timeline.state.activeProjectName || !workspace.projects.includes(Timeline.state.activeProjectName)) {
           Timeline.state.activeProjectName = (workspace.projects && workspace.projects[0]) || workspace.name;
           window.localStorage.setItem("taskflow-active-project", Timeline.state.activeProjectName);
@@ -89,6 +90,9 @@
       Timeline.state.activeProjectName = projectName || workspace.projects[0] || workspace.name;
       window.localStorage.setItem("taskflow-active-workspace", workspaceId);
       window.localStorage.setItem("taskflow-active-project", Timeline.state.activeProjectName);
+      if (workspace) {
+        window.localStorage.setItem("taskflow-active-workspace-name", workspace.name);
+      }
       Timeline.app.dispatchEvent(new CustomEvent("timeline-mode-change", { detail: "detail" }));
       Timeline.renderers.renderWorkspaceList();
       Timeline.renderers.renderProjectHeader();
@@ -159,6 +163,7 @@
       Timeline.state.filteredTasks = sorted;
       Timeline.renderers.renderTaskViews(Timeline.state.filteredTasks);
       Timeline.renderers.renderProjectOverview();
+      Timeline.renderers.renderProjectsView();
       Timeline.actions.updateFavoriteSortButton();
     },
 
@@ -200,32 +205,75 @@
       if (!name) return;
 
       try {
-        const response = await Timeline.timelineApi.createProject({ title: name }, Timeline.app);
+        const response = await Timeline.timelineApi.createWorkspace({ name: name }, Timeline.app);
         if (!response.ok) {
-          throw new Error(response.message || "Failed to create project");
+          throw new Error(response.message || "Failed to create workspace");
         }
         const data = response.data;
         const workspace = {
           id: data.id,
           databaseId: data.databaseId,
-          name: data.title,
-          breadcrumb: `/ Projects`,
-          category: data.status,
-          company: "My Workspace",
-          date: data.due,
-          members: data.members,
-          projects: [data.title],
-          progress: data.progress,
-          tasks: data.tasks,
-          done: data.done,
+          name: data.name,
+          breadcrumb: `/ Workspaces`,
+          category: data.category || "Active",
+          company: data.company || "My Workspace",
+          date: data.date || "No date",
+          members: data.members || [],
+          projects: data.projects || [],
+          progress: data.progress || 0,
+          tasks: data.tasks || 0,
+          done: data.done || 0,
         };
 
         Timeline.workspaces.push(workspace);
         Timeline.modals.closeWorkspaceEditor();
-        Timeline.actions.switchWorkspace(workspace.id);
+        
+        Timeline.state.activeWorkspaceId = workspace.id;
+        window.localStorage.setItem("taskflow-active-workspace", workspace.id);
+        Timeline.app.dispatchEvent(new CustomEvent("timeline-mode-change", { detail: "overview" }));
+        Timeline.renderers.renderWorkspaceList();
+        Timeline.renderers.renderProjectOverview();
         showToast("Workspace created");
       } catch (error) {
         showToast(error.message || "Could not create workspace");
+      }
+    },
+
+    async saveProjectFromEditor(event) {
+      event.preventDefault();
+      const formData = new FormData(Timeline.selectors.projectEditorForm);
+      const name = String(formData.get("name") || "").trim();
+      const description = String(formData.get("description") || "").trim();
+      const workspaceId = String(formData.get("workspace_id") || "").trim();
+      if (!name) return;
+
+      try {
+        const payload = {
+          title: name,
+          description: description,
+          workspace_id: workspaceId
+        };
+        const response = await Timeline.timelineApi.createProject(payload, Timeline.app);
+        if (!response.ok) {
+          throw new Error(response.message || "Failed to create project");
+        }
+        const data = response.data;
+        
+        const workspace = Timeline.workspaces.find((w) => String(w.id) === workspaceId || String(w.databaseId) === workspaceId);
+        if (workspace) {
+          if (!workspace.projects) {
+            workspace.projects = [];
+          }
+          if (!workspace.projects.includes(data.title)) {
+            workspace.projects.push(data.title);
+          }
+        }
+        
+        Timeline.modals.closeProjectEditor();
+        Timeline.actions.switchWorkspace(workspaceId, data.title);
+        showToast("Project created successfully");
+      } catch (error) {
+        showToast(error.message || "Could not create project");
       }
     },
 
@@ -299,6 +347,7 @@
       const payload = {
         email: String(formData.get("email") || "").trim(),
         role: String(formData.get("role") || "member").trim(),
+        positions: String(formData.get("positions") || "Member").trim(),
         projects: [workspace.name],
         message: String(formData.get("message") || `You have been invited to ${workspace.name}.`).trim(),
       };

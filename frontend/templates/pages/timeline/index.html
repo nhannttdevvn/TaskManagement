@@ -113,7 +113,7 @@
         <a class="timeline-nav-link relative flex h-10 items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-cyan-400/16 to-violet-500/18 px-3 text-sm text-white shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:translate-x-1 hover:bg-white/15 motion-reduce:transform-none" href="{% url 'project' %}">
           <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-300"></span>
           <i data-lucide="folder-kanban" class="h-4 w-4"></i>
-          <span>Projects</span>
+          <span>Workspaces</span>
         </a>
         <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'team' %}">
           <i data-lucide="users-round" class="h-4 w-4"></i>
@@ -305,6 +305,7 @@
             <p class="text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-cyan-200">November 15</p>
             <h2 id="timelineViewTitle" class="truncate text-base font-black text-white">10:00 AM Timeline</h2>
             <div class="mt-1 flex flex-wrap gap-1" role="tablist" aria-label="Project task views">
+              <button class="timeline-view-tab rounded-lg px-2.5 py-0.5 text-xs font-extrabold text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-view="projects" role="tab" aria-selected="false">Projects View</button>
               <button class="timeline-view-tab rounded-lg px-2.5 py-0.5 text-xs font-extrabold text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-view="kanban" role="tab" aria-selected="false">Kanban View</button>
               <button class="timeline-view-tab rounded-lg px-2.5 py-0.5 text-xs font-extrabold text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-view="list" role="tab" aria-selected="false">List View</button>
               <button class="timeline-view-tab rounded-lg border border-cyan-300/30 bg-cyan-400/10 px-2.5 py-0.5 text-xs font-extrabold text-cyan-200 shadow-[inset_0_-2px_0_rgba(34,211,238,0.9)]" type="button" data-view="calendar" role="tab" aria-selected="true">Calendar View</button>
@@ -397,6 +398,35 @@
             <span class="text-right">Progress</span>
           </div>
           <div id="listRows" class="min-h-0 flex-1 overflow-y-auto p-2"></div>
+        </div>
+
+        <div id="projectsView" class="hidden flex-1 flex-col overflow-hidden rounded-[1.25rem] border border-white/[0.08] bg-slate-950/30 p-3">
+          <div class="mb-2 flex shrink-0 items-center justify-between rounded-2xl border border-white/[0.06] bg-white/[0.035] p-2.5">
+            <div>
+              <h3 class="text-sm font-black text-white">Workspace Projects & Schedule</h3>
+              <p class="text-[0.68rem] font-semibold text-slate-400">Overview of all active projects and their timeline in this workspace.</p>
+            </div>
+            <button class="inline-flex h-8 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-gradient-to-r from-violet-600 to-cyan-500 px-3 text-xs font-black text-white transition hover:-translate-y-0.5 hover:brightness-110" type="button" data-create-project-in-workspace-active>
+              <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+              Add Project
+            </button>
+          </div>
+          
+          <div class="min-h-0 flex-1 grid gap-3 overflow-y-auto lg:grid-cols-[1.2fr_0.8fr] pr-1">
+            <section class="rounded-2xl border border-white/10 bg-slate-950/45 p-3 flex flex-col min-h-0">
+              <h4 class="text-xs font-black uppercase tracking-[0.14em] text-cyan-200 mb-2.5 flex items-center gap-2">
+                <i data-lucide="folder-kanban" class="h-3.5 w-3.5"></i> Projects List
+              </h4>
+              <div id="projectsListContent" class="space-y-2 overflow-y-auto flex-1 pr-1"></div>
+            </section>
+            
+            <section class="rounded-2xl border border-white/10 bg-slate-950/45 p-3 flex flex-col min-h-0">
+              <h4 class="text-xs font-black uppercase tracking-[0.14em] text-violet-200 mb-2.5 flex items-center gap-2">
+                <i data-lucide="calendar" class="h-3.5 w-3.5"></i> Project Schedule
+              </h4>
+              <div id="projectsScheduleContent" class="space-y-3 overflow-y-auto flex-1 pr-1"></div>
+            </section>
+          </div>
         </div>
       </section>
     </main>
@@ -502,6 +532,32 @@
     </section>
   </div>
 
+  <div id="projectEditorModal" class="fixed inset-0 z-[70] hidden place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="projectEditorTitle">
+    <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-md" data-close-project-editor></div>
+    <section class="relative w-[min(100%,30rem)] rounded-2xl border border-white/10 bg-slate-950/92 p-5 text-white shadow-[0_24px_72px_rgba(2,6,23,0.42)] backdrop-blur-2xl animate-modalIn">
+      <button class="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-xl bg-white/8 text-white transition hover:bg-white/15" type="button" data-close-project-editor aria-label="Close project editor">
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+      <p class="text-xs font-extrabold uppercase text-cyan-200">Project</p>
+      <h2 id="projectEditorTitle" class="mb-4 text-xl font-black text-white">Create Project</h2>
+      <form id="projectEditorForm" class="space-y-3">
+        <input type="hidden" name="workspace_id" id="projectEditorWorkspaceId">
+        <label class="grid gap-1.5">
+          <span class="text-xs font-bold text-slate-400">Project Name</span>
+          <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="name" placeholder="E.g., Design Sprint" required>
+        </label>
+        <label class="grid gap-1.5">
+          <span class="text-xs font-bold text-slate-400">Description</span>
+          <textarea class="rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="description" rows="3" placeholder="Project description..."></textarea>
+        </label>
+        <div class="flex justify-end gap-2 pt-2">
+          <button class="h-9 rounded-xl border border-white/10 bg-white/8 px-3 text-xs font-bold text-slate-300 transition hover:bg-white/14" type="button" data-close-project-editor>Cancel</button>
+          <button class="h-9 rounded-xl border border-white/10 bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white transition hover:brightness-110" type="submit">Create Project</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
   <div id="projectInviteModal" class="fixed inset-0 z-[70] hidden place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="projectInviteTitle">
     <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-md" data-close-project-invite></div>
     <section class="relative w-[min(100%,30rem)] rounded-2xl border border-white/10 bg-slate-950/92 p-5 text-white shadow-[0_24px_72px_rgba(2,6,23,0.42)] backdrop-blur-2xl animate-modalIn">
@@ -523,6 +579,10 @@
             <option value="admin">Admin</option>
             <option value="viewer">Viewer</option>
           </select>
+        </label>
+        <label class="grid gap-1.5">
+          <span class="text-xs font-bold text-slate-400">Positions (e.g., Designer, Developer)</span>
+          <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="positions" placeholder="E.g., Developer, QA" value="Member">
         </label>
         <label class="grid gap-1.5">
           <span class="text-xs font-bold text-slate-400">Message</span>

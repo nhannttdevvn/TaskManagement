@@ -6,12 +6,19 @@
   window.TaskFlow.timelineApi = {
     loadProjectData(root, options = {}) {
       const url = new URL(root.dataset.projectUrl, window.location.origin);
+      const activeWorkspaceId = window.localStorage.getItem("taskflow-active-workspace") || "";
+      if (activeWorkspaceId) {
+        url.searchParams.set("workspace_id", activeWorkspaceId);
+      }
       if (options.day && options.day !== "all") {
         url.searchParams.set("day", options.day);
       } else {
         url.searchParams.delete("day");
       }
       return window.TaskFlow.api.get(`${url.pathname}${url.search}`);
+    },
+    createWorkspace(payload, root) {
+      return window.TaskFlow.api.post("/api/teams/", payload, { root });
     },
     createProject(payload, root) {
       return window.TaskFlow.api.post("/api/projects/", payload, { root });

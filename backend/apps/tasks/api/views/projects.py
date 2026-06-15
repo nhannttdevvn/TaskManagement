@@ -12,6 +12,11 @@ from apps.tasks.selectors import database_projects, database_tasks
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def projects_collection(request):
+    from django.contrib.auth.models import User
+    from apps.tasks.models import Team, TeamMember, Project
+
+    user = request.user
+
     if request.method == "GET":
         tasks = database_tasks()
         done_count = len([task for task in tasks if task.status == "done"])
@@ -22,20 +27,50 @@ def projects_collection(request):
 
     data = payload(request)
     title = data.get("title") or data.get("name") or "Untitled Project"
-    project = {
-        "id": title.lower().replace(" ", "-"),
+    description = data.get("description", "Created through API.")
+    workspace_id = data.get("workspace_id") or data.get("workspaceId")
+
+    team = None
+    if workspace_id:
+        try:
+            team = Team.objects.get(id=workspace_id)
+        except (Team.DoesNotExist, ValueError):
+            pass
+
+    if not team and user.is_authenticated:
+        from django.db.models import Q
+        team = Team.objects.filter(Q(owner=user) | Q(members__user=user)).first()
+        if not team:
+            team = Team.objects.create(name="Default Workspace", owner=user)
+            TeamMember.objects.create(team=team, user=user, role=TeamMember.ROLE_OWNER, status=TeamMember.STATUS_ACTIVE)
+
+    if team and user.is_authenticated:
+        member = TeamMember.objects.filter(team=team, user=user).first()
+        if not member or member.role not in [TeamMember.ROLE_OWNER, TeamMember.ROLE_ADMIN]:
+            return error("You do not have permission to create projects in this workspace.", status=403)
+
+    project_obj = Project.objects.create(
+        name=title,
+        description=description,
+        user=user if user.is_authenticated else User.objects.first(),
+        team=team
+    )
+
+    project_payload_data = {
+        "id": str(project_obj.id),
+        "databaseId": project_obj.id,
         "initials": "".join(word[:1] for word in title.split()[:2]).upper() or "PR",
         "title": title,
-        "description": data.get("description", "Created through API."),
-        "status": data.get("status", "Active"),
-        "progress": int(data.get("progress", 0)),
-        "members": data.get("members", ["SN"]),
+        "description": description,
+        "status": "Active",
+        "progress": 0,
+        "members": [user.username[:2].upper()] if user.is_authenticated else ["US"],
         "tasks": 0,
         "done": 0,
         "gradientClass": "bg-gradient-to-br from-cyan-500 to-violet-500",
-        "due": data.get("due", "No date"),
+        "due": "No date",
     }
-    return ok(project, status=201)
+    return ok(project_payload_data, status=201)
 
 
 @csrf_exempt
@@ -127,10 +162,50 @@ def project_calendar(request, project_id):
 
 
 def project_frontend_data(request):
+    from django.db.models import Q
+    from apps.tasks.models import Team, TeamMember
+
     tasks = database_tasks()
+    user = request.user
+
+    if not user.is_authenticated:
+        teams = Team.objects.all().order_by("-created_at")
+    else:
+        teams = Team.objects.filter(Q(owner=user) | Q(members__user=user)).distinct().order_by("-created_at")
+
+    projects_data = []
+    # Auto-create a default workspace for authenticated users if none exist
+    if not teams.exists() and user.is_authenticated:
+        team = Team.objects.create(name="Default Workspace", owner=user)
+        TeamMember.objects.create(team=team, user=user, role=TeamMember.ROLE_OWNER, status=TeamMember.STATUS_ACTIVE)
+        teams = Team.objects.filter(id=team.id)
+
+    for team in teams:
+        members = [m.user.username[:2].upper() for m in team.members.all()[:4]]
+        if not members:
+            members = [user.username[:2].upper()] if user.is_authenticated else ["US"]
+            
+        project_names = list(team.projects.values_list("name", flat=True))
+
+        projects_data.append({
+            "id": str(team.id),
+            "databaseId": team.id,
+            "name": team.name,
+            "breadcrumb": "/ Workspaces",
+            "category": "Active",
+            "company": "My Workspace",
+            "date": "No date",
+            "members": members,
+            "projects": project_names,
+            "progress": 0,
+            "tasks": 0,
+            "done": 0,
+        })
+
     return ok(
         {
             "tasks": [task_payload(task, index) for index, task in enumerate(tasks)],
             "notifications": mock_data.clone(mock_data.PROJECT_NOTIFICATIONS),
+            "projects": projects_data,
         }
     )

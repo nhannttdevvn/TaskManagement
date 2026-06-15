@@ -683,7 +683,9 @@
     if (selectors.newProjectButton) {
       selectors.newProjectButton.addEventListener("click", () => openModal(selectors.createProjectModal));
     }
-    selectors.newProjectButtonSearch.addEventListener("click", () => openModal(selectors.createProjectModal));
+    if (selectors.newProjectButtonSearch) {
+      selectors.newProjectButtonSearch.addEventListener("click", () => openModal(selectors.createProjectModal));
+    }
 
     document.addEventListener("click", (event) => {
       const closeTrigger = event.target.closest("[data-close-modal]");
@@ -717,35 +719,37 @@
       });
     });
 
-    selectors.createProjectForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const formData = new FormData(selectors.createProjectForm);
-      const name = String(formData.get("name") || "Untitled Project").trim();
-      const description = String(formData.get("description") || "Created from dashboard.").trim();
-      const submitButton = selectors.createProjectForm.querySelector('button[type="submit"]');
-      const originalButton = submitButton.innerHTML;
+    if (selectors.createProjectForm) {
+      selectors.createProjectForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(selectors.createProjectForm);
+        const name = String(formData.get("name") || "Untitled Project").trim();
+        const description = String(formData.get("description") || "Created from dashboard.").trim();
+        const submitButton = selectors.createProjectForm.querySelector('button[type="submit"]');
+        const originalButton = submitButton.innerHTML;
 
-      submitButton.disabled = true;
-      submitButton.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 animate-spin"></i> Creating...';
-      refreshIcons();
-
-      try {
-        const result = await dashboardApi.createProject({ name, description }, selectors.createProjectForm);
-        const project = result.data;
-        projects.unshift(project);
-        state.filteredProjects = projects.slice();
-        selectors.createProjectForm.reset();
-        closeModals();
-        filterDashboard(selectors.searchInput.value);
-        showToast("Project saved to database");
-      } catch (error) {
-        showToast(error.message || "Could not create project");
-      } finally {
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalButton;
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 animate-spin"></i> Creating...';
         refreshIcons();
-      }
-    });
+
+        try {
+          const result = await dashboardApi.createProject({ name, description }, selectors.createProjectForm);
+          const project = result.data;
+          projects.unshift(project);
+          state.filteredProjects = projects.slice();
+          selectors.createProjectForm.reset();
+          closeModals();
+          filterDashboard(selectors.searchInput.value);
+          showToast("Project saved to database");
+        } catch (error) {
+          showToast(error.message || "Could not create project");
+        } finally {
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalButton;
+          refreshIcons();
+        }
+      });
+    }
   }
 
   async function loadDashboardData() {

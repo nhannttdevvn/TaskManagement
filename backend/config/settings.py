@@ -77,6 +77,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.tasks.context_processors.google_oauth_status",
+                "apps.tasks.context_processors.workspace_role",
             ],
         },
     },

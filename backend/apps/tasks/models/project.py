@@ -7,6 +7,13 @@ class Project(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
+    team = models.ForeignKey(
+        "Team",
+        on_delete=models.CASCADE,
+        related_name="projects",
+        blank=True,
+        null=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

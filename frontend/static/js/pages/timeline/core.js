@@ -113,6 +113,8 @@
     editorTitle: document.getElementById("taskEditorTitle"),
     workspaceEditorModal: document.getElementById("workspaceEditorModal"),
     workspaceEditorForm: document.getElementById("workspaceEditorForm"),
+    projectEditorModal: document.getElementById("projectEditorModal"),
+    projectEditorForm: document.getElementById("projectEditorForm"),
     projectInviteModal: document.getElementById("projectInviteModal"),
     projectInviteForm: document.getElementById("projectInviteForm"),
     projectInviteSubmit: document.getElementById("projectInviteSubmit"),
