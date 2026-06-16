@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/theme.css' %}?v=20260614-2" />
+<link rel="stylesheet" href="{% static 'css/theme.css' %}?v=20260616-1" />
 {% endblock %}
 
 {% block body_class %}bg-slate-950 p-0 font-sans antialiased overflow-hidden{% endblock %}
@@ -61,6 +61,10 @@
         <i data-lucide="files" class="h-4 w-4"></i>
         <span>Files</span>
       </a>
+      <a class="settings-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="#updates">
+        <i data-lucide="radio" class="h-4 w-4"></i>
+        <span>All Updates</span>
+      </a>
     </nav>
 
     <div class="mt-auto rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
@@ -96,7 +100,7 @@
           <div class="relative">
             <button id="settingsNotificationToggle" class="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/10 text-white shadow-glass backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_30px_rgba(34,211,238,0.16)] motion-reduce:transform-none" type="button" aria-label="Open notifications">
               <i data-lucide="bell" class="h-4 w-4"></i>
-              <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-fuchsia-400 ring-2 ring-slate-950"></span>
+              <span class="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-rose-500 text-[0.55rem] font-bold leading-none text-white ring-2 ring-slate-950">3</span>
             </button>
             <div id="settingsNotificationDropdown" class="absolute right-0 top-[calc(100%+0.75rem)] hidden w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-slate-950/90 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
               <div class="mb-3 flex items-center justify-between">

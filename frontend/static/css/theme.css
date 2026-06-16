@@ -660,4 +660,52 @@ html [id$="Modal"] > section h2 {
   }
 }
 
+/* ---------- DONG NHAT NUT CHINH (gop y: chu nut phai TRANG) ----------
+ * Moi nut/anchor co nen gradient (bg-gradient-to-r / -to-br) la nut hanh
+ * dong chinh -> luon giu chu + icon TRANG o ca light & dark mode. */
+html:not(.dark) button[class*="bg-gradient-to-r"],
+html:not(.dark) button[class*="bg-gradient-to-br"],
+html:not(.dark) a[class*="bg-gradient-to-r"],
+html:not(.dark) a[class*="bg-gradient-to-br"],
+html:not(.dark) [type="submit"][class*="bg-gradient-to-r"],
+html:not(.dark) [type="submit"][class*="bg-gradient-to-br"] {
+  color: #ffffff !important;
+}
+html:not(.dark) button[class*="bg-gradient-to-r"] *,
+html:not(.dark) button[class*="bg-gradient-to-br"] *,
+html:not(.dark) a[class*="bg-gradient-to-r"] *,
+html:not(.dark) a[class*="bg-gradient-to-br"] *,
+html:not(.dark) [type="submit"][class*="bg-gradient-to-r"] *,
+html:not(.dark) [type="submit"][class*="bg-gradient-to-br"] * {
+  color: #ffffff !important;
+}
+html:not(.dark) button[class*="bg-gradient-to-r"] svg,
+html:not(.dark) button[class*="bg-gradient-to-br"] svg,
+html:not(.dark) a[class*="bg-gradient-to-r"] svg,
+html:not(.dark) a[class*="bg-gradient-to-br"] svg {
+  color: #ffffff !important;
+  stroke: currentColor !important;
+}
+
+/* ---------- POLISH TRANG TEAM CHAT (lam dep, dong bo) ---------- */
+.team-message {
+  border-radius: 14px;
+  padding: 8px 10px;
+  margin-left: -10px;
+  margin-right: -10px;
+  transition: background-color 0.15s ease;
+}
+.team-message:hover {
+  background-color: rgba(255, 255, 255, 0.045);
+}
+html:not(.dark) .team-message:hover {
+  background-color: rgba(99, 102, 241, 0.06) !important;
+}
+.team-message [class*="bg-white/8"] {
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.team-message:hover [class*="bg-white/8"] {
+  transform: translateY(-1px);
+}
+
 /* End of theme.css */
