@@ -168,7 +168,7 @@
                   <p class="mt-0.5 truncate text-[0.66rem] font-semibold text-slate-400 group-hover/ws:text-slate-300 transition-colors">${Timeline.helpers.escapeHtml(workspace.company)} · ${Timeline.helpers.escapeHtml(workspace.date)}</p>
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0">
-                  <button class="grid h-6 w-6 place-items-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-white" type="button" data-create-project-in-workspace="${workspace.id}" title="Add Project to Workspace">
+                  <button class="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-white" type="button" data-create-project-in-workspace="${workspace.id}" title="Add Project to Workspace">
                     <i data-lucide="plus" class="h-3.5 w-3.5"></i>
                   </button>
                   <div class="-space-x-2 whitespace-nowrap scale-90 origin-right">${Timeline.renderers.renderWorkspaceMembers(workspace.members)}</div>
@@ -193,7 +193,7 @@
                   : `
                       <div class="mt-1 text-center py-3.5 px-2 rounded-xl border border-dashed border-white/12 bg-slate-950/20">
                         <p class="text-[0.66rem] font-bold text-slate-400 mb-2">No projects in this workspace</p>
-                        <button class="inline-flex h-7 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-cyan-500 px-3 text-[0.68rem] font-bold text-white transition hover:brightness-110" type="button" data-create-project-in-workspace="${workspace.id}">
+                        <button class="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-cyan-500 px-3 text-[0.68rem] font-bold text-white transition hover:brightness-110" type="button" data-create-project-in-workspace="${workspace.id}">
                           <i data-lucide="plus" class="h-3 w-3"></i>
                           Create Project
                         </button>
@@ -241,7 +241,7 @@
         projectsListContent.innerHTML = `
           <div class="text-center py-8">
             <p class="text-xs text-slate-400 font-bold mb-3">No projects in this workspace yet</p>
-            <button class="inline-flex h-8 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white" type="button" data-create-project-in-workspace="${workspace.id}">
+            <button class="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white" type="button" data-create-project-in-workspace="${workspace.id}">
               <i data-lucide="plus" class="h-4 w-4"></i> Create First Project
             </button>
           </div>
@@ -281,7 +281,7 @@
               </div>
               <div class="flex items-center justify-between gap-2 pt-1">
                 <div class="-space-x-1.5 flex origin-left scale-90">${Timeline.renderers.renderWorkspaceMembers(members)}</div>
-                <button class="h-7 rounded-lg border border-white/10 bg-white/5 px-2.5 text-[0.66rem] font-bold text-slate-300 hover:bg-white/10 hover:text-white" type="button" data-workspace-id="${workspace.id}" data-project-name="${Timeline.helpers.escapeHtml(project)}">
+                <button class="min-h-10 rounded-lg border border-white/10 bg-white/5 px-3 text-[0.66rem] font-bold text-slate-300 hover:bg-white/10 hover:text-white" type="button" data-workspace-id="${workspace.id}" data-project-name="${Timeline.helpers.escapeHtml(project)}">
                   View Tasks
                 </button>
               </div>
@@ -434,7 +434,11 @@
           .join("")
         : `
           <div class="absolute left-6 top-6 rounded-2xl border border-dashed border-white/15 bg-white/5 p-6 text-sm font-semibold text-slate-400">
-            No timeline tasks match your search.
+            <p>No timeline tasks match your search.</p>
+            <button class="mt-3 inline-flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white" type="button" data-add-status="To Do">
+              <i data-lucide="plus" class="h-4 w-4"></i>
+              Add first task
+            </button>
           </div>
         `;
 
@@ -466,11 +470,11 @@
                 </div>
                 <div class="flex items-center gap-1">
                   <span class="rounded-full bg-white/10 px-2 py-0.5 text-[0.65rem] font-black text-slate-300">${columnTasks.length}</span>
-                  <button class="grid h-6 w-6 place-items-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-add-status="${column.name}" aria-label="Add task to ${column.name}">
-                    <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                  <button class="grid h-10 w-10 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-add-status="${column.name}" aria-label="Add task to ${column.name}" title="Add task">
+                    <i data-lucide="plus" class="h-4 w-4"></i>
                   </button>
-                  <button class="grid h-6 w-6 place-items-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-column-menu="${column.name}" aria-label="${column.name} actions">
-                    <i data-lucide="more-horizontal" class="h-3.5 w-3.5"></i>
+                  <button class="grid h-10 w-10 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-column-menu="${column.name}" aria-label="${column.name} actions" title="Column actions">
+                    <i data-lucide="more-horizontal" class="h-4 w-4"></i>
                   </button>
                 </div>
               </div>
@@ -502,8 +506,8 @@
                             <p class="mt-0.5 truncate text-[0.68rem] font-semibold text-slate-400">${Timeline.helpers.escapeHtml(task.subtitle)}</p>
                           </div>
                           <div class="flex shrink-0 items-center gap-1">
-                            <button class="grid h-6 w-6 place-items-center rounded-lg border transition ${Timeline.helpers.isFavorite(task.id) ? "border-amber-300/30 bg-amber-300/12 text-amber-200" : "border-white/[0.08] bg-white/[0.035] text-slate-500 hover:text-amber-200"}" type="button" data-favorite-task="${task.id}" aria-label="Toggle favorite for ${Timeline.helpers.escapeHtml(task.title)}">
-                              <i data-lucide="star" class="h-3.5 w-3.5 ${Timeline.helpers.isFavorite(task.id) ? "fill-current" : ""}"></i>
+                            <button class="grid h-10 w-10 place-items-center rounded-xl border transition ${Timeline.helpers.isFavorite(task.id) ? "border-amber-300/30 bg-amber-300/12 text-amber-200" : "border-white/[0.08] bg-white/[0.035] text-slate-500 hover:text-amber-200"}" type="button" data-favorite-task="${task.id}" aria-label="Toggle favorite for ${Timeline.helpers.escapeHtml(task.title)}" title="Favorite">
+                              <i data-lucide="star" class="h-4 w-4 ${Timeline.helpers.isFavorite(task.id) ? "fill-current" : ""}"></i>
                             </button>
                             <span class="rounded-full border px-1.5 py-0.5 text-[0.56rem] font-black ${Timeline.helpers.priorityTone(task.priority)}">${Timeline.helpers.escapeHtml(task.priority)}</span>
                           </div>
@@ -524,7 +528,13 @@
                   }
                 )
                 .join("")
-              : `<div class="rounded-2xl border border-dashed border-white/10 p-4 text-center text-xs font-semibold text-slate-500">No tasks</div>`
+              : `<div class="rounded-2xl border border-dashed border-white/10 p-4 text-center text-xs font-semibold text-slate-500">
+                  <p>No tasks</p>
+                  <button class="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/8 px-3 text-xs font-black text-cyan-100 transition hover:bg-white/12" type="button" data-add-status="${column.name}">
+                    <i data-lucide="plus" class="h-4 w-4"></i>
+                    Add task
+                  </button>
+                </div>`
             }}
               </div>
             </section>
@@ -549,8 +559,8 @@
                 >
                   <div class="min-w-0">
                     <div class="flex items-center gap-2">
-                      <button class="grid h-7 w-7 shrink-0 place-items-center rounded-lg border transition ${Timeline.helpers.isFavorite(task.id) ? "border-amber-300/30 bg-amber-300/12 text-amber-200" : "border-white/[0.08] bg-white/[0.035] text-slate-500 hover:text-amber-200"}" type="button" data-favorite-task="${task.id}" aria-label="Toggle favorite for ${Timeline.helpers.escapeHtml(task.title)}">
-                        <i data-lucide="star" class="h-3.5 w-3.5 ${Timeline.helpers.isFavorite(task.id) ? "fill-current" : ""}"></i>
+                      <button class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition ${Timeline.helpers.isFavorite(task.id) ? "border-amber-300/30 bg-amber-300/12 text-amber-200" : "border-white/[0.08] bg-white/[0.035] text-slate-500 hover:text-amber-200"}" type="button" data-favorite-task="${task.id}" aria-label="Toggle favorite for ${Timeline.helpers.escapeHtml(task.title)}" title="Favorite">
+                        <i data-lucide="star" class="h-4 w-4 ${Timeline.helpers.isFavorite(task.id) ? "fill-current" : ""}"></i>
                       </button>
                       <span class="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-cyan-300/75 to-violet-500/80 text-[0.68rem] font-black text-white">${Timeline.helpers.escapeHtml(task.title.slice(0, 2).toUpperCase())}</span>
                       <span class="min-w-0">
@@ -582,7 +592,13 @@
               `
           )
           .join("")
-        : `<div class="rounded-2xl border border-dashed border-white/10 p-6 text-center text-sm font-semibold text-slate-500">No list tasks match your filter.</div>`;
+        : `<div class="rounded-2xl border border-dashed border-white/10 p-6 text-center text-sm font-semibold text-slate-500">
+            <p>No list tasks match your filter.</p>
+            <button class="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/15 bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white" type="button" data-add-status="To Do">
+              <i data-lucide="plus" class="h-4 w-4"></i>
+              Add first task
+            </button>
+          </div>`;
 
       Timeline.renderers.refreshIcons();
     },
@@ -598,14 +614,17 @@
       if (!Timeline.selectors.notificationList) return;
       Timeline.selectors.notificationList.innerHTML = Timeline.notifications
         .map(
-          (message) => `
+          (message) => {
+            const body = message?.body || message;
+            return `
             <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
               <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cyan-400/15 text-cyan-200">
                 <i data-lucide="activity" class="h-4 w-4"></i>
               </span>
-              <p class="text-sm leading-5 text-slate-300">${Timeline.helpers.escapeHtml(message)}</p>
+              <p class="text-sm leading-5 text-slate-300">${Timeline.helpers.escapeHtml(body)}</p>
             </div>
-          `
+          `;
+          }
         )
         .join("");
     },

@@ -36,7 +36,7 @@
   Timeline.state = {
     filteredTasks: [],
     view: "calendar",
-    activeWorkspaceId: window.localStorage.getItem("taskflow-active-workspace") || "fintask-landing-page",
+    activeWorkspaceId: window.localStorage.getItem("taskflow-active-workspace") || "",
     activeProjectName: window.localStorage.getItem("taskflow-active-project") || "",
     mode: window.location.hash.startsWith("#project-") ? "detail" : "overview",
     kanbanQuery: "",

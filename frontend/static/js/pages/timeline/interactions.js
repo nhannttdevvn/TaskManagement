@@ -22,7 +22,7 @@
 
         if (!isManager && !isOwner) {
           event.preventDefault();
-          Timeline.actions.showToast("Bạn không có quyền di chuyển task này.");
+          Timeline.actions.showToast("You do not have permission to move this task.");
           return;
         }
 
@@ -58,7 +58,6 @@
         const newStatus = dropzone.dataset.dropStatus;
 
         task.status = newStatus;
-        task.kanbanOnly = task.kanbanOnly || Timeline.state.view === "kanban";
         dropzone.closest(".kanban-column").classList.remove("border-cyan-300/35", "bg-cyan-300/[0.045]");
         Timeline.actions.applyTaskFilters();
 
@@ -68,7 +67,7 @@
               if (!res.ok) {
                 task.status = originalStatus;
                 Timeline.actions.applyTaskFilters();
-                Timeline.actions.showToast(res.message || "Failed to update status, rolled back.");
+                Timeline.actions.showToast(res.message || "Failed, restored");
               } else {
                 Timeline.actions.showToast(`Moved to ${newStatus}`);
               }
@@ -76,10 +75,12 @@
             .catch((err) => {
               task.status = originalStatus;
               Timeline.actions.applyTaskFilters();
-              Timeline.actions.showToast("Network error, status rolled back.");
+              Timeline.actions.showToast("Failed, restored");
             });
         } else {
-          Timeline.actions.showToast(`Moved to ${newStatus}`);
+          task.status = originalStatus;
+          Timeline.actions.applyTaskFilters();
+          Timeline.actions.showToast("Task must be saved before moving.");
         }
       });
 
@@ -108,7 +109,7 @@
         const isOwner = task.owner && task.owner.toLowerCase() === userName;
 
         if (!isManager && !isOwner) {
-          Timeline.actions.showToast("Bạn không có quyền chỉnh sửa task này.");
+          Timeline.actions.showToast("You do not have permission to edit this task.");
           return;
         }
 
@@ -264,7 +265,7 @@
               }
               Timeline.actions.showToast(wasResizing ? "Task duration updated" : "Task schedule updated");
             } catch (error) {
-              Timeline.actions.showToast(error.message || "Failed to save changes, rolling back.");
+              Timeline.actions.showToast(error.message || "Failed, restored");
               if (wasResizing) {
                 task.duration = Timeline.dragStartWidth;
               } else {
@@ -274,7 +275,14 @@
               Timeline.actions.applyTaskFilters();
             }
           } else {
-            Timeline.actions.showToast(wasResizing ? "Task duration updated" : "Task schedule updated");
+            if (wasResizing) {
+              task.duration = Timeline.dragStartWidth;
+            } else {
+              task.start = Timeline.dragStartTaskX;
+              task.row = Timeline.dragStartRow;
+            }
+            Timeline.actions.applyTaskFilters();
+            Timeline.actions.showToast("Task must be saved before scheduling.");
           }
         }
       });

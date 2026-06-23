@@ -38,8 +38,13 @@
     }
 
     if (!response.ok || result?.ok === false) {
-      const message = result?.error || response.statusText || "API request failed.";
-      throw new Error(message);
+      const message = typeof result?.error === "string"
+        ? result.error
+        : result?.error?.message || response.statusText || "API request failed.";
+      const error = new Error(message);
+      error.code = result?.code || result?.error?.code || "";
+      error.details = result?.details || result?.error?.details || {};
+      throw error;
     }
 
     return result;

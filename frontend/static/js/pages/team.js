@@ -32,6 +32,7 @@
     cameraActive: true,
     socket: null,
     localStream: null,
+    activeTeam: null,
     activeTab: "friends", // "friends", "find", "requests"
     scannerAnimationId: null,
   };
@@ -89,6 +90,7 @@
     inviteClose: document.getElementById("inviteMemberClose"),
     inviteCancel: document.getElementById("inviteMemberCancel"),
     inviteForm: document.getElementById("inviteMemberForm"),
+    inviteProjectsList: document.getElementById("inviteProjectsList"),
     inviteSubmit: document.getElementById("inviteSubmitButton"),
     toast: document.getElementById("teamToast"),
 
@@ -187,8 +189,19 @@
   function renderMembers() {
     if (state.filteredMembers.length === 0) {
       selectors.memberList.innerHTML = `
-        <p class="text-center text-xs text-slate-500 py-6">No friends added yet.</p>
+        <div class="rounded-2xl border border-dashed border-white/15 bg-white/[0.03] p-4 text-center">
+          <p class="text-sm font-bold text-white">No members yet</p>
+          <button
+            type="button"
+            class="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 text-sm font-extrabold text-slate-950 shadow-glass transition hover:bg-cyan-300"
+            data-empty-invite
+          >
+            <i data-lucide="user-plus" class="h-4 w-4"></i>
+            Invite first member
+          </button>
+        </div>
       `;
+      refreshIcons();
       return;
     }
 
@@ -234,9 +247,18 @@
               <i data-lucide="message-square" class="h-5 w-5"></i>
             </div>
             <p class="mt-3 text-sm font-bold text-white">Select a friend to chat</p>
+            <button
+              type="button"
+              class="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-white/15 px-4 text-sm font-extrabold text-white transition hover:bg-white/10"
+              data-empty-find-friends
+            >
+              <i data-lucide="search" class="h-4 w-4"></i>
+              Find Friends
+            </button>
           </div>
         </div>
       `;
+      refreshIcons();
       return;
     }
     const tone = statusTone(member.status);
@@ -693,6 +715,23 @@
       .join("");
   }
 
+  function renderInviteProjects() {
+    if (!selectors.inviteProjectsList) return;
+    const projects = state.activeTeam?.projects || [];
+    if (!projects.length) {
+      selectors.inviteProjectsList.innerHTML = `<p class="text-xs text-slate-500">No projects in this workspace yet.</p>`;
+      return;
+    }
+    selectors.inviteProjectsList.innerHTML = projects
+      .map((project, index) => `
+        <label class="flex items-center gap-2 text-sm text-gray-300">
+          <input name="projects" value="${escapeHtml(project)}" class="h-4 w-4 rounded border-white/10 bg-slate-800 accent-purple-500" type="checkbox" ${index === 0 ? "checked" : ""}>
+          ${escapeHtml(project)}
+        </label>
+      `)
+      .join("");
+  }
+
   function filterMembers() {
     const query = selectors.memberSearch.value.trim().toLowerCase();
     state.filteredMembers = members.filter((member) => {
@@ -779,6 +818,15 @@
         url.searchParams.set("workspace_id", activeWorkspaceId);
       }
       const data = await api.get(`${url.pathname}${url.search}`);
+      state.activeTeam = data.team || null;
+      if (state.activeTeam?.inviteUrl) {
+        app.dataset.inviteUrl = state.activeTeam.inviteUrl;
+        if (selectors.inviteForm) {
+          selectors.inviteForm.dataset.inviteUrl = state.activeTeam.inviteUrl;
+        }
+      }
+      renderInviteProjects();
+      notifications = (data.notifications || []).map((item) => item.body || item);
       members = (data.members || []).map(m => ({
         ...m,
         messages: m.messages || []
@@ -834,8 +882,8 @@
             <p class="text-[10px] text-slate-400 truncate">${escapeHtml(req.sender_email)}</p>
           </div>
           <div class="flex items-center gap-2">
-            <button class="accept-request-btn flex-1 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-xs font-bold text-white transition hover:brightness-110" type="button" data-request-id="${req.request_id}">Accept</button>
-            <button class="decline-request-btn py-1.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-slate-300 transition" type="button" data-request-id="${req.request_id}">Decline</button>
+            <button class="accept-request-btn min-h-10 flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-xs font-bold text-white transition hover:brightness-110" type="button" data-request-id="${req.request_id}">Accept</button>
+            <button class="decline-request-btn min-h-10 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-slate-300 transition" type="button" data-request-id="${req.request_id}">Decline</button>
           </div>
         </div>
       `
@@ -884,6 +932,10 @@
   }
 
   function openInviteModal() {
+    if (!state.activeTeam?.inviteUrl) {
+      showToast("Create a workspace before inviting members.");
+      return;
+    }
     selectors.inviteModal.classList.remove("hidden");
     selectors.inviteModal.classList.add("flex");
     selectors.inviteModal.setAttribute("aria-hidden", "false");
@@ -948,10 +1000,7 @@
 
       if (state.socket && state.socket.readyState === WebSocket.OPEN) {
         state.socket.send(JSON.stringify({
-          message: body,
-          sender_id: currentUserId,
-          sender_name: currentUserName,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          message: body
         }));
       } else {
         showToast("Chat socket is not connected.");
@@ -1011,6 +1060,14 @@
     selectors.messageSearchClose.addEventListener("click", closeMessageSearch);
 
     document.addEventListener("click", (event) => {
+      if (event.target.closest("[data-empty-invite]")) {
+        openInviteModal();
+        return;
+      }
+      if (event.target.closest("[data-empty-find-friends]")) {
+        switchTab("find");
+        return;
+      }
       if (!event.target.closest("#teamNotificationToggle") && !event.target.closest("#teamNotificationDropdown")) {
         selectors.notificationDropdown.classList.add("hidden");
       }
@@ -1088,13 +1145,13 @@
               (u) => {
                 let actionBtnHtml = "";
                 if (u.friendship_status === "none") {
-                  actionBtnHtml = `<button class="send-request-btn h-8 rounded-xl bg-white/10 hover:bg-white/15 px-3 text-xs font-bold text-white transition" type="button" data-user-id="${u.id}"><i data-lucide="user-plus" class="h-3 w-3 inline mr-1"></i>Add</button>`;
+                  actionBtnHtml = `<button class="send-request-btn min-h-10 rounded-xl bg-white/10 hover:bg-white/15 px-3 text-xs font-bold text-white transition" type="button" data-user-id="${u.id}"><i data-lucide="user-plus" class="h-3 w-3 inline mr-1"></i>Add</button>`;
                 } else if (u.friendship_status === "friends") {
                   actionBtnHtml = `<span class="text-xs font-semibold text-emerald-400"><i data-lucide="check" class="h-3 w-3 inline mr-1"></i>Friends</span>`;
                 } else if (u.friendship_status === "pending_sent") {
                   actionBtnHtml = `<span class="text-xs font-medium text-slate-500">Requested</span>`;
                 } else if (u.friendship_status === "pending_received") {
-                  actionBtnHtml = `<button class="accept-request-btn h-8 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 px-3 text-xs font-bold text-white transition hover:brightness-110" type="button" data-request-id="${u.request_id}">Accept</button>`;
+                  actionBtnHtml = `<button class="accept-request-btn min-h-10 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 px-3 text-xs font-bold text-white transition hover:brightness-110" type="button" data-request-id="${u.request_id}">Accept</button>`;
                 }
 
                 return `
@@ -1199,7 +1256,7 @@
       if (selectors.deleteConversationButton) selectors.deleteConversationButton.classList.add("hidden");
     }
 
-    const activeWorkspaceName = window.localStorage.getItem("taskflow-active-project") || "TaskFlow Workspace";
+      const activeWorkspaceName = state.activeTeam?.name || window.localStorage.getItem("taskflow-active-project") || "TaskFlow Workspace";
     const workspaceNameEl = document.querySelector("#teamSidebar p.text-sm.font-bold.text-white");
     if (workspaceNameEl) {
       workspaceNameEl.textContent = activeWorkspaceName;

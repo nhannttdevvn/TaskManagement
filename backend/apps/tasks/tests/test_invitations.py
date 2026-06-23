@@ -4,12 +4,19 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.tasks.models import Project, Team, TeamInvitation, TeamInvitationProject
+from apps.tasks.models import Project, Team, TeamInvitation, TeamInvitationProject, TeamMember
 
 
 class TeamInvitationTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="owner", password="password")
+        self.team = Team.objects.create(name="Owner Workspace", owner=self.user)
+        TeamMember.objects.create(
+            team=self.team,
+            user=self.user,
+            role=TeamMember.ROLE_OWNER,
+            status=TeamMember.STATUS_ACTIVE,
+        )
 
     def test_invite_team_member_creates_invitation_and_projects(self):
         self.client.force_login(self.user)
@@ -31,9 +38,9 @@ class TeamInvitationTests(TestCase):
         invitation = TeamInvitation.objects.get(email="colleague@example.com")
         self.assertEqual(invitation.invited_by, self.user)
         self.assertEqual(invitation.team.owner, self.user)
+        self.assertEqual(invitation.team, self.team)
         self.assertEqual(invitation.role, "member")
         self.assertEqual(invitation.message, "Please join the workspace.")
-        self.assertTrue(Team.objects.filter(name="TaskFlow Workspace").exists())
         self.assertEqual(Project.objects.filter(user=self.user).count(), 2)
         self.assertEqual(TeamInvitationProject.objects.filter(invitation=invitation).count(), 2)
 
@@ -58,9 +65,16 @@ class TeamInvitationTests(TestCase):
 
     def test_api_team_invitation_uses_shared_creation_service(self):
         self.client.force_login(self.user)
+        team = Team.objects.create(name="API Workspace", owner=self.user)
+        TeamMember.objects.create(
+            team=team,
+            user=self.user,
+            role=TeamMember.ROLE_OWNER,
+            status=TeamMember.STATUS_ACTIVE,
+        )
 
         response = self.client.post(
-            reverse("api_team_invitations", args=[1]),
+            reverse("api_team_invitations", args=[team.id]),
             data=json.dumps(
                 {
                     "email": "api-colleague@example.com",

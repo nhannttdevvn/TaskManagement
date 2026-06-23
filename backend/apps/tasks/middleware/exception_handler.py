@@ -17,7 +17,9 @@ class ApiExceptionMiddleware:
             {
                 "ok": False,
                 "error": "Internal API error.",
+                "code": "internal_error",
                 "detail": str(exception),
+                "details": {"exception": str(exception)},
             },
             status=500,
         )

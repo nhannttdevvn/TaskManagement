@@ -2,8 +2,10 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import transaction
+from django.db.models import Q
 
-from apps.tasks.models import Project, Team, TeamInvitation, TeamInvitationProject
+from apps.tasks.models import Notification, Project, Team, TeamInvitation, TeamInvitationProject
+from apps.tasks.services.notifications import notify_user
 
 
 def invitation_actor_for_request(request):
@@ -55,21 +57,18 @@ def create_team_invitation(
     positions = str(positions or "Member").strip()
 
     if team is None and team_id is not None:
-        team, _ = Team.objects.get_or_create(
-            id=team_id,
-            defaults={
-                "name": "TaskFlow Workspace",
-                "description": "Default workspace for team collaboration.",
-                "owner": actor,
-            },
-        )
+        team = Team.objects.filter(id=team_id).first()
+        if team is None:
+            raise ValidationError("Workspace not found.")
 
     if team is None:
-        team, _ = Team.objects.get_or_create(
-            owner=actor,
-            name="TaskFlow Workspace",
-            defaults={"description": "Default workspace for team collaboration."},
-        )
+        teams = Team.objects.filter(Q(owner=actor) | Q(members__user=actor)).distinct()
+        if teams.count() != 1:
+            raise ValidationError("Workspace is required to invite members.")
+        team = teams.first()
+
+    if TeamInvitation.objects.filter(team=team, email=email, status=TeamInvitation.STATUS_PENDING).exists():
+        raise ValidationError("This user already has a pending invitation for this workspace.")
 
     invitation = TeamInvitation.objects.create(
         team=team,
@@ -80,8 +79,8 @@ def create_team_invitation(
     )
 
     # Automatically add to TeamMember if user exists
-    from django.contrib.auth.models import User
     from apps.tasks.models import TeamMember
+    User = get_user_model()
     invited_user = User.objects.filter(email=email).first() or User.objects.filter(username=email).first()
     if invited_user:
         TeamMember.objects.get_or_create(
@@ -93,14 +92,25 @@ def create_team_invitation(
                 "status": TeamMember.STATUS_ACTIVE
             }
         )
+        notify_user(
+            recipient=invited_user,
+            actor=actor,
+            type=Notification.TYPE_TEAM,
+            body=f"You were invited to {team.name}.",
+            target_type="team",
+            target_id=team.id,
+        )
 
     linked_projects = []
     for project_name in project_names:
         project, _ = Project.objects.get_or_create(
             user=actor,
             name=project_name,
-            defaults={"description": "Created from a team invitation."},
+            defaults={"description": "Created from a team invitation.", "team": team},
         )
+        if project.team_id is None:
+            project.team = team
+            project.save(update_fields=["team"])
         TeamInvitationProject.objects.create(invitation=invitation, project=project)
         linked_projects.append(project.name)
 

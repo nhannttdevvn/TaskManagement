@@ -215,6 +215,42 @@
     selectors.addTaskButton.addEventListener("click", () => Timeline.modals.openTaskEditor("To Do"));
     selectors.kanbanAddTask.addEventListener("click", () => Timeline.modals.openTaskEditor("To Do"));
     selectors.editorForm.addEventListener("submit", Timeline.actions.saveTaskFromEditor);
+    document.addEventListener("submit", async (event) => {
+      const attachmentForm = event.target.closest("[data-attachment-form]");
+      if (!attachmentForm) return;
+      event.preventDefault();
+      const taskId = attachmentForm.dataset.attachmentForm;
+      const submitButton = attachmentForm.querySelector('button[type="submit"]');
+      const originalButton = submitButton?.innerHTML || "";
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i> Saving...';
+        Timeline.renderers.refreshIcons();
+      }
+      try {
+        const formData = new FormData(attachmentForm);
+        const response = await Timeline.timelineApi.addTaskAttachment(taskId, {
+          name: String(formData.get("name") || "").trim(),
+          size: String(formData.get("size") || "").trim(),
+        }, attachmentForm);
+        if (!response.ok) throw new Error(response.message || "Attachment could not be saved");
+        const task = Timeline.tasks.find((item) => item.id === taskId);
+        if (task) {
+          task.attachments = Number(task.attachments || 0) + 1;
+        }
+        Timeline.actions.applyTaskFilters();
+        await Timeline.modals.openTask(taskId);
+        Timeline.actions.showToast("Saved");
+      } catch (error) {
+        Timeline.actions.showToast(error.message || "Failed to save attachment");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalButton;
+          Timeline.renderers.refreshIcons();
+        }
+      }
+    });
     selectors.favoriteSortButton.addEventListener("click", () => {
       Timeline.state.favoriteFirst = !Timeline.state.favoriteFirst;
       Timeline.actions.saveFavorites();
@@ -261,7 +297,19 @@
 
       const deleteTaskButton = event.target.closest("[data-delete-task]");
       if (deleteTaskButton) {
-        Timeline.actions.deleteTask(deleteTaskButton.dataset.deleteTask);
+        Timeline.modals.showDeleteConfirm(deleteTaskButton.dataset.deleteTask);
+        return;
+      }
+
+      const confirmDeleteTask = event.target.closest("[data-confirm-delete-task]");
+      if (confirmDeleteTask) {
+        Timeline.actions.deleteTask(confirmDeleteTask.dataset.confirmDeleteTask);
+        return;
+      }
+
+      const cancelDeleteTask = event.target.closest("[data-cancel-delete-task]");
+      if (cancelDeleteTask) {
+        Timeline.modals.openTask(cancelDeleteTask.dataset.cancelDeleteTask);
         return;
       }
 

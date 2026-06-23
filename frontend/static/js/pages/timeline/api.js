@@ -35,8 +35,26 @@
     deleteTask(taskId, root) {
       return window.TaskFlow.api.delete(`/api/tasks/${taskId}/`, { root });
     },
-    sendInvite(root, form, payload) {
-      return window.TaskFlow.api.post(form.dataset.inviteUrl || root.dataset.inviteUrl, payload, { root: form });
+    loadTaskComments(taskId) {
+      return window.TaskFlow.api.get(`/api/tasks/${taskId}/comments/`);
+    },
+    loadTaskActivity(taskId) {
+      return window.TaskFlow.api.get(`/api/tasks/${taskId}/activity/`);
+    },
+    loadTaskAttachments(taskId) {
+      return window.TaskFlow.api.get(`/api/tasks/${taskId}/attachments/`);
+    },
+    addTaskAttachment(taskId, payload, root) {
+      return window.TaskFlow.api.post(`/api/tasks/${taskId}/attachments/`, payload, { root });
+    },
+    setTaskFavorite(taskId, favorite, root) {
+      return favorite
+        ? window.TaskFlow.api.post(`/api/tasks/${taskId}/favorite/`, {}, { root })
+        : window.TaskFlow.api.delete(`/api/tasks/${taskId}/favorite/`, { root });
+    },
+    sendInvite(root, form, payload, workspaceId = "") {
+      const url = workspaceId ? `/api/teams/${workspaceId}/invitations/` : (form.dataset.inviteUrl || root.dataset.inviteUrl);
+      return window.TaskFlow.api.post(url, payload, { root: form });
     },
   };
 })();

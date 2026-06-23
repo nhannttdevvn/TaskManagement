@@ -4,6 +4,7 @@ from django.utils.text import slugify
 STATUS_LABELS = {
     "todo": "To Do",
     "in_progress": "In Progress",
+    "review": "Review",
     "done": "Done",
 }
 
@@ -16,6 +17,7 @@ PRIORITY_LABELS = {
 STATUS_COLORS = {
     "To Do": {"color": "#5b8fdc", "dotClass": "bg-blue-400"},
     "In Progress": {"color": "#9b86e8", "dotClass": "bg-violet-400"},
+    "Review": {"color": "#f59e0b", "dotClass": "bg-amber-400"},
     "Done": {"color": "#34d399", "dotClass": "bg-emerald-400"},
 }
 
@@ -78,6 +80,7 @@ def task_progress(task):
     return {
         "todo": 12,
         "in_progress": 58,
+        "review": 82,
         "done": 100,
     }.get(task.status, 0)
 
@@ -87,13 +90,13 @@ def due_label(task):
 
 
 def dashboard_status_from_tasks(tasks):
-    counts = {"To Do": 0, "In Progress": 0, "Done": 0}
+    counts = {"To Do": 0, "In Progress": 0, "Review": 0, "Done": 0}
     for task in tasks:
         label = task_status_label(task)
         counts[label] = counts.get(label, 0) + 1
     return [
         {"label": label, "value": counts.get(label, 0), **STATUS_COLORS[label]}
-        for label in ["To Do", "In Progress", "Done"]
+        for label in ["To Do", "In Progress", "Review", "Done"]
     ]
 
 
@@ -146,13 +149,15 @@ def project_payload(project, index, task_count, done_count):
 
 def task_payload(task, index=0):
     color, text = TASK_COLORS[index % len(TASK_COLORS)]
+    project = getattr(task, "project", None)
+    team = getattr(project, "team", None) if project else None
     return {
         "id": str(task.id),
         "title": task.title,
         "subtitle": task.description or "No description yet",
-        "start": 9 + ((index % 6) * 1.15),
-        "duration": 1.1 + ((index % 3) * 0.45),
-        "row": index % 4,
+        "start": task.start,
+        "duration": task.duration,
+        "row": task.row,
         "color": color,
         "text": text,
         "members": [initials(display_name(task.user))],
@@ -161,8 +166,36 @@ def task_payload(task, index=0):
         "status": task_status_label(task),
         "owner": display_name(task.user),
         "due": due_label(task),
+        "dueDate": task.due_date.isoformat() if task.due_date else "",
+        "projectId": str(project.id) if project else "",
+        "projectName": project.name if project else "",
+        "workspaceId": str(team.id) if team else "",
         "progress": task_progress(task),
-        "comments": 0,
-        "attachments": 0,
+        "comments": task.comments.count() if getattr(task, "pk", None) else 0,
+        "attachments": task.attachments.count() if getattr(task, "pk", None) else 0,
         "kanbanOnly": False,
+    }
+
+
+def notification_payload(notification):
+    return {
+        "id": str(notification.id),
+        "body": notification.body,
+        "read": bool(notification.read_at),
+        "type": notification.type,
+        "target": {
+            "type": notification.target_type,
+            "id": notification.target_id,
+        },
+        "createdAt": notification.created_at.isoformat(),
+    }
+
+
+def activity_payload(activity):
+    return {
+        "id": str(activity.id),
+        "taskId": str(activity.task_id),
+        "body": activity.body,
+        "action": activity.action,
+        "createdAt": activity.created_at.isoformat(),
     }

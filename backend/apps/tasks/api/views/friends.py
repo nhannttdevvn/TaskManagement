@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from apps.tasks.api.responses import ok, error, payload
 from apps.tasks.models import Friendship
@@ -8,7 +7,6 @@ from apps.tasks.models import Friendship
 User = get_user_model()
 
 
-@csrf_exempt
 @require_http_methods(["GET"])
 def search_users(request):
     query = request.GET.get("q", "").strip()
@@ -53,7 +51,6 @@ def search_users(request):
     return ok(data)
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def send_friend_request(request):
     req_payload = payload(request)
@@ -88,7 +85,6 @@ def send_friend_request(request):
     return ok(message="Friend request sent.")
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def respond_friend_request(request):
     req_payload = payload(request)
@@ -120,7 +116,6 @@ def respond_friend_request(request):
         return ok(message="Friend request declined.")
 
 
-@csrf_exempt
 @require_http_methods(["GET"])
 def list_friends(request):
     # Accepted friendships where user is sender or receiver
@@ -149,7 +144,6 @@ def list_friends(request):
     return ok(friends_data)
 
 
-@csrf_exempt
 @require_http_methods(["GET"])
 def list_pending_requests(request):
     requests = Friendship.objects.filter(

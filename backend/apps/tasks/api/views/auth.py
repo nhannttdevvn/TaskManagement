@@ -1,12 +1,10 @@
 from django.contrib.auth import authenticate, login, logout
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from apps.tasks.api.responses import error, ok, payload
 from apps.tasks.api.serializers import current_user_payload
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def auth_login(request):
     from django.contrib.auth.models import User
@@ -37,7 +35,6 @@ def auth_login(request):
 
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def auth_signup(request):
     from django.contrib.auth.models import User
@@ -68,14 +65,12 @@ def auth_signup(request):
     return ok(current_user_payload(user))
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def auth_logout(request):
     logout(request)
     return ok(message="Logged out")
 
 
-@csrf_exempt
 @require_http_methods(["GET", "PATCH"])
 def users_me(request):
     if request.method == "PATCH":

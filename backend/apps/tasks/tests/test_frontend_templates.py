@@ -23,7 +23,7 @@ class FrontendTemplateContractTests(TestCase):
 
         self.assertContains(response, 'id="teamApp"')
         self.assertContains(response, 'data-team-url="/api/team/data/"')
-        self.assertContains(response, 'data-invite-url="/api/teams/1/invitations/"')
+        self.assertContains(response, 'data-invite-url=""')
         self.assertContains(response, "js/pages/team/api.js")
         self.assertContains(response, "js/pages/team.js")
 
@@ -33,7 +33,7 @@ class FrontendTemplateContractTests(TestCase):
 
         self.assertContains(response, 'id="timelineApp"')
         self.assertContains(response, 'data-project-url="/api/project/data/"')
-        self.assertContains(response, 'data-invite-url="/api/teams/1/invitations/"')
+        self.assertContains(response, 'data-invite-url=""')
         self.assertContains(response, 'name="csrfmiddlewaretoken"')
         self.assertContains(response, "js/pages/timeline/api.js")
         self.assertContains(response, "js/pages/timeline.js")

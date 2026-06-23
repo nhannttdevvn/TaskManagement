@@ -180,6 +180,23 @@
     state.projectStart = Math.min(Math.max(state.projectStart, 0), maxStart);
 
     const visibleItems = items.slice(state.projectStart, state.projectStart + state.projectPageSize);
+    if (!visibleItems.length) {
+      selectors.projectGrid.innerHTML = `
+        <div class="col-span-full rounded-2xl border border-dashed border-white/10 bg-white/[0.035] p-6 text-center">
+          <p class="text-sm font-bold text-white">No workspaces found</p>
+          <p class="mt-1 text-xs font-semibold text-slate-400">Create a workspace to start grouping projects and tasks.</p>
+          <a href="/project/" class="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/15 bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white" style="text-decoration:none;">
+            <i data-lucide="plus" class="h-4 w-4"></i>
+            Create first workspace
+          </a>
+        </div>
+      `;
+      selectors.projectSummary.textContent = "No workspaces match your search";
+      selectors.searchResultCount.textContent = "0 results";
+      updateProjectControls(0);
+      refreshIcons();
+      return;
+    }
     selectors.projectGrid.innerHTML = visibleItems
       .map((project) => {
         const avatars = project.members
@@ -286,6 +303,7 @@
   }
 
   function renderStatusTotals() {
+    selectors.statusTotals.style.gridTemplateColumns = `repeat(${Math.max(statusData.length, 1)}, minmax(0, 1fr))`;
     selectors.statusTotals.innerHTML = statusData
       .map((item) => {
         return `
@@ -758,15 +776,26 @@
 
       projects = result.data.projects || projects;
       upcomingTasks = result.data.upcomingTasks || upcomingTasks;
-      notifications = result.data.notifications || notifications;
-      activityItems = result.data.activityItems || activityItems;
+      notifications = (result.data.notifications || notifications).map((item) => item.body || item);
+      activityItems = (result.data.activityItems || activityItems).map((item) => item.body || item);
       analytics = result.data.analytics || analytics;
       statusData = result.data.statusData || statusData;
       state.filteredProjects = projects.slice();
     } catch (error) {
       showToast(error.message || "Dashboard data could not be loaded");
       if (!allowDemoFallback) {
-        throw error;
+        projects = [];
+        upcomingTasks = [];
+        notifications = [];
+        activityItems = [];
+        analytics = {
+          daily: { labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], planned: [], completed: [] },
+          weekly: { labels: ["W1", "W2", "W3", "W4", "W5"], planned: [], completed: [] },
+          monthly: { labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], planned: [], completed: [] },
+        };
+        statusData = [];
+        state.filteredProjects = [];
+        return;
       }
       console.warn("Using dashboard demo fallback data:", error);
     }

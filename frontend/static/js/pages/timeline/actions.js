@@ -19,24 +19,11 @@
     showToast,
 
     loadStoredWorkspaces() {
-      try {
-        const stored = JSON.parse(window.localStorage.getItem("taskflow-workspaces") || "[]");
-        const existingIds = new Set(Timeline.workspaces.map((workspace) => workspace.id));
-        stored.forEach((workspace) => {
-          if (workspace?.id && !existingIds.has(workspace.id)) {
-            Timeline.workspaces.push(workspace);
-            existingIds.add(workspace.id);
-          }
-        });
-      } catch {
-        window.localStorage.removeItem("taskflow-workspaces");
-      }
+      window.localStorage.removeItem("taskflow-workspaces");
     },
 
     saveCustomWorkspaces() {
-      const defaultIds = new Set(["design-sprint", "fintask-landing-page", "checkout-flow", "brand-refresh"]);
-      const custom = Timeline.workspaces.filter((workspace) => !defaultIds.has(workspace.id));
-      window.localStorage.setItem("taskflow-workspaces", JSON.stringify(custom));
+      window.localStorage.removeItem("taskflow-workspaces");
     },
 
     ensureActiveWorkspace() {
@@ -104,7 +91,6 @@
 
     loadFavorites() {
       try {
-        Timeline.state.favoriteIds = JSON.parse(window.localStorage.getItem("taskflow-project-favorites") || "[]");
         Timeline.state.favoriteFirst = window.localStorage.getItem("taskflow-project-favorite-first") !== "false";
       } catch {
         Timeline.state.favoriteIds = [];
@@ -113,7 +99,6 @@
     },
 
     saveFavorites() {
-      window.localStorage.setItem("taskflow-project-favorites", JSON.stringify(Timeline.state.favoriteIds));
       window.localStorage.setItem("taskflow-project-favorite-first", String(Timeline.state.favoriteFirst));
     },
 
@@ -128,8 +113,9 @@
       Timeline.selectors.favoriteSortButton.classList.toggle("text-slate-300", !Timeline.state.favoriteFirst);
     },
 
-    toggleTaskFavorite(taskId) {
+    async toggleTaskFavorite(taskId) {
       const index = Timeline.state.favoriteIds.indexOf(taskId);
+      const nextFavorite = index < 0;
       if (index >= 0) {
         Timeline.state.favoriteIds.splice(index, 1);
         showToast("Removed from favorites");
@@ -139,6 +125,19 @@
       }
       Timeline.actions.saveFavorites();
       Timeline.actions.applyTaskFilters();
+      if ((/^\d+$/).test(taskId)) {
+        try {
+          await Timeline.timelineApi.setTaskFavorite(taskId, nextFavorite, Timeline.app);
+        } catch (error) {
+          if (nextFavorite) {
+            Timeline.state.favoriteIds = Timeline.state.favoriteIds.filter((id) => id !== taskId);
+          } else if (!Timeline.state.favoriteIds.includes(taskId)) {
+            Timeline.state.favoriteIds.push(taskId);
+          }
+          Timeline.actions.applyTaskFilters();
+          showToast(error.message || "Favorite could not be saved");
+        }
+      }
     },
 
     applyTaskFilters() {
@@ -181,20 +180,26 @@
     },
 
     async deleteTask(taskId) {
+      const index = Timeline.tasks.findIndex((task) => task.id === taskId);
+      const snapshot = index !== -1 ? { ...Timeline.tasks[index] } : null;
+      showToast("Deleting...");
+      if (index !== -1) {
+        Timeline.tasks.splice(index, 1);
+        Timeline.actions.applyTaskFilters();
+      }
       try {
         if ((/^\d+$/).test(taskId)) {
           const response = await Timeline.timelineApi.deleteTask(taskId, Timeline.app);
           if (!response.ok) throw new Error(response.message);
         }
-        const index = Timeline.tasks.findIndex((task) => task.id === taskId);
-        if (index !== -1) {
-          Timeline.tasks.splice(index, 1);
-        }
         Timeline.modals.closeTaskModal();
-        Timeline.actions.applyTaskFilters();
-        showToast("Task deleted");
+        showToast("Deleted");
       } catch (err) {
-        showToast(err.message || "Failed to delete task");
+        if (snapshot && !Timeline.tasks.some((task) => task.id === taskId)) {
+          Timeline.tasks.splice(Math.max(index, 0), 0, snapshot);
+          Timeline.actions.applyTaskFilters();
+        }
+        showToast(err.message || "Failed, restored");
       }
     },
 
@@ -220,6 +225,8 @@
           date: data.date || "No date",
           members: data.members || [],
           projects: data.projects || [],
+          projectIds: data.projectIds || {},
+          inviteUrl: data.inviteUrl || "",
           progress: data.progress || 0,
           tasks: data.tasks || 0,
           done: data.done || 0,
@@ -264,9 +271,13 @@
           if (!workspace.projects) {
             workspace.projects = [];
           }
+          if (!workspace.projectIds) {
+            workspace.projectIds = {};
+          }
           if (!workspace.projects.includes(data.title)) {
             workspace.projects.push(data.title);
           }
+          workspace.projectIds[data.title] = data.databaseId;
         }
         
         Timeline.modals.closeProjectEditor();
@@ -282,7 +293,17 @@
       const formData = new FormData(Timeline.selectors.editorForm);
       const id = String(formData.get("id") || "");
       const title = String(formData.get("title") || "").trim();
-      if (!title) return;
+      if (!title) {
+        showToast("Task title is required");
+        return;
+      }
+      const submitButton = event.submitter || Timeline.selectors.editorForm.querySelector('button[type="submit"]');
+      const originalButton = submitButton?.innerHTML || "";
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i> Saving...';
+        Timeline.renderers.refreshIcons();
+      }
 
       const payload = {
         title,
@@ -290,7 +311,7 @@
         status: String(formData.get("status") || "To Do"),
         priority: String(formData.get("priority") || "Medium"),
         owner: String(formData.get("owner") || "Sarah Nguyen").trim(),
-        due: String(formData.get("due") || "Nov 18").trim(),
+        due_date: String(formData.get("due_date") || "").trim(),
         progress: Number(formData.get("progress") || 20),
       };
 
@@ -302,41 +323,35 @@
             if (!response.ok) throw new Error(response.message);
             Object.assign(existing, response.data);
           } else {
-            Object.assign(existing, payload);
+            throw new Error("This task is not stored in the database.");
           }
-          showToast("Task updated");
         } else {
           if (Timeline.state.activeWorkspaceId) {
             const workspace = Timeline.workspaces.find((w) => w.id === Timeline.state.activeWorkspaceId);
-            if (workspace && workspace.databaseId) {
-              const response = await Timeline.timelineApi.createTask(workspace.databaseId, payload, Timeline.app);
+            const activeProjectName = Timeline.helpers.activeProjectName();
+            const projectId = workspace?.projectIds?.[activeProjectName] || workspace?.projectIds?.[payload.projectName];
+            if (workspace && projectId) {
+              const response = await Timeline.timelineApi.createTask(projectId, payload, Timeline.app);
               if (!response.ok) throw new Error(response.message);
               Timeline.tasks.push(response.data);
             } else {
-              Timeline.tasks.push({
-                id: Timeline.helpers.createTaskId(payload.title),
-                ...payload,
-                workspaceId: Timeline.state.activeWorkspaceId,
-                projectName: Timeline.helpers.activeProjectName(),
-                start: 10,
-                duration: 1.25,
-                row: 0,
-                color: "bg-cyan-200 border-cyan-300",
-                text: "text-slate-950",
-                members: ["SN", "MS"],
-                category: "Kanban",
-                comments: 0,
-                attachments: 0,
-                kanbanOnly: true,
-              });
+              throw new Error("Create or select a saved project first.");
             }
+          } else {
+            throw new Error("Create or select a workspace first.");
           }
-          showToast("Task added");
         }
         Timeline.modals.closeTaskEditor();
         Timeline.actions.applyTaskFilters();
+        showToast("Saved");
       } catch (err) {
         showToast(err.message || "Failed to save task");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalButton;
+          Timeline.renderers.refreshIcons();
+        }
       }
     },
 
@@ -357,7 +372,7 @@
       Timeline.renderers.refreshIcons();
 
       try {
-        await Timeline.timelineApi.sendInvite(Timeline.app, Timeline.selectors.projectInviteForm, payload);
+        await Timeline.timelineApi.sendInvite(Timeline.app, Timeline.selectors.projectInviteForm, payload, workspace?.databaseId || workspace?.id || "");
         Timeline.modals.closeProjectInviteModal();
         showToast("Invitation sent");
       } catch (error) {
@@ -377,13 +392,21 @@
           Timeline.workspaces = result.data.projects;
         }
         Timeline.tasks = result.data.tasks || Timeline.tasks;
+        if (Array.isArray(result.data.favoriteTaskIds)) {
+          Timeline.state.favoriteIds = result.data.favoriteTaskIds.map(String);
+        }
         Timeline.actions.normalizeWorkspaceTasks();
-        Timeline.notifications = result.data.notifications || Timeline.notifications;
+        Timeline.notifications = (result.data.notifications || Timeline.notifications).map((item) => item.body || item);
         Timeline.state.filteredTasks = Timeline.tasks.slice();
       } catch (error) {
         showToast(error.message || "Project data could not be loaded");
         if (!Timeline.allowDemoFallback) {
-          throw error;
+          Timeline.workspaces = [];
+          Timeline.tasks = [];
+          Timeline.notifications = [];
+          Timeline.state.filteredTasks = [];
+          Timeline.state.lastLoadError = error.message || "Project data could not be loaded";
+          return;
         }
         console.warn("Using project demo fallback data:", error);
         Timeline.actions.normalizeWorkspaceTasks();
