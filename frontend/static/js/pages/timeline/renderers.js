@@ -39,14 +39,15 @@
       if (!Timeline.selectors.workspaceList) return;
       const currentWorkspace = Timeline.helpers.activeWorkspace();
       Timeline.selectors.workspaceCurrentTitle.textContent = Timeline.state.mode === "overview" ? "Project Overview" : (currentWorkspace ? currentWorkspace.name : "No Workspace");
-      Timeline.selectors.workspaceList.innerHTML = Timeline.workspaces
+      const workspaceItems = Timeline.workspaces
         .map((workspace) => {
           const isActive = workspace.id === Timeline.state.activeWorkspaceId;
           const count = Timeline.tasks.filter((task) => task.workspaceId === workspace.id).length;
+          const projects = Array.isArray(workspace.projects) ? workspace.projects : [];
           return `
             <div class="rounded-2xl px-2.5 py-2 transition ${isActive ? "border border-white/12 bg-white/12 text-white shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "text-slate-300"}">
               <button
-                class="flex w-full items-center justify-between gap-2 text-left"
+                class="flex min-h-10 w-full items-center justify-between gap-2 rounded-xl px-2 text-left"
                 type="button"
                 data-workspace-overview="${workspace.id}"
               >
@@ -54,13 +55,13 @@
                 <span class="rounded-full bg-slate-950/35 px-1.5 py-0.5 text-[0.58rem] font-black text-cyan-100">${count}</span>
               </button>
               <div class="mt-2 space-y-1">
-                ${workspace.projects
+                ${projects
                   .map((project) => {
                     const isProjectActive = Timeline.state.mode === "detail" && isActive && Timeline.helpers.activeProjectName() === project;
                     const projectCount = Timeline.tasks.filter((task) => task.workspaceId === workspace.id && task.projectName === project).length;
                     return `
                       <button
-                        class="flex w-full items-center justify-between gap-2 rounded-xl px-2 py-1.5 text-left text-[0.72rem] font-bold transition hover:bg-white/10 ${isProjectActive ? "bg-cyan-300/14 text-cyan-100" : "text-slate-400"}"
+                        class="flex min-h-10 w-full items-center justify-between gap-2 rounded-xl px-2 py-1.5 text-left text-[0.72rem] font-bold transition hover:bg-white/10 ${isProjectActive ? "bg-cyan-300/14 text-cyan-100" : "text-slate-400"}"
                         type="button"
                         data-workspace-id="${workspace.id}"
                         data-project-name="${Timeline.helpers.escapeHtml(project)}"
@@ -76,6 +77,34 @@
           `;
         })
         .join("");
+
+      const emptyState = Timeline.workspaces.length
+        ? ""
+        : `
+          <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.035] px-3 py-4 text-center">
+            <p class="text-xs font-semibold text-slate-400">No workspace yet</p>
+            <p class="mt-1 text-[0.68rem] text-slate-500">Create one to store real projects and tasks.</p>
+          </div>
+        `;
+
+      const addCard = `
+        <button
+          class="group flex w-full items-center gap-3 rounded-2xl border border-dashed border-cyan-300/25 bg-cyan-300/[0.06] px-3 py-2.5 text-left text-cyan-100 transition hover:border-cyan-200/45 hover:bg-cyan-300/[0.12]"
+          type="button"
+          data-add-workspace
+        >
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cyan-300/15 text-cyan-100 transition group-hover:bg-cyan-300/25">
+            <i data-lucide="plus" class="h-4 w-4"></i>
+          </span>
+          <span class="min-w-0">
+            <span class="block truncate text-sm font-black">Add workspace</span>
+            <span class="block truncate text-[0.68rem] font-semibold text-slate-400">Create a shared project group</span>
+          </span>
+        </button>
+      `;
+
+      Timeline.selectors.workspaceList.innerHTML = `${emptyState}${workspaceItems}${addCard}`;
+      Timeline.renderers.refreshIcons();
     },
 
     renderProjectHeader() {
@@ -142,7 +171,7 @@
           overviewTitle.innerHTML = `
             <div class="flex flex-wrap items-center gap-3">
               <span>${Timeline.helpers.escapeHtml(selectedWorkspace.name)} Workspace</span>
-              <button id="clearWorkspaceFilter" class="inline-flex h-6 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 text-[0.62rem] font-bold text-slate-300 transition hover:bg-white/10 hover:text-white" type="button">
+              <button id="clearWorkspaceFilter" class="inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 text-[0.62rem] font-bold text-slate-300 transition hover:bg-white/10 hover:text-white" type="button">
                 <i data-lucide="arrow-left" class="h-3 w-3"></i> View All Workspaces
               </button>
             </div>
@@ -183,7 +212,7 @@
                       .map((project) => {
                         const count = Timeline.helpers.projectTasks(workspace.id, project).length;
                         return `
-                          <button class="flex h-8 items-center justify-between gap-2 rounded-lg border border-white/[0.07] bg-slate-950/25 px-2 text-left transition hover:border-cyan-300/25 hover:bg-cyan-300/10" type="button" data-workspace-id="${workspace.id}" data-project-name="${Timeline.helpers.escapeHtml(project)}">
+                          <button class="flex min-h-10 items-center justify-between gap-2 rounded-lg border border-white/[0.07] bg-slate-950/25 px-2 text-left transition hover:border-cyan-300/25 hover:bg-cyan-300/10" type="button" data-workspace-id="${workspace.id}" data-project-name="${Timeline.helpers.escapeHtml(project)}">
                             <span class="truncate text-[0.72rem] font-black text-white">${Timeline.helpers.escapeHtml(project)}</span>
                             <span class="rounded-full bg-white/10 px-1.5 py-0.5 text-[0.56rem] font-black text-slate-400">${count}</span>
                           </button>
@@ -370,7 +399,7 @@
           const isToday = option.iso === todayIso;
           return `
             <button
-              class="h-6 shrink-0 rounded-lg px-2 text-[0.62rem] font-black transition ${isActive ? "bg-cyan-300 text-slate-950" : "text-slate-300 hover:bg-white/10 hover:text-white"}"
+              class="min-h-10 shrink-0 rounded-lg px-3 text-[0.62rem] font-black transition ${isActive ? "bg-cyan-300 text-slate-950" : "text-slate-300 hover:bg-white/10 hover:text-white"}"
               type="button"
               data-calendar-day="${option.iso}"
               aria-pressed="${isActive}"
@@ -630,6 +659,10 @@
     },
 
     refreshIcons() {
+      if (window.TaskFlow && typeof window.TaskFlow.refreshIcons === "function") {
+        window.TaskFlow.refreshIcons();
+        return;
+      }
       if (window.lucide) window.lucide.createIcons();
     }
   };

@@ -14,7 +14,7 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body class="{% block body_class %}py-5{% endblock %}">
-    <div id="pjax-container" class="transition-opacity duration-200">
+    <div id="pjax-container" class="transition-[opacity,transform,filter] duration-200 ease-out will-change-[opacity,transform]">
       {% block page_shell %}
       <div class="container">
         <header class="mb-4">
@@ -50,16 +50,6 @@
         </footer>
       </div>
       {% endblock %}
-
-      <div id="pjax-vendor-scripts" style="display:none;">
-        {% block vendor_scripts %}
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        {% endblock %}
-      </div>
-
-      <div id="pjax-extra-scripts" style="display:none;">
-        {% block extra_scripts %}{% endblock %}
-      </div>
     </div>
 
     {% block core_scripts %}
@@ -68,6 +58,7 @@
     <script src="{% static 'js/core/toast.js' %}"></script>
     <script src="{% static 'js/core/dom.js' %}"></script>
     <script src="{% static 'js/core/storage.js' %}"></script>
+    <script src="{% static 'js/core/theme.js' %}?v=20260628-3"></script>
     {% endblock %}
     <script>
       // Global profile dropdown toggle
@@ -95,20 +86,37 @@
       (function() {
         "use strict";
 
-        // 1. Intercept setInterval to allow clearing them on page swap
+        window.TaskFlow = window.TaskFlow || {};
+        window.TaskFlow.refreshIcons = function() {
+          if (window.lucide && typeof window.lucide.createIcons === "function") {
+            window.lucide.createIcons();
+            return true;
+          }
+          return false;
+        };
+
+        // 1. Intercept timers and listeners to allow clearing page code on swaps.
         const originalSetInterval = window.setInterval;
+        const originalSetTimeout = window.setTimeout;
         const activeIntervals = [];
+        const activeTimeouts = [];
         window.setInterval = function(fn, delay, ...args) {
           const id = originalSetInterval(fn, delay, ...args);
           activeIntervals.push(id);
           return id;
         };
+        window.setTimeout = function(fn, delay, ...args) {
+          const id = originalSetTimeout(fn, delay, ...args);
+          activeTimeouts.push(id);
+          return id;
+        };
         window.clearAllIntervals = function() {
           activeIntervals.forEach(id => window.clearInterval(id));
           activeIntervals.length = 0;
+          activeTimeouts.forEach(id => window.clearTimeout(id));
+          activeTimeouts.length = 0;
         };
 
-        // 2. Intercept addEventListener to allow clearing page-specific listeners
         const originalWindowAddEventListener = window.addEventListener;
         const originalDocumentAddEventListener = document.addEventListener;
         const originalWindowRemoveEventListener = window.removeEventListener;
@@ -123,10 +131,15 @@
 
         document.addEventListener = function(type, listener, options) {
           if (type === "DOMContentLoaded") {
-            // Trigger immediately if DOM is already ready
             if (document.readyState === "interactive" || document.readyState === "complete") {
-              try { listener(); } catch(e) { console.error(e); }
+              originalSetTimeout(() => {
+                try { listener.call(document, new Event("DOMContentLoaded")); } catch(e) { console.error(e); }
+              }, 0);
+              return;
             }
+            const wrapped = (event) => listener.call(document, event);
+            pageListeners.push({ target: document, type, listener: wrapped, options });
+            originalDocumentAddEventListener.call(document, type, wrapped, options);
           } else {
             pageListeners.push({ target: document, type, listener, options });
             originalDocumentAddEventListener.call(document, type, listener, options);
@@ -144,9 +157,23 @@
           pageListeners.length = 0;
         };
 
-        // 3. Link interception and fetch page transitions
+        // 2. Link interception and fetch page transitions.
         const container = document.getElementById("pjax-container");
         if (!container) return;
+        let isNavigating = false;
+
+        function normalizeUrl(url) {
+          return new URL(url, window.location.origin);
+        }
+
+        function isSamePage(url) {
+          const target = normalizeUrl(url);
+          return target.pathname === window.location.pathname && target.search === window.location.search;
+        }
+
+        function delay(ms) {
+          return new Promise(resolve => originalSetTimeout(resolve, ms));
+        }
 
         async function loadScriptsSequentially(scripts) {
           for (const oldScript of scripts) {
@@ -155,6 +182,7 @@
               Array.from(oldScript.attributes).forEach(attr => {
                 newScript.setAttribute(attr.name, attr.value);
               });
+              newScript.dataset.pjaxLoaded = "true";
               newScript.textContent = oldScript.textContent;
               if (newScript.hasAttribute("src")) {
                 newScript.onload = () => resolve();
@@ -168,11 +196,25 @@
         }
 
         async function navigateTo(url, pushState = true) {
-          // Fade out transition style
+          if (isNavigating) return;
+          if (pushState && isSamePage(url)) return;
+          isNavigating = true;
+
+          const targetUrl = normalizeUrl(url);
+          const fetchPromise = fetch(targetUrl.pathname + targetUrl.search, {
+            headers: {
+              "X-Requested-With": "TaskFlow-PJAX",
+            },
+          });
+
           container.style.opacity = "0";
+          container.style.transform = "translateY(8px) scale(0.996)";
+          container.style.filter = "blur(2px)";
+          container.style.pointerEvents = "none";
 
           try {
-            const response = await fetch(url);
+            await delay(110);
+            const response = await fetchPromise;
             if (!response.ok) throw new Error("Failed to load page");
             const html = await response.text();
 
@@ -193,51 +235,66 @@
             document.body.className = doc.body.className;
 
             if (pushState) {
-              window.history.pushState({}, "", url);
+              window.history.pushState({}, "", targetUrl.pathname + targetUrl.search + targetUrl.hash);
             }
 
-            // Fade in transition style
-            container.style.opacity = "1";
+            document.documentElement.dataset.pjaxLastUrl = targetUrl.pathname + targetUrl.search;
+            document.documentElement.dataset.pjaxNavigated = "true";
+            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
 
-            // Execute scripts inside #pjax-vendor-scripts and #pjax-extra-scripts
-            const vendorScripts = container.querySelectorAll("#pjax-vendor-scripts script");
-            const extraScripts = container.querySelectorAll("#pjax-extra-scripts script");
-
+            const vendorScripts = doc.querySelectorAll("#pjax-vendor-scripts script");
+            const extraScripts = doc.querySelectorAll("#pjax-extra-scripts script");
+            document.querySelectorAll("script[data-pjax-loaded='true']").forEach((script) => script.remove());
             await loadScriptsSequentially(vendorScripts);
             await loadScriptsSequentially(extraScripts);
 
-            // Re-initialize global components (like Lucide icons)
-            if (window.lucide && typeof window.lucide.createIcons === "function") {
-              window.lucide.createIcons();
-            }
+            window.TaskFlow.refreshIcons();
+
+            requestAnimationFrame(() => {
+              container.style.opacity = "1";
+              container.style.transform = "translateY(0) scale(1)";
+              container.style.filter = "blur(0)";
+              container.style.pointerEvents = "";
+            });
 
           } catch (error) {
             console.error("PJAX navigation error:", error);
-            // Fallback: full reload if fetch/swap fails
             window.location.href = url;
+          } finally {
+            isNavigating = false;
           }
         }
 
-        // Global link click handler
-        document.body.addEventListener("click", (e) => {
+        originalDocumentAddEventListener.call(document, "click", (e) => {
           const link = e.target.closest("a");
           if (!link) return;
+          if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
           const href = link.getAttribute("href");
-          if (!href || href.startsWith("http") || href.startsWith("#") || link.target === "_blank") return;
-          // Bypass auth endpoints or admin site
+          if (!href || href.startsWith("#") || link.target === "_blank" || link.hasAttribute("download")) return;
+          const targetUrl = normalizeUrl(href);
+          if (targetUrl.origin !== window.location.origin) return;
           if (href.includes("logout") || href.includes("login") || href.includes("admin")) return;
 
           e.preventDefault();
-          navigateTo(href);
+          navigateTo(targetUrl.href);
         });
 
-        // History back/forward navigation
-        window.addEventListener("popstate", () => {
-          navigateTo(window.location.pathname, false);
+        originalWindowAddEventListener.call(window, "popstate", () => {
+          navigateTo(window.location.pathname + window.location.search + window.location.hash, false);
         });
 
+        window.TaskFlow.pjax = { navigateTo };
       })();
     </script>
+    <div id="pjax-vendor-scripts" style="display:none;">
+      {% block vendor_scripts %}
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      {% endblock %}
+    </div>
+
+    <div id="pjax-extra-scripts" style="display:none;">
+      {% block extra_scripts %}{% endblock %}
+    </div>
   </body>
 </html>

@@ -48,9 +48,11 @@
    *  Helpers
    * ============================================================ */
   function refreshIcons() {
-    if (window.lucide && typeof window.lucide.createIcons === "function") {
-      window.lucide.createIcons();
+    if (window.TaskFlow && typeof window.TaskFlow.refreshIcons === "function") {
+      window.TaskFlow.refreshIcons();
+      return;
     }
+    if (window.lucide && typeof window.lucide.createIcons === "function") window.lucide.createIcons();
   }
   refreshIcons();
 
@@ -85,13 +87,20 @@
    * ============================================================ */
   const THEME_KEY = "taskflow-theme";
   function applyTheme(theme) {
+    if (window.TaskFlow?.theme) {
+      return window.TaskFlow.theme.apply(theme, {
+        root: app,
+        toggle: document.getElementById("filesThemeToggle"),
+      });
+    }
     document.documentElement.classList.toggle("dark", theme !== "light");
+    app.dataset.theme = theme;
+    return theme;
   }
-  applyTheme(localStorage.getItem(THEME_KEY) || "dark");
+  applyTheme(window.TaskFlow?.theme?.current() || localStorage.getItem(THEME_KEY) || "dark");
   document.getElementById("filesThemeToggle")?.addEventListener("click", () => {
-    const now = document.documentElement.classList.contains("dark") ? "light" : "dark";
+    const now = app.dataset.theme === "light" ? "dark" : "light";
     applyTheme(now);
-    localStorage.setItem(THEME_KEY, now);
     showToast(now === "dark" ? "Dark mode đã bật" : "Light mode đã bật");
   });
 
@@ -195,7 +204,7 @@
         <td class="px-2 py-2.5 font-semibold text-slate-300">${f.modified}</td>
         <td class="px-2 py-2.5">${avatarStack(f.members)}</td>
         <td class="px-2 py-2.5 text-right">
-          <button class="js-row-action grid h-8 w-8 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" aria-label="More actions" data-id="${f.id}">
+          <button class="js-row-action grid h-10 w-10 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" aria-label="More actions" data-id="${f.id}">
             <i data-lucide="more-vertical" class="h-4 w-4"></i>
           </button>
         </td>

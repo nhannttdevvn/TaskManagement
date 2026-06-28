@@ -78,9 +78,11 @@
    *  Lucide bootstrap (gọi lại mỗi khi inject DOM mới)
    * ============================================================ */
   function refreshIcons() {
-    if (window.lucide && typeof window.lucide.createIcons === "function") {
-      window.lucide.createIcons();
+    if (window.TaskFlow && typeof window.TaskFlow.refreshIcons === "function") {
+      window.TaskFlow.refreshIcons();
+      return;
     }
+    if (window.lucide && typeof window.lucide.createIcons === "function") window.lucide.createIcons();
   }
   refreshIcons();
 
@@ -159,13 +161,21 @@
    * ============================================================ */
   const THEME_KEY = "taskflow-theme";
   function applyTheme(theme) {
+    if (window.TaskFlow?.theme) {
+      return window.TaskFlow.theme.apply(theme, {
+        root: app,
+        toggle: document.getElementById("settingsThemeToggle"),
+      });
+    }
     document.documentElement.classList.toggle("dark", theme !== "light");
+    app.dataset.theme = theme;
+    return theme;
   }
-  applyTheme(localStorage.getItem(THEME_KEY) || "dark");
+  applyTheme(window.TaskFlow?.theme?.current() || localStorage.getItem(THEME_KEY) || "dark");
   document.getElementById("settingsThemeToggle")?.addEventListener("click", () => {
-    const now = document.documentElement.classList.contains("dark") ? "light" : "dark";
+    const now = app.dataset.theme === "light" ? "dark" : "light";
     applyTheme(now);
-    localStorage.setItem(THEME_KEY, now);
+    if (prefThemeSwitch) prefThemeSwitch.checked = now === "dark";
     showToast(now === "dark" ? "Dark mode đã bật" : "Light mode đã bật");
   });
   // Nếu Preferences tab có theme switch, đồng bộ ngược về body class
@@ -173,7 +183,6 @@
   prefThemeSwitch && prefThemeSwitch.addEventListener("change", (e) => {
     const t = e.target.checked ? "dark" : "light";
     applyTheme(t);
-    localStorage.setItem(THEME_KEY, t);
   });
 
   /* ============================================================
@@ -355,7 +364,7 @@
               </select>
               <i data-lucide="chevron-down" class="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"></i>
             </label>
-            <button class="js-remove-member grid h-9 w-9 place-items-center rounded-2xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-rose-500/15 hover:text-rose-200" type="button" aria-label="Remove ${m.name}" ${removeBtnStyle}>
+            <button class="js-remove-member grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-rose-500/15 hover:text-rose-200" type="button" aria-label="Remove ${m.name}" ${removeBtnStyle}>
               <i data-lucide="user-minus" class="h-4 w-4"></i>
             </button>
           </div>

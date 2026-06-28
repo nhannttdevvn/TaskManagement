@@ -748,10 +748,13 @@
   }
 
   function setTheme(theme) {
-    app.dataset.theme = theme;
-    document.documentElement.classList.toggle("dark", theme !== "light");
-    selectors.themeToggle.innerHTML = `<i data-lucide="${theme === "light" ? "sun" : "moon"}" class="h-4 w-4"></i>`;
+    const activeTheme = window.TaskFlow?.theme
+      ? window.TaskFlow.theme.apply(theme, { root: app, toggle: selectors.themeToggle })
+      : theme;
+    app.dataset.theme = activeTheme;
+    document.documentElement.classList.toggle("dark", activeTheme !== "light");
     refreshIcons();
+    return activeTheme;
   }
 
   function showToast(message) {
@@ -1078,9 +1081,8 @@
 
     selectors.themeToggle.addEventListener("click", () => {
       const nextTheme = app.dataset.theme === "light" ? "dark" : "light";
-      setTheme(nextTheme);
-      window.localStorage.setItem("taskflow-team-theme", nextTheme);
-      showToast(`${nextTheme === "light" ? "Light" : "Dark"} mode enabled`);
+      const activeTheme = setTheme(nextTheme);
+      showToast(`${activeTheme === "light" ? "Light" : "Dark"} mode enabled`);
     });
 
     selectors.inviteButton.addEventListener("click", openInviteModal);
@@ -1234,13 +1236,17 @@
   }
 
   function refreshIcons() {
+    if (window.TaskFlow && typeof window.TaskFlow.refreshIcons === "function") {
+      window.TaskFlow.refreshIcons();
+      return;
+    }
     if (window.lucide) window.lucide.createIcons();
   }
 
   async function init() {
     if (initialized) return;
     initialized = true;
-    setTheme(window.localStorage.getItem("taskflow-team-theme") || "dark");
+    setTheme(window.TaskFlow?.theme?.current() || "dark");
     
     await loadFriendsList();
     

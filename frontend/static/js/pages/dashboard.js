@@ -579,18 +579,20 @@
 
   function toggleTheme() {
     const nextTheme = app.dataset.theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
-    window.localStorage.setItem("tmds-dashboard-theme", nextTheme);
-    showToast(`${nextTheme === "light" ? "Light" : "Dark"} mode enabled`);
+    const activeTheme = setTheme(nextTheme);
+    showToast(`${activeTheme === "light" ? "Light" : "Dark"} mode enabled`);
   }
 
   function setTheme(theme) {
-    app.dataset.theme = theme;
-    document.documentElement.classList.toggle("dark", theme !== "light");
-    selectors.themeToggle.innerHTML = `<i data-lucide="${theme === "light" ? "sun" : "moon"}" class="h-4 w-4"></i>`;
+    const activeTheme = window.TaskFlow?.theme
+      ? window.TaskFlow.theme.apply(theme, { root: app, toggle: selectors.themeToggle })
+      : theme;
+    app.dataset.theme = activeTheme;
+    document.documentElement.classList.toggle("dark", activeTheme !== "light");
     createTaskDoneChart(state.currentRange);
     createStatusChart();
     refreshIcons();
+    return activeTheme;
   }
 
   function animateCounters() {
@@ -671,9 +673,11 @@
   }
 
   function refreshIcons() {
-    if (window.lucide) {
-      window.lucide.createIcons();
+    if (window.TaskFlow && typeof window.TaskFlow.refreshIcons === "function") {
+      window.TaskFlow.refreshIcons();
+      return;
     }
+    if (window.lucide) window.lucide.createIcons();
   }
 
   function bindEvents() {
@@ -802,8 +806,7 @@
   }
 
   async function init() {
-    const savedTheme = window.localStorage.getItem("tmds-dashboard-theme") || "dark";
-    setTheme(savedTheme);
+    setTheme(window.TaskFlow?.theme?.current() || "dark");
     await loadDashboardData();
     renderNotifications();
     renderUpcomingTasks(upcomingTasks);

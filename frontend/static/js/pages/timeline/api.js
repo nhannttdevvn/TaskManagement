@@ -7,7 +7,7 @@
     loadProjectData(root, options = {}) {
       const url = new URL(root.dataset.projectUrl, window.location.origin);
       const activeWorkspaceId = window.localStorage.getItem("taskflow-active-workspace") || "";
-      if (activeWorkspaceId) {
+      if (activeWorkspaceId && !options.ignoreWorkspaceFilter) {
         url.searchParams.set("workspace_id", activeWorkspaceId);
       }
       if (options.day && options.day !== "all") {

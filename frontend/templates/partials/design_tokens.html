@@ -1,63 +1,152 @@
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    darkMode: "class",
-    safelist: [
-      "hidden", "grid", "flex", "translate-x-0", "-translate-x-full",
-      "opacity-0", "opacity-100", "scale-95", "scale-100", "translate-y-0",
-      "bg-gradient-to-br", "from-cyan-400", "to-blue-600", "from-violet-500",
-      "to-fuchsia-500", "from-emerald-500", "to-green-500", "from-amber-500",
-      "to-rose-500", "from-cyan-500", "to-violet-500", "from-violet-600",
-      "to-cyan-400", "bg-cyan-400/15", "text-cyan-200", "bg-emerald-400/15",
-      "text-emerald-200", "bg-amber-400/15", "text-amber-200",
-      "bg-rose-400/15", "text-rose-200", "bg-violet-400/15",
-      "text-violet-200", "bg-slate-400/15", "text-slate-200",
-      "bg-blue-400", "bg-violet-400", "bg-emerald-400", "bg-fuchsia-400/15",
-      "text-fuchsia-200", "bg-sky-200", "bg-violet-200", "bg-rose-200",
-      "bg-emerald-200", "border-sky-300", "border-violet-300",
-      "border-rose-300", "border-emerald-300"
-    ],
-    theme: {
-      extend: {
-        colors: {
-          brand: {
-            primary: "#7C4DFF",
-            secondary: "#4F9CF9",
-            accent: "#22D3EE",
-            surface: "rgba(255,255,255,0.04)",
-            border: "rgba(255,255,255,0.08)"
-          }
-        },
-        fontFamily: {
-          sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        },
-        boxShadow: {
-          glass: "0 16px 44px rgba(15, 23, 42, 0.26)",
-          glow: "0 18px 44px rgba(37, 99, 235, 0.28)",
-          soft: "0 20px 70px rgba(2, 6, 23, 0.32)",
-        },
-        keyframes: {
-          shimmer: {
-            "100%": { backgroundPosition: "-220% 0" },
-          },
-          pulseLine: {
-            "0%, 100%": { opacity: "0.65" },
-            "50%": { opacity: "1" },
-          },
-          modalIn: {
-            "0%": { opacity: "0", transform: "translateY(12px) scale(0.98)" },
-            "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
-          },
-        },
-        animation: {
-          shimmer: "shimmer 1.25s ease-in-out infinite",
-          pulseLine: "pulseLine 1.8s ease-in-out infinite",
-          modalIn: "modalIn 180ms ease both",
-        },
-      },
-    },
-  };
-</script>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/app.css' %}?v=20260628-2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  #dashboardApp[data-theme="light"],
+  #timelineApp[data-theme="light"],
+  #teamApp[data-theme="light"],
+  #filesApp[data-theme="light"],
+  #settingsApp[data-theme="light"] {
+    color-scheme: light;
+    background:
+      linear-gradient(135deg, rgba(79, 70, 229, 0.08), transparent 28%),
+      linear-gradient(225deg, rgba(14, 165, 233, 0.12), transparent 30%),
+      linear-gradient(180deg, #f8fafc 0%, #eef6ff 52%, #f5f3ff 100%) !important;
+  }
+
+  #dashboardApp[data-theme="light"] .theme-content,
+  #timelineApp[data-theme="light"] .theme-content,
+  #teamApp[data-theme="light"] .theme-content,
+  #filesApp[data-theme="light"] .theme-content,
+  #settingsApp[data-theme="light"] .theme-content {
+    color: #172033;
+  }
+
+  #dashboardApp[data-theme="light"] .theme-content header,
+  #dashboardApp[data-theme="light"] .theme-content .theme-panel,
+  #timelineApp[data-theme="light"] .theme-content header,
+  #timelineApp[data-theme="light"] .theme-content .theme-panel,
+  #teamApp[data-theme="light"] .theme-content header,
+  #teamApp[data-theme="light"] .theme-content .theme-panel,
+  #filesApp[data-theme="light"] .theme-content header,
+  #filesApp[data-theme="light"] .theme-content .theme-panel,
+  #settingsApp[data-theme="light"] .theme-content header,
+  #settingsApp[data-theme="light"] .theme-content .theme-panel {
+    background-color: rgba(255, 255, 255, 0.78) !important;
+    border-color: rgba(148, 163, 184, 0.36) !important;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  #dashboardApp[data-theme="light"] .theme-content [class*="bg-white/10"],
+  #dashboardApp[data-theme="light"] .theme-content [class*="bg-white/[0."],
+  #dashboardApp[data-theme="light"] .theme-content [class*="bg-slate-950"],
+  #dashboardApp[data-theme="light"] .theme-content [class*="bg-slate-900"],
+  #timelineApp[data-theme="light"] .theme-content [class*="bg-white/10"],
+  #timelineApp[data-theme="light"] .theme-content [class*="bg-white/[0."],
+  #timelineApp[data-theme="light"] .theme-content [class*="bg-slate-950"],
+  #timelineApp[data-theme="light"] .theme-content [class*="bg-slate-900"],
+  #teamApp[data-theme="light"] .theme-content [class*="bg-white/10"],
+  #teamApp[data-theme="light"] .theme-content [class*="bg-white/[0."],
+  #teamApp[data-theme="light"] .theme-content [class*="bg-slate-950"],
+  #teamApp[data-theme="light"] .theme-content [class*="bg-slate-900"],
+  #filesApp[data-theme="light"] .theme-content [class*="bg-white/10"],
+  #filesApp[data-theme="light"] .theme-content [class*="bg-white/[0."],
+  #filesApp[data-theme="light"] .theme-content [class*="bg-slate-950"],
+  #filesApp[data-theme="light"] .theme-content [class*="bg-slate-900"],
+  #settingsApp[data-theme="light"] .theme-content [class*="bg-white/10"],
+  #settingsApp[data-theme="light"] .theme-content [class*="bg-white/[0."],
+  #settingsApp[data-theme="light"] .theme-content [class*="bg-slate-950"],
+  #settingsApp[data-theme="light"] .theme-content [class*="bg-slate-900"] {
+    background-color: rgba(255, 255, 255, 0.76) !important;
+    border-color: rgba(148, 163, 184, 0.34) !important;
+  }
+
+  #dashboardApp[data-theme="light"] .theme-content .text-white,
+  #timelineApp[data-theme="light"] .theme-content .text-white,
+  #teamApp[data-theme="light"] .theme-content .text-white,
+  #filesApp[data-theme="light"] .theme-content .text-white,
+  #settingsApp[data-theme="light"] .theme-content .text-white {
+    color: #172033 !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-cyan-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="hover:text-cyan-"] {
+    color: #0e7490 !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-sky-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-blue-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="hover:text-sky-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="hover:text-blue-"] {
+    color: #1d4ed8 !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-violet-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-indigo-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-fuchsia-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="hover:text-violet-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="hover:text-indigo-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="hover:text-fuchsia-"] {
+    color: #6d28d9 !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-emerald-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="hover:text-emerald-"] {
+    color: #047857 !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-amber-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-yellow-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="hover:text-amber-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="hover:text-yellow-"] {
+    color: #b45309 !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-rose-"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="hover:text-rose-"] {
+    color: #be123c !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-slate-100"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] .theme-content [class*="text-slate-200"] {
+    color: #334155 !important;
+  }
+
+  #dashboardApp[data-theme="light"] .theme-content .text-slate-500,
+  #dashboardApp[data-theme="light"] .theme-content .text-slate-400,
+  #dashboardApp[data-theme="light"] .theme-content .text-slate-300,
+  #timelineApp[data-theme="light"] .theme-content .text-slate-500,
+  #timelineApp[data-theme="light"] .theme-content .text-slate-400,
+  #timelineApp[data-theme="light"] .theme-content .text-slate-300,
+  #teamApp[data-theme="light"] .theme-content .text-slate-500,
+  #teamApp[data-theme="light"] .theme-content .text-slate-400,
+  #teamApp[data-theme="light"] .theme-content .text-slate-300,
+  #filesApp[data-theme="light"] .theme-content .text-slate-500,
+  #filesApp[data-theme="light"] .theme-content .text-slate-400,
+  #filesApp[data-theme="light"] .theme-content .text-slate-300,
+  #settingsApp[data-theme="light"] .theme-content .text-slate-500,
+  #settingsApp[data-theme="light"] .theme-content .text-slate-400,
+  #settingsApp[data-theme="light"] .theme-content .text-slate-300 {
+    color: #475569 !important;
+  }
+
+  #dashboardApp[data-theme="light"] .theme-content input,
+  #dashboardApp[data-theme="light"] .theme-content select,
+  #dashboardApp[data-theme="light"] .theme-content textarea,
+  #timelineApp[data-theme="light"] .theme-content input,
+  #timelineApp[data-theme="light"] .theme-content select,
+  #timelineApp[data-theme="light"] .theme-content textarea,
+  #teamApp[data-theme="light"] .theme-content input,
+  #teamApp[data-theme="light"] .theme-content select,
+  #teamApp[data-theme="light"] .theme-content textarea,
+  #filesApp[data-theme="light"] .theme-content input,
+  #filesApp[data-theme="light"] .theme-content select,
+  #filesApp[data-theme="light"] .theme-content textarea,
+  #settingsApp[data-theme="light"] .theme-content input,
+  #settingsApp[data-theme="light"] .theme-content select,
+  #settingsApp[data-theme="light"] .theme-content textarea {
+    color: #0f172a !important;
+  }
+</style>

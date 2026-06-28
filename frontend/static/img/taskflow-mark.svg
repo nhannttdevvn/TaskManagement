@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">TaskFlow mark</title>
+  <desc id="desc">A flow line with connected task nodes and a completion check mark.</desc>
+  <defs>
+    <linearGradient id="flow-line" x1="7" y1="9" x2="57" y2="55" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#b7f7ff"/>
+      <stop offset="1" stop-color="#e9d5ff"/>
+    </linearGradient>
+    <linearGradient id="flow-node" x1="12" y1="10" x2="52" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <filter id="soft-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path
+    d="M17 18C23.5 9.5 39.6 9.2 46.8 18.8C54.7 29.3 47.7 45 34.8 48.3C24.8 50.9 14.6 45.1 12 35.4"
+    fill="none"
+    stroke="url(#flow-line)"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.95"
+    filter="url(#soft-glow)"
+  />
+  <circle cx="17" cy="18" r="7" fill="url(#flow-node)" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="47" cy="19" r="7" fill="url(#flow-node)" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="14" cy="36" r="5.6" fill="#0f172a" stroke="#b7f7ff" stroke-width="3"/>
+  <path
+    d="M25 33.5L31 39.5L43 25.5"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    filter="url(#soft-glow)"
+  />
+</svg>

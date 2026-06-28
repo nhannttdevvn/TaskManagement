@@ -16,18 +16,13 @@
   }
 
   function setTheme(theme) {
-    app.dataset.theme = theme;
-    document.documentElement.classList.toggle("dark", theme !== "light");
-    const isLight = theme === "light";
-    selectors.themeToggle.setAttribute("aria-label", isLight ? "Switch to dark mode" : "Switch to light mode");
-    selectors.themeToggle.setAttribute("title", isLight ? "Switch to dark mode" : "Switch to light mode");
-    selectors.themeToggle.innerHTML = `
-      <span class="grid h-6 w-6 place-items-center rounded-lg ${isLight ? "bg-violet-500/15 text-violet-700" : "bg-cyan-300/15 text-cyan-100"}">
-        <i data-lucide="${isLight ? "moon" : "sun"}" class="h-3.5 w-3.5"></i>
-      </span>
-      <span class="hidden sm:inline">${isLight ? "Dark" : "Light"}</span>
-    `;
+    const activeTheme = window.TaskFlow?.theme
+      ? window.TaskFlow.theme.apply(theme, { root: app, toggle: selectors.themeToggle, variant: "pill" })
+      : theme;
+    app.dataset.theme = activeTheme;
+    document.documentElement.classList.toggle("dark", activeTheme !== "light");
     Timeline.renderers.refreshIcons();
+    return activeTheme;
   }
 
   function setProjectMode(mode) {
@@ -94,8 +89,13 @@
     });
 
     selectors.workspaceList.addEventListener("click", (event) => {
+      const addWorkspace = event.target.closest("[data-add-workspace]");
       const workspaceButton = event.target.closest("[data-workspace-id]");
       const workspaceOverview = event.target.closest("[data-workspace-overview]");
+      if (addWorkspace) {
+        Timeline.modals.openWorkspaceEditor();
+        return;
+      }
       if (workspaceOverview) {
         Timeline.state.activeWorkspaceId = workspaceOverview.dataset.workspaceOverview;
         const workspaceObj = Timeline.workspaces.find((workspace) => workspace.id === Timeline.state.activeWorkspaceId);
@@ -164,6 +164,11 @@
     selectors.projectInviteForm.addEventListener("submit", Timeline.actions.sendProjectInvite);
 
     selectors.helpToggle.addEventListener("click", Timeline.modals.openHelpModal);
+
+    selectors.themeToggle.addEventListener("click", () => {
+      const activeTheme = setTheme(app.dataset.theme === "light" ? "dark" : "light");
+      Timeline.actions.showToast(`${activeTheme === "light" ? "Light" : "Dark"} mode enabled`);
+    });
 
     selectors.profileToggle.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -467,7 +472,7 @@
   }
 
   async function init() {
-    setTheme(window.localStorage.getItem("taskflow-timeline-theme") || "dark");
+    setTheme(window.TaskFlow?.theme?.current() || "dark");
     Timeline.actions.loadStoredWorkspaces();
     Timeline.actions.ensureActiveWorkspace();
     Timeline.actions.loadFavorites();

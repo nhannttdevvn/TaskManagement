@@ -28,7 +28,7 @@
     {# ============= LEFT HERO ============= #}
     <section class="hidden flex-col justify-between px-10 py-12 lg:flex">
       <a href="{% url 'login' %}" class="flex items-center gap-3">
-        <div class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-sm font-black text-white shadow-[0_18px_44px_rgba(124,77,255,0.45)]">TF</div>
+        <div class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-sm font-black text-white shadow-[0_18px_44px_rgba(124,77,255,0.45)]">{% include "partials/logo_mark.html" %}</div>
         <div>
           <p class="text-xs font-semibold uppercase text-cyan-200/80">TaskFlow</p>
           <h1 class="text-base font-bold text-white">Project Hub</h1>
@@ -68,7 +68,7 @@
     <section class="flex items-center justify-center px-4 py-10 sm:px-10">
       <div class="w-full max-w-md">
         <a href="{% url 'login' %}" class="mb-6 inline-flex items-center gap-2 lg:hidden">
-          <div class="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-xs font-black text-white shadow-[0_14px_34px_rgba(124,77,255,0.45)]">TF</div>
+          <div class="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-xs font-black text-white shadow-[0_14px_34px_rgba(124,77,255,0.45)]">{% include "partials/logo_mark.html" %}</div>
           <p class="text-base font-black text-white">TaskFlow</p>
         </a>
 
@@ -122,7 +122,7 @@
               <div class="relative">
                 <i data-lucide="lock" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
                 <input id="loginPassword" name="password" class="js-password w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="password" placeholder="••••••••" required minlength="8" autocomplete="current-password">
-                <button class="js-toggle-password absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" aria-label="Show password">
+                <button class="js-toggle-password absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" aria-label="Show password">
                   <i data-lucide="eye" class="h-4 w-4"></i>
                 </button>
               </div>
@@ -184,7 +184,7 @@
 {% endblock %}
 
 {% block vendor_scripts %}
-<script src="https://unpkg.com/lucide@latest"></script>
+{% include "partials/vendor_lucide.html" %}
 {% endblock %}
 
 {% block extra_scripts %}

@@ -214,32 +214,27 @@
         if (!response.ok) {
           throw new Error(response.message || "Failed to create workspace");
         }
-        const data = response.data;
-        const workspace = {
-          id: data.id,
-          databaseId: data.databaseId,
-          name: data.name,
-          breadcrumb: `/ Workspaces`,
-          category: data.category || "Active",
-          company: data.company || "My Workspace",
-          date: data.date || "No date",
-          members: data.members || [],
-          projects: data.projects || [],
-          projectIds: data.projectIds || {},
-          inviteUrl: data.inviteUrl || "",
-          progress: data.progress || 0,
-          tasks: data.tasks || 0,
-          done: data.done || 0,
-        };
-
-        Timeline.workspaces.push(workspace);
+        const createdWorkspaceId = String(response.data.id || response.data.databaseId || "");
         Timeline.modals.closeWorkspaceEditor();
-        
-        Timeline.state.activeWorkspaceId = workspace.id;
-        window.localStorage.setItem("taskflow-active-workspace", workspace.id);
+
+        await Timeline.actions.loadProjectData({ ignoreWorkspaceFilter: true });
+        const workspace = Timeline.workspaces.find((item) => (
+          String(item.id) === createdWorkspaceId ||
+          String(item.databaseId) === createdWorkspaceId
+        )) || Timeline.workspaces[0];
+
+        if (workspace) {
+          Timeline.state.activeWorkspaceId = workspace.id;
+          Timeline.state.activeProjectName = "";
+          window.localStorage.setItem("taskflow-active-workspace", workspace.id);
+          window.localStorage.setItem("taskflow-active-workspace-name", workspace.name);
+          window.localStorage.removeItem("taskflow-active-project");
+        }
+
         Timeline.app.dispatchEvent(new CustomEvent("timeline-mode-change", { detail: "overview" }));
         Timeline.renderers.renderWorkspaceList();
         Timeline.renderers.renderProjectOverview();
+        Timeline.renderers.renderProjectHeader();
         showToast("Workspace created");
       } catch (error) {
         showToast(error.message || "Could not create workspace");
@@ -384,11 +379,24 @@
       }
     },
 
-    async loadProjectData() {
+    async loadProjectData(options = {}) {
       try {
-        const result = await Timeline.timelineApi.loadProjectData(Timeline.app, { day: Timeline.state.kanbanDayFilter });
+        const result = await Timeline.timelineApi.loadProjectData(Timeline.app, {
+          day: Timeline.state.kanbanDayFilter,
+          ignoreWorkspaceFilter: Boolean(options.ignoreWorkspaceFilter),
+        });
 
         if (result && result.ok && result.data.projects) {
+          if (
+            !options.ignoreWorkspaceFilter &&
+            result.data.projects.length === 0 &&
+            window.localStorage.getItem("taskflow-active-workspace")
+          ) {
+            window.localStorage.removeItem("taskflow-active-workspace");
+            window.localStorage.removeItem("taskflow-active-workspace-name");
+            window.localStorage.removeItem("taskflow-active-project");
+            return Timeline.actions.loadProjectData({ ...options, ignoreWorkspaceFilter: true });
+          }
           Timeline.workspaces = result.data.projects;
         }
         Timeline.tasks = result.data.tasks || Timeline.tasks;

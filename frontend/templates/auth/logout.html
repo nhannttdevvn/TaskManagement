@@ -26,7 +26,7 @@
     {# ============= LEFT HERO ============= #}
     <section class="hidden flex-col justify-between px-10 py-12 lg:flex">
       <a href="{% url 'login' %}" class="flex items-center gap-3">
-        <div class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-sm font-black text-white shadow-[0_18px_44px_rgba(124,77,255,0.45)]">TF</div>
+        <div class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-sm font-black text-white shadow-[0_18px_44px_rgba(124,77,255,0.45)]">{% include "partials/logo_mark.html" %}</div>
         <div>
           <p class="text-xs font-semibold uppercase text-cyan-200/80">TaskFlow</p>
           <h1 class="text-base font-bold text-white">Project Hub</h1>
@@ -65,7 +65,7 @@
     <section class="flex items-center justify-center px-4 py-10 sm:px-10">
       <div class="w-full max-w-md">
         <a href="{% url 'login' %}" class="mb-6 inline-flex items-center gap-2 lg:hidden">
-          <div class="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-xs font-black text-white shadow-[0_14px_34px_rgba(124,77,255,0.45)]">TF</div>
+          <div class="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-xs font-black text-white shadow-[0_14px_34px_rgba(124,77,255,0.45)]">{% include "partials/logo_mark.html" %}</div>
           <p class="text-base font-black text-white">TaskFlow</p>
         </a>
 
@@ -143,7 +143,7 @@
 {% endblock %}
 
 {% block vendor_scripts %}
-<script src="https://unpkg.com/lucide@latest"></script>
+{% include "partials/vendor_lucide.html" %}
 {% endblock %}
 
 {% block extra_scripts %}

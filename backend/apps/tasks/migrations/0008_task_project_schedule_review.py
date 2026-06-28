@@ -4,6 +4,28 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+class AddFieldIfNotExists(migrations.AddField):
+    """Skip the database add when a local MySQL column already exists."""
+
+    def database_forwards(self, app_label, schema_editor, from_state, to_state):
+        model = to_state.apps.get_model(app_label, self.model_name)
+        field = model._meta.get_field(self.name)
+
+        with schema_editor.connection.cursor() as cursor:
+            existing_columns = {
+                column.name
+                for column in schema_editor.connection.introspection.get_table_description(
+                    cursor,
+                    model._meta.db_table,
+                )
+            }
+
+        if field.column in existing_columns:
+            return
+
+        super().database_forwards(app_label, schema_editor, from_state, to_state)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -11,7 +33,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
+        AddFieldIfNotExists(
             model_name="task",
             name="project",
             field=models.ForeignKey(
@@ -22,17 +44,17 @@ class Migration(migrations.Migration):
                 to="tasks.project",
             ),
         ),
-        migrations.AddField(
+        AddFieldIfNotExists(
             model_name="task",
             name="start",
             field=models.FloatField(default=9),
         ),
-        migrations.AddField(
+        AddFieldIfNotExists(
             model_name="task",
             name="duration",
             field=models.FloatField(default=1),
         ),
-        migrations.AddField(
+        AddFieldIfNotExists(
             model_name="task",
             name="row",
             field=models.PositiveSmallIntegerField(default=0),
