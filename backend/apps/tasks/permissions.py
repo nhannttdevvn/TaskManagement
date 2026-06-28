@@ -48,4 +48,6 @@ def can_edit_task(user, task):
         return False
     if task.user_id == user.id:
         return True
+    if task.assignees.filter(id=user.id).exists():
+        return True
     return can_manage_project(user, task.project)

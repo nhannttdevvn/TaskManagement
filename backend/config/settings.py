@@ -78,6 +78,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "apps.tasks.context_processors.google_oauth_status",
                 "apps.tasks.context_processors.workspace_role",
+                "apps.tasks.context_processors.avatar_settings",
             ],
         },
     },
@@ -156,6 +157,9 @@ STATICFILES_DIRS = [FRONTEND_DIR / "static"]
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = ROOT_DIR / "media"
+AVATAR_UPLOAD_MAX_MB = config("AVATAR_UPLOAD_MAX_MB", default=25, cast=int)
+AVATAR_UPLOAD_MAX_SIZE = AVATAR_UPLOAD_MAX_MB * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = config("DATA_UPLOAD_MAX_MEMORY_MB", default=32, cast=int) * 1024 * 1024
 
 SITE_ID = 1
 

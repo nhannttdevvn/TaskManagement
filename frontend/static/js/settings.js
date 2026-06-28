@@ -203,6 +203,55 @@
     reader.readAsDataURL(file);
   });
 
+  const localAvatarInput = document.getElementById("profileAvatarInput");
+  const localAvatarStatus = document.getElementById("profileAvatarStatus");
+  const maxAvatarBytes = Number(app.dataset.avatarMaxBytes || 25 * 1024 * 1024);
+  function updateUserAvatarShells(src) {
+    document.querySelectorAll("[data-user-avatar-shell]").forEach((shell) => {
+      shell.innerHTML = `<img class="h-full w-full rounded-xl object-cover" src="${src}" alt="Profile avatar">`;
+    });
+  }
+  if (localAvatarInput && avatarPreview) {
+    const uploadInput = localAvatarInput.cloneNode(true);
+    localAvatarInput.replaceWith(uploadInput);
+    uploadInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      if (file.size > maxAvatarBytes) {
+        const maxMb = Math.round(maxAvatarBytes / (1024 * 1024));
+        showToast(`Avatar must be ${maxMb}MB or smaller`);
+        e.target.value = "";
+        return;
+      }
+
+      const previewUrl = URL.createObjectURL(file);
+      avatarPreview.src = previewUrl;
+      if (localAvatarStatus) localAvatarStatus.textContent = `Uploading ${file.name}...`;
+      showToast("Uploading avatar...");
+
+      const formData = new FormData();
+      formData.append("avatar", file);
+      window.TaskFlow.api.post("/api/users/me/avatar/", formData, { root: profileForm || app })
+        .then((response) => {
+          const avatarUrl = response?.data?.avatar || previewUrl;
+          const freshAvatarUrl = `${avatarUrl}?v=${Date.now()}`;
+          avatarPreview.src = freshAvatarUrl;
+          updateUserAvatarShells(freshAvatarUrl);
+          if (localAvatarStatus) localAvatarStatus.textContent = `${file.name} saved locally`;
+          dirtyBadge?.classList.remove("hidden");
+          showToast("Avatar saved locally");
+        })
+        .catch((err) => {
+          if (localAvatarStatus) localAvatarStatus.textContent = "Avatar upload failed";
+          showToast(err.message || "Avatar upload failed");
+        })
+        .finally(() => {
+          setTimeout(() => URL.revokeObjectURL(previewUrl), 1000);
+        });
+    });
+  }
+
   const profileForm = document.getElementById("profileForm");
   const dirtyBadge = document.getElementById("profileDirtyBadge");
   if (profileForm) {

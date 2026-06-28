@@ -1,5 +1,7 @@
 from django.utils.text import slugify
 
+from apps.tasks.services.avatars import get_user_avatar_url
+
 
 STATUS_LABELS = {
     "todo": "To Do",
@@ -52,7 +54,7 @@ def current_user_payload(user):
         "username": user.username,
         "email": user.email,
         "name": user.get_full_name() or user.username,
-        "avatar": "",
+        "avatar": get_user_avatar_url(user),
         "isAuthenticated": True,
     }
 
@@ -158,6 +160,7 @@ def task_payload(task, index=0):
         "start": task.start,
         "duration": task.duration,
         "row": task.row,
+        "position": task.position,
         "color": color,
         "text": text,
         "members": [initials(display_name(task.user))],

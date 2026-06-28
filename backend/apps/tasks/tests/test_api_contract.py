@@ -77,6 +77,29 @@ class ApiContractTests(TestCase):
         task.refresh_from_db()
         self.assertEqual(task.status, "todo")
 
+    def test_assignee_can_update_kanban_position_without_overwriting_row(self):
+        team = Team.objects.create(name="Workspace", owner=self.owner)
+        TeamMember.objects.create(team=team, user=self.owner, role=TeamMember.ROLE_OWNER)
+        TeamMember.objects.create(team=team, user=self.other, role=TeamMember.ROLE_VIEWER)
+        project = Project.objects.create(name="Project", user=self.owner, team=team)
+        task = Task.objects.create(
+            user=self.owner,
+            project=project,
+            title="Assigned task",
+            position=1,
+            row=5,
+        )
+        task.assignees.add(self.other)
+        self.client.force_login(self.other)
+
+        response = self.patch_json(reverse("api_task_position", args=[task.id]), {"position": 7})
+
+        self.assertEqual(response.status_code, 200)
+        task.refresh_from_db()
+        self.assertEqual(task.position, 7)
+        self.assertEqual(task.row, 5)
+        self.assertEqual(response.json()["data"]["position"], 7)
+
     def test_task_mutations_persist_activity_favorite_comment_and_attachment(self):
         team = Team.objects.create(name="Workspace", owner=self.owner)
         TeamMember.objects.create(team=team, user=self.owner, role=TeamMember.ROLE_OWNER)

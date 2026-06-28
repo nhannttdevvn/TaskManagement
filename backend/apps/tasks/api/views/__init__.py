@@ -5,7 +5,7 @@ from .friends import (
     list_friends,
     list_pending_requests,
 )
-from .auth import auth_login, auth_logout, auth_signup, users_me
+from .auth import auth_login, auth_logout, auth_signup, users_avatar, users_me
 from .conversations import (
     call_end,
     conversation_calls,
@@ -100,6 +100,7 @@ __all__ = [
     "teams_collection",
     "user_presence",
     "users_me",
+    "users_avatar",
     "auth_signup",
     "search_users",
     "send_friend_request",

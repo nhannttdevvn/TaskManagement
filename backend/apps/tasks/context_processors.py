@@ -1,5 +1,11 @@
 from django.conf import settings
 
+from apps.tasks.services.avatars import (
+    avatar_upload_max_mb,
+    avatar_upload_max_size,
+    get_user_avatar_url,
+)
+
 def google_oauth_status(request):
     google_client_id = getattr(settings, "GOOGLE_CLIENT_ID", "")
     google_client_secret = getattr(settings, "GOOGLE_CLIENT_SECRET", "")
@@ -32,4 +38,13 @@ def workspace_role(request):
             role = membership.role
     return {
         "workspace_role": role
+    }
+
+
+def avatar_settings(request):
+    user = request.user
+    return {
+        "avatar_upload_max_bytes": avatar_upload_max_size(),
+        "avatar_upload_max_mb": avatar_upload_max_mb(),
+        "current_user_avatar_url": get_user_avatar_url(user) if user and user.is_authenticated else "",
     }

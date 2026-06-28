@@ -85,7 +85,10 @@ def task_position(request, task_id):
     data = payload(request)
     task = apply_task_payload(
         task,
-        {"row": int_value(data.get("position", data.get("row")), task.row)},
+        {
+            "position": int_value(data.get("position"), task.position),
+            "row": int_value(data.get("row"), task.row),
+        },
         actor=request.user,
         action="position_changed",
     )

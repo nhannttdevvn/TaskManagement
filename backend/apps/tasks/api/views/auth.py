@@ -3,6 +3,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.tasks.api.responses import error, ok, payload
 from apps.tasks.api.serializers import current_user_payload
+from apps.tasks.services.avatars import delete_user_avatar, save_user_avatar
 
 
 @require_http_methods(["POST"])
@@ -77,8 +78,32 @@ def users_me(request):
         if not request.user.is_authenticated:
             return error("Authentication required.", status=401)
         data = payload(request)
-        request.user.first_name = data.get("firstName", request.user.first_name)
-        request.user.last_name = data.get("lastName", request.user.last_name)
+        full_name = data.get("full_name")
+        if full_name is not None:
+            parts = str(full_name).strip().split(" ", 1)
+            request.user.first_name = parts[0] if parts else ""
+            request.user.last_name = parts[1] if len(parts) > 1 else ""
+        else:
+            request.user.first_name = data.get("firstName", request.user.first_name)
+            request.user.last_name = data.get("lastName", request.user.last_name)
         request.user.email = data.get("email", request.user.email)
         request.user.save(update_fields=["first_name", "last_name", "email"])
     return ok(current_user_payload(request.user))
+
+
+@require_http_methods(["POST", "DELETE"])
+def users_avatar(request):
+    if not request.user.is_authenticated:
+        return error("Authentication required.", status=401)
+
+    if request.method == "DELETE":
+        delete_user_avatar(request.user)
+        return ok({"avatar": ""})
+
+    avatar = request.FILES.get("avatar")
+    try:
+        avatar_url = save_user_avatar(request.user, avatar)
+    except ValueError as exc:
+        return error(str(exc), status=400, code="invalid_avatar")
+
+    return ok({"avatar": avatar_url})

@@ -100,6 +100,9 @@ def apply_task_payload(task, data, actor=None, action="task_updated"):
     if "row" in data:
         task.row = int_value(data.get("row"), task.row)
         changed["row"] = task.row
+    if "position" in data:
+        task.position = int_value(data.get("position"), task.position)
+        changed["position"] = task.position
     task.save()
     if changed:
         record_task_activity(
