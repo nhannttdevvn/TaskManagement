@@ -149,4 +149,38 @@
   #settingsApp[data-theme="light"] .theme-content textarea {
     color: #0f172a !important;
   }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content button[class*="bg-gradient-to-r"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content button[class*="bg-gradient-to-br"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content a[class*="bg-gradient-to-r"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content a[class*="bg-gradient-to-br"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content [type="submit"][class*="bg-gradient-to-r"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content [type="submit"][class*="bg-gradient-to-br"] {
+    color: #ffffff !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content button[class*="bg-gradient-to-r"] *,
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content button[class*="bg-gradient-to-br"] *,
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content a[class*="bg-gradient-to-r"] *,
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content a[class*="bg-gradient-to-br"] *,
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content [type="submit"][class*="bg-gradient-to-r"] *,
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp, #updatesApp)[data-theme="light"] .theme-content [type="submit"][class*="bg-gradient-to-br"] * {
+    color: #ffffff !important;
+  }
+
+  .team-message {
+    border-radius: 14px;
+    padding: 8px 10px;
+    margin-left: -10px;
+    margin-right: -10px;
+    transition: background-color 0.15s ease;
+  }
+
+  .team-message:hover {
+    background-color: rgba(255, 255, 255, 0.045);
+  }
+
+  #teamApp[data-theme="light"] .team-message:hover {
+    background-color: rgba(99, 102, 241, 0.06) !important;
+  }
 </style>

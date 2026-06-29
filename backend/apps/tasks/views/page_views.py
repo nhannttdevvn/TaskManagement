@@ -49,3 +49,8 @@ class FilesPageView(LoginRequiredMixin, TemplateView):
     template_name = "files/index.html"
     login_url = "/login/"
 
+
+class UpdatesPageView(LoginRequiredMixin, TemplateView):
+    template_name = "pages/updates/index.html"
+    login_url = "/login/"
+

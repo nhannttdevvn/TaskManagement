@@ -7,6 +7,7 @@ from .page_views import (
     LogoutPageView,
     SettingsPageView,
     FilesPageView,
+    UpdatesPageView,
 )
 from .task_views import (
     TaskCreateView,
@@ -36,4 +37,5 @@ __all__ = [
     "LogoutPageView",
     "SettingsPageView",
     "FilesPageView",
+    "UpdatesPageView",
 ]

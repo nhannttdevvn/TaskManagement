@@ -1,0 +1,101 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}All Updates | TaskFlow{% endblock %}
+
+{% block vendor_styles %}
+{% include "partials/design_tokens.html" %}
+{% endblock %}
+
+{% block body_class %}bg-slate-950 p-0 font-sans antialiased{% endblock %}
+
+{% block page_shell %}
+<div
+  id="updatesApp"
+  data-theme="dark"
+  class="relative isolate min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,rgba(59,42,143,0.36),transparent_32%),linear-gradient(225deg,rgba(91,61,245,0.22),transparent_34%),linear-gradient(180deg,#050816_0%,#0d1326_54%,#111827_100%)] text-white transition-colors duration-300"
+>
+  <div
+    class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,rgba(124,77,255,0.24),transparent_26%),radial-gradient(circle_at_80%_0%,rgba(34,211,238,0.14),transparent_24%),linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:auto,auto,56px_56px,56px_56px] [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.9),transparent)]"
+    aria-hidden="true"
+  ></div>
+
+  <main class="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-5 sm:px-6">
+    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
+      <div>
+        <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-200">Activity</p>
+        <h1 class="mt-2 text-2xl font-black tracking-tight text-white">All Updates</h1>
+        <p class="mt-1 max-w-2xl text-sm font-medium text-slate-300">
+          Tong hop cac thay doi quan trong cua workspace, project, task va file. Phan realtime production se duoc hoan thien tiep khi WebSocket feed duoc wire day du.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a class="inline-flex h-10 items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-bold text-slate-100 transition hover:bg-white/15" href="{% url 'dashboard' %}">
+          <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+          Dashboard
+        </a>
+        <a class="inline-flex h-10 items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-bold text-slate-100 transition hover:bg-white/15" href="{% url 'project' %}">
+          <i data-lucide="folder-kanban" class="h-4 w-4"></i>
+          Projects
+        </a>
+      </div>
+    </header>
+
+    <section class="mt-6 grid gap-3 md:grid-cols-3">
+      <article class="rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-glass backdrop-blur-2xl">
+        <p class="text-xs font-bold uppercase tracking-[0.14em] text-cyan-200">Data</p>
+        <h2 class="mt-2 text-base font-black text-white">DB-backed flow</h2>
+        <p class="mt-1 text-sm text-slate-300">Workspace, project, task, favorite, comment va avatar da uu tien luu bang database/local media.</p>
+      </article>
+      <article class="rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-glass backdrop-blur-2xl">
+        <p class="text-xs font-bold uppercase tracking-[0.14em] text-violet-200">Kanban</p>
+        <h2 class="mt-2 text-base font-black text-white">Position synced</h2>
+        <p class="mt-1 text-sm text-slate-300">Keo tha Kanban cap nhat `position` rieng va khong ghi nham vao `row` cua timeline.</p>
+      </article>
+      <article class="rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-glass backdrop-blur-2xl">
+        <p class="text-xs font-bold uppercase tracking-[0.14em] text-emerald-200">UX</p>
+        <h2 class="mt-2 text-base font-black text-white">Polished baseline</h2>
+        <p class="mt-1 text-sm text-slate-300">Theme sang/toi, PJAX, badge thong bao va sidebar link da duoc dong bo tu cac nhanh UI.</p>
+      </article>
+    </section>
+
+    <section class="mt-6 rounded-[22px] border border-white/[0.08] bg-slate-900/55 p-5 shadow-soft backdrop-blur-2xl">
+      <div class="flex items-start gap-3">
+        <div class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-white shadow-[0_16px_40px_rgba(124,77,255,0.35)]">
+          <i data-lucide="radio" class="h-5 w-5"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-black text-white">Trang Updates dang o muc baseline</h2>
+          <p class="mt-1 text-sm text-slate-300">
+            Day la trang tong hop de dieu huong va trinh bay trang thai cap nhat. Khi notification/activity realtime hoan thien, danh sach ben duoi co the noi truc tiep voi API/WebSocket.
+          </p>
+        </div>
+      </div>
+      <div class="mt-5 grid gap-3">
+        <article class="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+          <p class="text-sm font-bold text-white">Task permission da cap quyen cho assignee.</p>
+          <p class="mt-1 text-xs text-slate-400">Nguoi duoc giao task co the cap nhat task trong pham vi cho phep.</p>
+        </article>
+        <article class="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+          <p class="text-sm font-bold text-white">Avatar local upload da san sang cho localhost.</p>
+          <p class="mt-1 text-xs text-slate-400">Anh profile duoc luu local media va gioi han dung luong theo backend.</p>
+        </article>
+        <article class="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+          <p class="text-sm font-bold text-white">Can hoan thien tiep email invitation va realtime feed.</p>
+          <p class="mt-1 text-xs text-slate-400">Day la phan roadmap, khong nen trinh bay la production-ready neu chua cau hinh SMTP/WebSocket day du.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}
+
+{% block vendor_scripts %}
+<script src="https://unpkg.com/lucide@latest"></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  window.lucide && window.lucide.createIcons();
+</script>
+{% endblock %}

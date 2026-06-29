@@ -8,6 +8,7 @@ class RouteCompatibilityTests(SimpleTestCase):
         self.assertEqual(reverse("project"), "/project/")
         self.assertEqual(reverse("timeline"), "/timeline/")
         self.assertEqual(reverse("team"), "/team/")
+        self.assertEqual(reverse("updates"), "/updates/")
         self.assertEqual(reverse("task_list"), "/tasks/")
         self.assertEqual(reverse("root_redirect"), "/")
 

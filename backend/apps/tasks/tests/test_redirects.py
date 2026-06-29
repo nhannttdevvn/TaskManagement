@@ -15,6 +15,7 @@ class PageRedirectionTests(TestCase):
             ("project", "/login/?next=/project/"),
             ("timeline", "/login/?next=/timeline/"),
             ("team", "/login/?next=/team/"),
+            ("updates", "/login/?next=/updates/"),
             ("settings", "/login/?next=/settings/"),
             ("files", "/login/?next=/files/"),
             ("logout", "/login/?next=/logout/"),
@@ -34,7 +35,7 @@ class PageRedirectionTests(TestCase):
         response = self.client.get(reverse("login"))
         self.assertRedirects(response, reverse("dashboard"))
 
-        allowed_pages = ["dashboard", "project", "timeline", "team", "settings", "files", "logout"]
+        allowed_pages = ["dashboard", "project", "timeline", "team", "updates", "settings", "files", "logout"]
         for name in allowed_pages:
             response = self.client.get(reverse(name))
             self.assertEqual(response.status_code, 200, f"Expected 200 for allowed page {name}")

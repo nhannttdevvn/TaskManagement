@@ -44,3 +44,11 @@ class FrontendTemplateContractTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Tasks")
+
+    def test_updates_template_is_available_from_sidebar_links(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("updates"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="updatesApp"')
+        self.assertContains(response, "All Updates")
