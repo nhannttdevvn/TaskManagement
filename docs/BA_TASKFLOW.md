@@ -1,532 +1,524 @@
-# BA TaskFlow - Business Analysis Specification
+---
+title: "TaskFlow - Tài liệu BA tổng hợp"
+type: business-analysis
+project: TaskFlow
+branch: feature/backend-core
+created: 2026-06-28
+last_updated: 2026-06-28
+language: vi
+---
 
-Ngay cap nhat: 2026-06-28
-Branch tong hop: feature/backend-core
-Phien ban tai lieu: 1.0
+# TaskFlow - Tài Liệu BA Tổng Hợp
 
-## 1. Executive summary
+Tài liệu này tổng hợp góc nhìn Business Analysis cho dự án TaskFlow: mục tiêu sản phẩm, phạm vi, vai trò người dùng, luồng nghiệp vụ, yêu cầu chức năng, yêu cầu phi chức năng, quy tắc phân quyền, dữ liệu, API, tiêu chí nghiệm thu và lộ trình phát triển.
 
-TaskFlow la ung dung quan ly cong viec theo mo hinh Workspace -> Project -> Task. San pham tap trung vao nhom nho, team san pham, team van hanh hoac lop hoc/nhom do an can mot noi de tao workspace, quan ly project, chia task, theo doi tien do, trao doi qua comment/chat va nhan notification.
+Nguồn tổng hợp:
 
-Huong cai tien hien tai:
+- Mã nguồn hiện tại của dự án TaskFlow.
+- Tài liệu cấu trúc tại `docs/PROJECT_STRUCTURE.md`.
+- Các thay đổi đã triển khai trên nhánh `feature/backend-core`.
+- Các yêu cầu đã thống nhất trong quá trình tối ưu FE/BE.
 
-- Giu stack hien co: Django views/templates, vanilla JavaScript, Tailwind CSS local build.
-- Tang do tin cay du lieu: workspace/project/task/team/favorite/comment/attachment/activity/notification duoc backed by DB.
-- Giam su phu thuoc vao fallback demo/localStorage cho du lieu nghiep vu.
-- Lam flow nguoi dung de thao tac hon: card co the click, nut chinh ro, form Add Task gon, empty state co CTA, mutation co feedback.
-- Tang do chac cua backend: service layer, permission, validation, transaction va API response nhat quan.
-- Nang trai nghiem FE: theme sang/toi, logo moi, click target lon hon, PJAX navigation de chuyen trang muot khong full reload.
+## 1. Tổng Quan Dự Án
 
-Ket qua ky vong:
+TaskFlow là ứng dụng quản lý công việc theo mô hình:
 
-- User moi co the dang ky, tao workspace, tao project, tao task va reload van thay du lieu.
-- Owner/admin moi member, quan ly role, thao tac project/task dung quyen.
-- Viewer chi xem, khong tao/sua/xoa du lieu.
-- Task detail hien comment, attachment, activity that tu DB.
-- Dashboard va project data khong tao du lieu ngam khi user chi GET.
-- UI light mode de doc, khong bi choi text accent tren nen sang.
+```text
+Workspace -> Project -> Task
+```
 
-## 2. Problem statement
+Sản phẩm hướng tới nhóm nhỏ, team sản phẩm, team vận hành, lớp học hoặc nhóm làm đồ án cần một nơi để:
 
-Truoc khi toi uu, du an co mot so diem manh nhung chua dong bo hoan toan:
+- Tạo workspace.
+- Tạo và quản lý project.
+- Tạo task và theo dõi tiến độ.
+- Kéo thả task theo Kanban.
+- Xem timeline, list, calendar.
+- Mời thành viên và phân quyền.
+- Bình luận, lưu metadata tệp đính kèm.
+- Theo dõi activity và notification.
+- Trao đổi qua chat trong phạm vi hợp lệ.
 
-- FE co UI kha day du nhung mot so flow can nhieu click, nut nho, empty state chua du CTA truc tiep.
-- Mot so du lieu nghiep vu tung co fallback local/demo, gay lech voi DB.
-- Backend da bat dau co model/service that nhung can siết permission, validation va response contract.
-- Task detail, notification, activity, favorite, comment, attachment can duoc noi that voi DB va test reload.
-- Trang login co luc mat CSS neu asset local/Tailwind build chua on dinh.
-- Chuyen trang truyen thong tao cam giac load lai va mat tinh lien mach cua app.
-- Light mode co cac mau cyan/violet qua sang tren nen trang, lam text hoi choi.
+Stack hiện tại:
 
-Du an can duoc dua ve mot baseline production-ready hon: du lieu that, quyen dung, UI de bam, feedback ro, routing muot, tai lieu BA ro rang de tiep tuc tong hop.
+- Backend: Django 4.2, Django Channels, Daphne.
+- Frontend: Django template, vanilla JavaScript, Tailwind CSS build local.
+- Database: SQLite cho local test, MySQL cho môi trường thật.
+- Auth: Django auth, django-allauth, Google OAuth cấu hình sẵn.
 
-## 3. Business goals
+## 2. Vấn Đề Cần Giải Quyết
 
-### 3.1 Muc tieu ngan han
+Trước khi tối ưu, dự án có UI khá đầy đủ nhưng còn một số điểm cần hoàn thiện:
 
-- Cho phep user tao workspace/project/task bang du lieu that.
-- Bao dam cac thao tac quan trong co permission va validation.
-- Cai thien UX de user tao task/project nhanh hon.
-- Loai bo fallback demo cho du lieu nghiep vu.
-- Chuan hoa API response de FE xu ly loi tot hon.
-- Hoan thien tai lieu BA va cau truc xương song du an.
+- Một số thao tác cần nhiều click.
+- Một số nút nhỏ, khó thao tác trên mobile.
+- Dữ liệu từng có fallback demo/localStorage, dễ lệch với DB.
+- GET endpoint từng có nguy cơ tự sinh dữ liệu ngầm.
+- Quyền thao tác task chưa phủ hết trường hợp assignee.
+- Kéo thả Kanban từng ghi nhầm `position` vào `row`.
+- Task detail cần dữ liệu thật cho comment, attachment, activity.
+- Light mode có một số chữ accent hơi chói.
+- Chuyển trang truyền thống tạo cảm giác reload.
+- Avatar profile trước đây chỉ preview, chưa lưu local.
 
-### 3.2 Muc tieu trung han
+Mục tiêu hiện tại là đưa dự án về baseline ổn định hơn:
 
-- Bo sung test backend cho permission, validation, activity, notification va chat.
-- Chay on dinh voi MySQL trong moi truong staging/production.
-- Bo sung email invitation that va file storage that.
-- Dua smoke test FE vao quy trinh regression.
-- Toi uu query cho dashboard/project list lon.
+- Dữ liệu nghiệp vụ ưu tiên DB.
+- Permission rõ ràng.
+- API trả lỗi nhất quán.
+- UI dễ click, dễ hiểu.
+- Có feedback khi thao tác.
+- Test quan trọng chạy xanh.
 
-### 3.3 KPI de do thanh cong
+## 3. Mục Tiêu Kinh Doanh
 
-- User moi hoan thanh flow signup -> create workspace -> create project -> create task trong duoi 3 phut.
-- Reload sau moi mutation khong mat du lieu.
-- 100% mutation quan trong tra response `ok=true/false` nhat quan.
-- Viewer bi chan voi code `permission_denied` o cac API tao/sua/xoa.
-- Dashboard/project/team GET khong tu sinh workspace/demo data.
-- Light/dark mode khong co text qua choi hoac contrast thap tren cac man hinh chinh.
+### 3.1 Mục tiêu ngắn hạn
 
-## 4. Stakeholders
+- User mới có thể đăng ký, đăng nhập và bắt đầu tạo workspace.
+- User có thể tạo workspace, project, task bằng dữ liệu thật.
+- User có thể kéo task trên Kanban và reload vẫn giữ thứ tự.
+- Thành viên được giao việc có thể cập nhật task của mình.
+- Owner/admin có thể mời thành viên, quản lý role.
+- Viewer chỉ xem, không tạo/sửa/xóa dữ liệu.
+- Settings cho phép đổi avatar và lưu ảnh local.
+- FE chuyển trang nội bộ mượt, không full reload.
 
-- Product Owner: xac dinh muc tieu san pham, uu tien tinh nang va tieu chi nghiem thu.
-- Business Analyst: tong hop flow, rule, acceptance criteria, API/data contract va backlog.
-- Developer FE: xay UI, state, feedback, PJAX routing va responsive.
-- Developer BE: xay model, service, permission, validation, API, notification/activity.
-- QA/Tester: test flow user, permission, regression va responsive.
-- End user: owner/admin/member/viewer trong workspace.
+### 3.2 Mục tiêu trung hạn
 
-## 5. User roles
+- Hoàn thiện test cho permission, validation, notification và chat.
+- Kết nối email invitation thật.
+- Bổ sung file storage thật nếu cần upload binary ngoài avatar local.
+- Tối ưu query cho dashboard và project có dữ liệu lớn.
+- Đưa smoke test FE vào quy trình kiểm thử.
 
-| Role | Mo ta | Quyen chinh |
-| --- | --- | --- |
-| Owner | Nguoi tao workspace | Quan ly workspace, project, task, invite, member, activity |
-| Admin | Thanh vien co quyen quan tri workspace | Tao/sua/xoa project/task, invite member trong workspace |
-| Manager | Role theo project | Quan ly project/task trong project duoc gan |
-| Member | Thanh vien thao tac hang ngay | Xem workspace/project, tao/cap nhat task neu duoc phep |
-| Viewer | Nguoi chi xem | Xem du lieu, khong tao/sua/xoa/invite |
-| Guest/Unauthenticated | Chua dang nhap | Chi truy cap login/signup, bi redirect khi vao app |
+### 3.3 Chỉ số thành công
 
-## 6. Personas
+| Nhóm | Chỉ số |
+| --- | --- |
+| Onboarding | User mới tạo workspace, project, task đầu tiên trong dưới 3 phút |
+| Tin cậy dữ liệu | Reload sau mutation không mất dữ liệu |
+| Quyền | Viewer bị chặn đúng với `permission_denied` |
+| Task | Assignee cập nhật được task được giao |
+| Kanban | Kéo thả đổi `position`, không làm lệch `row` timeline |
+| UX | Các nút chính dễ bấm trên desktop và mobile |
+| Test | `manage.py test` pass toàn bộ |
 
-### 6.1 Workspace Owner
+## 4. Đối Tượng Sử Dụng
 
-- Can tao nhanh workspace/project.
-- Can moi thanh vien va phan quyen.
-- Can nhin tong quan so task, status, tien do va activity.
-- Can tranh viec member thao tac sai pham vi.
+### 4.1 Owner
 
-### 6.2 Project Member
+Người tạo workspace, có toàn quyền với workspace.
 
-- Can xem task duoc giao.
-- Can doi status/schedule, comment, attachment metadata.
-- Can feedback ro khi thao tac thanh cong/loi.
-- Can UI nhanh, it load lai, de click tren mobile.
+Nhu cầu chính:
 
-### 6.3 Viewer/Stakeholder
+- Tạo workspace và project.
+- Mời thành viên.
+- Quản lý role.
+- Theo dõi tiến độ.
+- Kiểm soát quyền thao tác.
 
-- Can xem tien do va activity.
-- Khong can quyen sua.
-- Can du lieu dung voi DB, khong bi demo/fallback lam sai so lieu.
+### 4.2 Admin
 
-## 7. Scope
+Thành viên có quyền quản trị trong workspace.
 
-### 7.1 Trong pham vi hien tai
+Nhu cầu chính:
 
-- Authentication: login, signup, logout.
-- Dashboard: analytics, workspace overview, status/task counts, empty state.
-- Workspace: tao, chon, mo workspace; workspace duoc map voi Team.
-- Project: tao project theo workspace, project card click de mo timeline.
-- Task: create/update/delete, status, schedule, priority, due date, favorite.
-- Task detail: comment, attachment metadata, activity.
-- Team: member list, invite, role, friends, chat permission baseline.
-- Notification: list, mark read, tao notification cho cac action chinh.
-- Activity: ghi lich su task/project/team action.
-- FE UX: toolbar, empty state, toast, optimistic update, inline confirm, click target.
-- Theme: light/dark mode, logo moi, mau light mode de doc.
-- Navigation: PJAX routing cho link noi bo de chuyen trang muot khong reload full page.
-- Docs: BA chi tiet va cau truc xương song du an.
+- Tạo/sửa project và task.
+- Mời thành viên nếu được cấp quyền.
+- Hỗ trợ owner vận hành team.
 
-### 7.2 Ngoai pham vi hien tai
+### 4.3 Manager
 
-- Payment/billing/subscription.
-- Email delivery that cho invitation.
-- Upload binary file len cloud storage.
+Người quản lý theo project.
+
+Nhu cầu chính:
+
+- Điều phối task trong project.
+- Cập nhật trạng thái, lịch và tiến độ.
+- Theo dõi activity của task.
+
+### 4.4 Member
+
+Thành viên thao tác hằng ngày.
+
+Nhu cầu chính:
+
+- Xem task được giao.
+- Cập nhật task mình phụ trách.
+- Comment, theo dõi deadline.
+- Nhận notification khi có thay đổi.
+
+### 4.5 Viewer
+
+Người chỉ xem.
+
+Nhu cầu chính:
+
+- Xem workspace/project/task.
+- Theo dõi tiến độ.
+- Không thực hiện thao tác thay đổi dữ liệu.
+
+## 5. Phạm Vi Dự Án
+
+### 5.1 Trong phạm vi
+
+- Đăng ký, đăng nhập, đăng xuất.
+- Dashboard tổng quan.
+- Workspace.
+- Project.
+- Task.
+- Kanban position.
+- Timeline schedule.
+- Comment task.
+- Attachment metadata.
+- Favorite task/project.
+- Team member.
+- Invite member.
+- Friend/chat baseline.
+- Notification.
+- Task activity.
+- Profile settings.
+- Avatar upload local tối đa 25MB.
+- Theme sáng/tối.
+- Chuyển trang mượt bằng PJAX.
+- Test backend quan trọng.
+
+### 5.2 Ngoài phạm vi hiện tại
+
+- Billing/subscription.
+- Email invitation thật.
+- Upload file cloud storage đầy đủ.
 - Mobile app native.
-- DRF rewrite toan bo API.
-- React/Vue SPA rewrite.
-- Realtime collaborative editing day du.
-- Audit log compliance cap enterprise.
+- Realtime collaborative editing như Notion.
+- Audit log enterprise.
+- React/Vue rewrite.
+- DRF rewrite toàn bộ API.
 
-## 8. Assumptions
+## 6. Hiện Trạng Sản Phẩm
 
-- Du an tiep tuc dung Django function/class views va template.
-- FE tiep tuc dung vanilla JavaScript, khong chuyen framework.
-- Local dev co the chay SQLite override; production/staging co the dung MySQL.
-- Attachment hien tai la metadata, chua phai binary storage.
-- LocalStorage chi dung cho theme, active workspace/project, filter/sort.
-- Data nghiep vu uu tien DB.
-- Cac URL public hien co duoc giu de tranh pha FE.
+### 6.1 Điểm mạnh
 
-## 9. Constraints
+- UI đã có các màn chính: Dashboard, Workspaces/Project, Team, Files, Settings.
+- Backend đã có model thật cho Team, Project, Task, Favorite, Comment, Attachment, Notification, Activity, Chat.
+- Service layer đã bắt đầu tách logic khỏi view.
+- Permission helper đã có các hàm chính.
+- FE có wrapper API chung.
+- Đã có theme sáng/tối.
+- Đã có PJAX navigation để chuyển trang mượt.
+- Đã có test backend cho nhiều flow quan trọng.
 
-- Khong redesign toan bo UI.
-- Khong doi URL lon neu khong can.
-- API can tuong thich nguoc voi FE hien tai.
-- Viewer/admin/member role phai duoc validate truoc khi ghi DB.
-- GET endpoint khong tao du lieu ngam.
-- Chat WebSocket khong tin `sender_id` tu client.
+### 6.2 Điểm cần theo dõi
 
-## 10. Product modules
+- Attachment hiện mới lưu metadata, chưa lưu binary file thật.
+- Files page vẫn thiên về UI/demo nếu chưa có storage thật.
+- Email invitation chưa có provider gửi mail thật.
+- Chat cần thêm test permission sâu hơn.
+- Một số text cũ trong template có dấu hiệu lỗi encoding, cần chuẩn hóa dần.
+- DB local không được commit lên repo.
 
-### 10.1 Authentication
+## 7. Luồng Người Dùng Chính
 
-Muc dich:
+### 7.1 User mới bắt đầu
 
-- Cho user dang ky, dang nhap, dang xuat.
-- Bao ve cac route app phia sau login.
-- Dam bao login page co CSS local va responsive.
+1. User mở trang login.
+2. Chọn đăng ký.
+3. Nhập họ tên, email, mật khẩu.
+4. Hệ thống tạo tài khoản.
+5. User vào dashboard.
+6. Dashboard hiển thị empty state nếu chưa có workspace.
+7. User bấm tạo workspace.
+8. User tạo project đầu tiên.
+9. User tạo task đầu tiên.
+10. Reload trang, dữ liệu vẫn còn.
 
-Yeu cau:
+### 7.2 Owner tạo workspace và project
 
-- Signup gom full name, email, password.
-- Login bang email/username va password.
-- Logout khong can PJAX, co the full navigation.
-- Route app khi chua dang nhap redirect ve login voi `next`.
-- Login page khong phu thuoc Tailwind CDN runtime.
+1. Owner mở Workspaces.
+2. Bấm Add Workspace.
+3. Nhập tên workspace.
+4. Backend tạo Team.
+5. Backend tạo TeamMember role owner.
+6. UI hiển thị workspace.
+7. Owner tạo project trong workspace.
+8. Project hiển thị trong danh sách.
 
-Acceptance criteria:
+### 7.3 Member cập nhật task được giao
 
-- `/login/` hien dung layout va style.
-- Signup thanh cong vao dashboard.
-- `/dashboard/`, `/project/`, `/team/` khi chua login bi redirect.
+1. Owner hoặc manager tạo task.
+2. Gán member vào `assignees`.
+3. Member mở project.
+4. Member cập nhật task được giao.
+5. Backend cho phép vì member nằm trong `task.assignees`.
+6. Activity được ghi lại.
+7. Reload vẫn thấy dữ liệu mới.
 
-### 10.2 Dashboard
+### 7.4 Kéo thả Kanban
 
-Muc dich:
+1. User mở project.
+2. User kéo task sang vị trí mới trên Kanban.
+3. FE gửi `position`.
+4. Backend cập nhật `task.position`.
+5. Backend giữ nguyên `task.row` của timeline.
+6. Reload Kanban giữ thứ tự đúng.
 
-- Cho user nhin nhanh workspace, project, task va status.
-- Tao diem bat dau cho user moi.
+### 7.5 Cập nhật timeline/schedule
 
-Yeu cau:
+1. User mở timeline.
+2. User kéo/resize task.
+3. FE gửi `start`, `duration`, `row`.
+4. Backend validate giá trị không âm.
+5. Backend lưu schedule.
+6. Reload timeline giữ vị trí đúng.
 
-- Hien user greeting, workspace list, analytics, status overview.
-- Neu chua co workspace, hien empty state va CTA `Create first workspace`.
-- Dashboard data lay tu DB theo user/workspace.
-- Khong tu tao Default Workspace khi GET data.
-- CTA `Create Workspace` va `Open Workspace` chuyen dung man.
+### 7.6 Upload avatar local
 
-Acceptance criteria:
+1. User mở Settings.
+2. Chọn Change photo.
+3. Chọn ảnh JPG, PNG, GIF hoặc WebP.
+4. Ảnh có thể lớn hơn 12MB, tối đa 25MB.
+5. Backend lưu vào `media/avatars/`.
+6. UI đổi preview ngay.
+7. Reload Settings vẫn thấy avatar đã lưu.
 
-- User moi thay 0 workspace, 0 project, 0 task.
-- Tao workspace xong dashboard cap nhat va reload van con.
-- So lieu khong dung demo sai DB.
+### 7.7 Mời thành viên
 
-### 10.3 Workspace
+1. Owner/admin mở Team hoặc Settings.
+2. Bấm Invite.
+3. Nhập email và role.
+4. Backend validate role và email.
+5. Backend chặn invite trùng pending.
+6. Invitation được tạo.
+7. Activity/notification được ghi nếu flow hỗ trợ.
 
-Muc dich:
+## 8. Yêu Cầu Chức Năng
 
-- Gom project/task/team theo khong gian lam viec.
-- Workspace hien tai duoc map voi model `Team`.
+### FR-001 - Đăng ký và đăng nhập
 
-Yeu cau:
+Mô tả:
 
-- Tao workspace qua `POST /api/teams/`.
-- Tao workspace phai tao owner member trong transaction.
-- Workspace card click de mo/chon.
-- Active workspace duoc luu localStorage chi nhu preference.
-- Neu user chua co workspace, project page hien CTA `Add Workspace`.
+- User có thể tạo tài khoản bằng họ tên, email và mật khẩu.
+- User có thể đăng nhập bằng email/username và mật khẩu.
 
-Acceptance criteria:
+Tiêu chí nghiệm thu:
 
-- Tao workspace xong hien ngay.
-- Reload van giu workspace trong DB.
-- User khac khong xem/sua workspace khong co quyen.
+- Đăng ký thành công vào dashboard.
+- User chưa đăng nhập bị redirect về login khi vào app.
+- Login page load CSS local đúng.
 
-### 10.4 Project
+### FR-002 - Dashboard
 
-Muc dich:
+Mô tả:
 
-- Nhom task theo muc tieu/du an trong workspace.
+- Hiển thị thông tin tổng quan về workspace, project, task và status.
 
-Yeu cau:
+Tiêu chí nghiệm thu:
 
-- Project thuoc workspace.
-- Neu user co nhieu workspace, create project can co `workspace_id`.
-- Neu user chi co mot workspace, backend co the tu gan workspace de giu tuong thich.
-- Ten project unique trong workspace theo rule hien tai.
-- Project card click de mo timeline.
-- Project favorite luu DB.
+- User mới thấy empty state.
+- Dashboard không tự tạo workspace khi chỉ GET data.
+- Số liệu lấy từ DB.
 
-Acceptance criteria:
+### FR-003 - Workspace
 
-- Create project trong active workspace khong can chon lai workspace.
-- Reload van thay project.
-- User khong co quyen bi chan.
-- Thieu workspace khi can thiet tra `workspace_required`.
+Mô tả:
 
-### 10.5 Task
+- Workspace được map với model Team.
+- Owner tạo workspace và tự động là member owner.
 
-Muc dich:
+Tiêu chí nghiệm thu:
 
-- Quan ly cong viec theo status, priority, due date, schedule va assignee.
+- Workspace tạo xong reload vẫn còn.
+- User không có quyền không xem/sửa workspace của người khác.
 
-Yeu cau:
+### FR-004 - Project
 
-- Add Task form mac dinh chi hien: Title, Status, Priority, Due date.
-- More details gom: Description, Owner, Progress, schedule nang cao.
-- Task tu gan project active khi user dang o project detail.
-- Task co the hien trong timeline, kanban, list, calendar.
-- Doi status/schedule luu DB.
-- Delete task co confirm nhe va rollback neu API loi.
-- Task favorite luu DB.
+Mô tả:
 
-Validation:
+- Project thuộc workspace.
+- Project card có thể click để mở.
 
-- Status phai thuoc choices.
-- Priority phai thuoc choices.
-- Due date nhan ISO `YYYY-MM-DD`.
+Tiêu chí nghiệm thu:
+
+- Tạo project trong active workspace.
+- Nếu thiếu workspace khi bắt buộc, API trả `workspace_required`.
+- Reload vẫn thấy project.
+
+### FR-005 - Task
+
+Mô tả:
+
+- User tạo, sửa, xóa task.
+- Task có status, priority, due date, schedule, assignee, favorite.
+
+Tiêu chí nghiệm thu:
+
+- Tạo task xong reload vẫn còn.
+- Dữ liệu status/schedule/favorite lưu DB.
+- Viewer không sửa task.
+- Assignee sửa được task được giao.
+
+### FR-006 - Kanban position
+
+Mô tả:
+
+- Kéo thả Kanban cập nhật trường `position`.
+- Không ghi nhầm vào `row`.
+
+Tiêu chí nghiệm thu:
+
+- Gửi `position=7` làm `task.position=7`.
+- `task.row` giữ nguyên nếu request không gửi row.
+- API response trả `position`.
+
+### FR-007 - Timeline schedule
+
+Mô tả:
+
+- Timeline dùng `start`, `duration`, `row`.
+
+Tiêu chí nghiệm thu:
+
 - `start >= 0`.
 - `duration >= 0.25`.
 - `row >= 0`.
+- Reload giữ schedule.
 
-Acceptance criteria:
+### FR-008 - Comment và attachment metadata
 
-- Tao task xong reload van con.
-- Drag/drop status xong reload van giu.
-- Resize/move schedule xong reload van giu.
-- Favorite task xong reload van giu.
-- User khong co quyen khong sua/xoa duoc.
+Mô tả:
 
-### 10.6 Task detail
+- Task detail hiển thị comment và attachment metadata từ DB.
 
-Muc dich:
+Tiêu chí nghiệm thu:
 
-- Cho user xem day du thong tin task, comment, attachment metadata va activity.
+- Comment lưu DB.
+- Attachment metadata lưu DB.
+- User không có quyền bị chặn.
 
-Yeu cau:
+### FR-009 - Notification và activity
 
-- Task detail load comments tu `/api/tasks/<id>/comments/`.
-- Task detail load activity tu `/api/tasks/<id>/activity/`.
-- Task detail load attachments tu `/api/tasks/<id>/attachments/`.
-- Upload hien tai luu attachment metadata that, khong mock.
-- Comment/attachment tao activity va notification.
+Mô tả:
 
-Acceptance criteria:
+- Hệ thống ghi lại các thao tác quan trọng.
+- User nhận notification khi cần.
 
-- Them comment xong reload detail van thay.
-- Them attachment metadata xong reload detail van thay.
-- Viewer/nguoi ngoai project bi chan khi thao tac.
+Tiêu chí nghiệm thu:
 
-### 10.7 Team, invite, friends, chat
+- Task update tạo activity.
+- Comment/attachment tạo notification phù hợp.
+- Mark read cập nhật `read_at`.
 
-Muc dich:
+### FR-010 - Avatar local
 
-- Ho tro lam viec nhom trong workspace.
+Mô tả:
 
-Yeu cau:
+- User upload avatar trong Settings.
+- File lưu local trên máy chạy localhost.
 
-- Owner/admin moi member.
-- Role hop le: owner/admin/member/viewer hoac mapping tu UI.
-- Khong invite trung pending email trong cung workspace.
-- Invitation co token, status, expiry va optional project links.
-- Friend request dung model Friendship.
-- Chat dung ChatMessage.
-- WebSocket chat chi cho authenticated user.
-- Sender lay tu `scope["user"]`, khong tin payload client.
+Tiêu chí nghiệm thu:
 
-Acceptance criteria:
+- File tối đa 25MB.
+- Ảnh lớn hơn 12MB upload được.
+- File nằm trong `media/avatars/`.
+- Reload Settings vẫn hiển thị avatar.
 
-- Owner/admin invite duoc.
-- Viewer bi chan voi `permission_denied`.
-- Invite trung tra `duplicate_invitation`.
-- User khong lien quan khong connect room chat.
+### FR-011 - Theme sáng/tối
 
-### 10.8 Notification
+Mô tả:
 
-Muc dich:
+- User bật/tắt light mode.
 
-- Bao cho user ve thay doi quan trong trong project/task/team.
+Tiêu chí nghiệm thu:
 
-Yeu cau:
+- Theme lưu localStorage.
+- Reload vẫn giữ theme.
+- Light mode không bị chói chữ.
 
-- Notification gom recipient, actor, type, body, target_type, target_id, read_at, created_at.
-- List lay DB, khong mock.
-- Mark read cap nhat `read_at`.
-- Tao notification cho invite, comment, attachment, task update quan trong.
+### FR-012 - Chuyển trang mượt
 
-Acceptance criteria:
+Mô tả:
 
-- Notification reload van con.
-- Mark read xong notification hien read.
-- API tra dung shape `{ ok, data }`.
+- Link nội bộ chuyển bằng PJAX, không full reload.
 
-### 10.9 Activity
+Tiêu chí nghiệm thu:
 
-Muc dich:
+- Dashboard, Workspaces, Team, Files, Settings chuyển mượt.
+- Browser back/forward hoạt động đúng.
+- Không lỗi console.
 
-- Theo doi lich su thao tac tren task/project/team.
+## 9. Permission Matrix
 
-Yeu cau:
+| Hành động | Owner | Admin | Manager | Member | Assignee | Viewer |
+| --- | --- | --- | --- | --- | --- | --- |
+| Xem workspace | Có | Có | Có | Có | Có | Có |
+| Quản lý workspace | Có | Có | Không | Không | Không | Không |
+| Mời member | Có | Có | Không | Không | Không | Không |
+| Tạo project | Có | Có | Theo quyền | Không | Không | Không |
+| Sửa/xóa project | Có | Có | Theo project | Không | Không | Không |
+| Xem task | Có | Có | Có | Có | Có | Có nếu được cấp |
+| Tạo task | Có | Có | Có | Theo quyền | Không | Không |
+| Sửa task | Có | Có | Có | Theo quyền | Có nếu được giao | Không |
+| Xóa task | Có | Có | Có | Theo quyền | Theo quyền | Không |
+| Comment task | Có | Có | Có | Có | Có | Theo quyền |
+| Favorite | Có | Có | Có | Có | Có | Có |
+| Upload avatar | Có | Có | Có | Có | Có | Có |
 
-- TaskActivity gom task, actor, action, body/metadata, created_at.
-- Ghi activity cho create/update/delete task, status/schedule, comment, attachment.
-- Invite/add/remove member ghi activity/notification phu hop.
+Quy tắc mới đã chốt:
 
-Acceptance criteria:
+- `can_edit_task` trả `True` nếu user là owner của task.
+- `can_edit_task` trả `True` nếu user nằm trong `task.assignees`.
+- Nếu không, kiểm tra quyền quản lý project.
 
-- Task detail hien activity theo DB.
-- Delete task co activity truoc/sau thao tac theo service.
+## 10. Business Rules
 
-### 10.10 Settings and Files
-
-Muc dich:
-
-- Cho user quan ly profile/preferences/team permission va xem khu vuc files.
-
-Yeu cau:
-
-- Settings co theme switch va preference forms.
-- Files hien folder/recent file UI, hien tai co the dung data UI/local demo neu chua co backend file storage.
-- Cac link Workspaces phai tro ve route chinh `/project/`.
-- Nut nho co click target khoang 40px.
-
-Acceptance criteria:
-
-- Settings/Files chuyen trang muot bang PJAX.
-- Workspaces link dua ve `/project/`, khong lech `/timeline/`.
-- Light mode text khong choi.
-
-## 11. Navigation and UI behavior
-
-### 11.1 PJAX routing
-
-Muc dich:
-
-- Chuyen trang noi bo muot, khong full reload.
-
-Yeu cau:
-
-- Intercept link noi bo cung origin.
-- Bo qua logout/login/admin/download/external link.
-- Fetch HTML moi voi header `X-Requested-With: TaskFlow-PJAX`.
-- Swap `#pjax-container`.
-- Update title, body class, URL, history.
-- Re-run vendor/extra scripts cua page moi.
-- Re-init lucide icons.
-- Clear timers/listeners page cu de tranh chong event.
-- Back/forward browser van doi noi dung dung.
-
-Acceptance criteria:
-
-- Click Dashboard/Team/Files/Settings/Workspaces khong full reload.
-- URL va title dung.
-- Root app dung xuat hien.
-- Console khong co error.
-
-### 11.2 Theme light/dark
-
-Muc dich:
-
-- Cho user chon giao dien sang/toi.
-- Dam bao contrast de doc.
-
-Yeu cau:
-
-- Theme luu localStorage.
-- Light mode dung nen sang, panel trang trong, border nhe.
-- Text accent cyan/violet/emerald/amber/rose duoc lam dam hon de khong choi.
-- Dark mode giu phong cach hien tai.
-
-Acceptance criteria:
-
-- Bam theme toggle doi theme.
-- Reload van giu theme.
-- Light mode khong co text cyan qua nhat tren nen trang.
-
-### 11.3 Click target and feedback
-
-Yeu cau:
-
-- Nut chinh toi thieu khoang 40px.
-- Card workspace/project/task co the click de mo.
-- Icon phu co tooltip/aria-label phu hop.
-- Mutation co toast: Saving, Saved, Failed/restored.
-- Delete co confirm nhe.
-
-Acceptance criteria:
-
-- Mobile khong overlap nut/text.
-- User thay ro action dang xu ly hay da loi.
-
-## 12. Functional requirements matrix
-
-| ID | Requirement | Priority | Acceptance |
-| --- | --- | --- | --- |
-| FR-001 | User dang ky tai khoan moi | Must | Signup thanh cong va redirect dashboard |
-| FR-002 | User dang nhap/dang xuat | Must | Route app yeu cau auth, logout hoat dong |
-| FR-003 | Dashboard lay data DB | Must | User moi thay empty state, khong demo sai |
-| FR-004 | Tao workspace | Must | Tao Team + TeamMember owner trong transaction |
-| FR-005 | Tao project theo workspace | Must | Project gan dung workspace, reload van con |
-| FR-006 | Tao task rut gon | Must | Add Task form co truong can thiet va luu DB |
-| FR-007 | Doi status task | Must | Status reload van giu va co activity |
-| FR-008 | Doi schedule task | Must | Start/duration/row valid va reload van giu |
-| FR-009 | Delete task | Must | Confirm, xoa DB, rollback neu loi |
-| FR-010 | Favorite task/project | Should | Reload van giu favorite |
-| FR-011 | Comment task | Must | Comment luu DB, tao activity/notification |
-| FR-012 | Attachment metadata | Should | Metadata luu DB, hien lai trong detail |
-| FR-013 | Invite member | Must | Owner/admin invite, duplicate bi chan |
-| FR-014 | Permission viewer | Must | Viewer khong tao/sua/xoa |
-| FR-015 | Notification list/read | Should | List DB, mark read cap nhat read_at |
-| FR-016 | Chat permission | Should | Auth + room hop le moi connect |
-| FR-017 | PJAX navigation | Should | Link noi bo chuyen muot, back/forward dung |
-| FR-018 | Theme light/dark | Should | Reload van giu theme, text de doc |
-
-## 13. Non-functional requirements
-
-### 13.1 Security
-
-- Tat ca API mutation yeu cau authenticated user.
-- Permission tach o `permissions.py`.
-- Service layer la noi xu ly business rule.
-- Viewer chi xem.
-- Actor/sender lay tu request/scope user, khong tin client.
-- Error response khong leak thong tin nhay cam.
-
-### 13.2 Reliability
-
-- GET endpoint khong tao du lieu ngam.
-- Mutation nhieu buoc dung transaction.
-- FE rollback khi optimistic update loi.
-- LocalStorage khong la source of truth cho du lieu nghiep vu.
-
-### 13.3 Performance
-
-- Dashboard aggregate theo DB query hop ly.
-- Project/task list dung prefetch/annotate khi co comments/attachments/activity.
-- PJAX chi swap content chinh, giam full reload.
-- Script page cu duoc don de tranh memory/event leak.
-
-### 13.4 Usability
-
-- Nut chinh ro, de bam.
-- Empty state co CTA truc tiep.
-- Toast ro trang thai.
-- Mobile khong overlap.
-- Light mode khong choi text.
-
-### 13.5 Maintainability
-
-- API response co contract chung.
-- Service/helper tach logic khoi view.
-- Docs duoc cap nhat theo flow.
-- Test backend cover permission/validation/core flow.
-
-## 14. Data model summary
-
-| Model | Vai tro |
+| Mã | Quy tắc |
 | --- | --- |
-| User | Tai khoan Django auth |
+| BR-001 | GET endpoint không được tự tạo workspace/project/task |
+| BR-002 | Workspace chỉ tạo qua mutation |
+| BR-003 | Tạo workspace phải tạo owner member |
+| BR-004 | Project phải thuộc workspace |
+| BR-005 | Viewer không tạo/sửa/xóa dữ liệu |
+| BR-006 | Assignee được cập nhật task được giao |
+| BR-007 | Kanban dùng `position` |
+| BR-008 | Timeline/Gantt dùng `row` |
+| BR-009 | Không ghi `position` đè vào `row` |
+| BR-010 | Status task phải thuộc choices |
+| BR-011 | Priority task phải thuộc choices |
+| BR-012 | Due date nhận ISO `YYYY-MM-DD` |
+| BR-013 | Avatar chỉ nhận JPG, PNG, GIF, WebP |
+| BR-014 | Avatar local tối đa 25MB |
+| BR-015 | Chat sender lấy từ authenticated user |
+| BR-016 | LocalStorage không là nguồn dữ liệu nghiệp vụ chính |
+
+## 11. Data Model Tóm Tắt
+
+| Model | Vai trò |
+| --- | --- |
+| User | Tài khoản người dùng |
 | Team | Workspace |
-| TeamMember | Thanh vien workspace va role |
-| TeamInvitation | Loi moi workspace |
-| TeamInvitationProject | Link invitation voi project |
-| Project | Project trong workspace/user |
-| ProjectMember | Member va role theo project |
-| ProjectFavorite | Favorite project theo user |
-| Task | Cong viec theo project/status/schedule |
+| TeamMember | Thành viên workspace và role |
+| TeamInvitation | Lời mời tham gia workspace |
+| TeamInvitationProject | Liên kết invitation với project |
+| Project | Project trong workspace |
+| ProjectMember | Role theo project |
+| Task | Công việc |
 | TaskFavorite | Favorite task theo user |
+| ProjectFavorite | Favorite project theo user |
 | TaskComment | Comment theo task |
-| TaskAttachment | Attachment metadata theo task |
-| TaskActivity | Lich su thao tac theo task |
-| Notification | Thong bao DB theo recipient |
-| Friendship | Quan he ban be |
-| ChatMessage | Tin nhan chat |
+| TaskAttachment | Metadata tệp đính kèm |
+| TaskActivity | Lịch sử thao tác task |
+| Notification | Thông báo |
+| Friendship | Quan hệ bạn bè |
+| ChatMessage | Tin nhắn |
 
-## 15. API contract
+Ghi chú avatar:
 
-### 15.1 Success response
+- Avatar hiện không dùng model riêng.
+- File được lưu trong `MEDIA_ROOT / avatars`.
+- URL trả về qua `current_user_payload` và context settings.
+
+## 12. API Contract
+
+### 12.1 Response thành công
 
 ```json
 {
@@ -535,7 +527,7 @@ Acceptance criteria:
 }
 ```
 
-### 15.2 Error response
+### 12.2 Response lỗi
 
 ```json
 {
@@ -546,275 +538,279 @@ Acceptance criteria:
 }
 ```
 
-### 15.3 Main endpoints
+### 12.3 Endpoint chính
 
-| Method | Endpoint | Muc dich |
+| Method | Endpoint | Mục đích |
 | --- | --- | --- |
-| GET | `/api/dashboard/data/` | Lay dashboard data |
-| GET | `/api/project/data/` | Lay workspace/project/task data |
-| GET | `/api/team/data/` | Lay team/friend/chat data |
-| POST | `/api/teams/` | Tao workspace |
-| POST | `/api/projects/` | Tao project |
-| GET/POST | `/api/projects/<id>/tasks/` | List/create task theo project |
-| POST | `/api/tasks/<id>/status/` | Doi status task |
-| POST | `/api/tasks/<id>/schedule/` | Doi schedule task |
+| GET | `/api/dashboard/data/` | Lấy dashboard data |
+| GET | `/api/project/data/` | Lấy workspace/project/task data |
+| GET | `/api/team/data/` | Lấy team data |
+| POST | `/api/teams/` | Tạo workspace |
+| POST | `/api/projects/` | Tạo project |
+| GET/POST | `/api/projects/<id>/tasks/` | List/create task |
+| PATCH | `/api/tasks/<id>/status/` | Đổi status task |
+| PATCH | `/api/tasks/<id>/position/` | Đổi Kanban position |
+| POST | `/api/tasks/<id>/schedule/` | Đổi schedule |
 | GET/POST | `/api/tasks/<id>/comments/` | List/create comment |
 | GET/POST | `/api/tasks/<id>/attachments/` | List/create attachment metadata |
-| GET | `/api/tasks/<id>/activity/` | List task activity |
+| GET | `/api/tasks/<id>/activity/` | List activity |
 | GET | `/api/notifications/` | List notification |
+| POST | `/api/users/me/avatar/` | Upload avatar local |
+| DELETE | `/api/users/me/avatar/` | Xóa avatar local |
 
-### 15.4 Error codes
+### 12.4 Error code cần chuẩn hóa
 
-- `workspace_required`
+- `authentication_required`
 - `permission_denied`
+- `workspace_required`
 - `invalid_status`
 - `invalid_priority`
 - `invalid_role`
+- `invalid_avatar`
 - `duplicate_invitation`
 - `not_found`
 - `validation_error`
-- `unauthorized`
 
-## 16. Permission matrix
+## 13. Yêu Cầu Phi Chức Năng
 
-| Action | Owner | Admin | Manager | Member | Viewer |
-| --- | --- | --- | --- | --- | --- |
-| View workspace | Yes | Yes | Yes | Yes | Yes |
-| Manage workspace | Yes | Yes | No | No | No |
-| Invite member | Yes | Yes | No | No | No |
-| Create project | Yes | Yes | Optional | No/Optional | No |
-| Edit/delete project | Yes | Yes | Yes if assigned | No | No |
-| View project | Yes | Yes | Yes | Yes if member | Yes if member |
-| Create task | Yes | Yes | Yes | Yes if allowed | No |
-| Edit task | Yes | Yes | Yes | Yes if allowed | No |
-| Delete task | Yes | Yes | Yes | No/Optional | No |
-| Comment task | Yes | Yes | Yes | Yes | No/Optional |
-| Attachment metadata | Yes | Yes | Yes | Yes | No/Optional |
-| Favorite | Yes | Yes | Yes | Yes | Yes |
-| Chat | Yes | Yes | Yes | Yes if relationship valid | No/Optional |
+### 13.1 Bảo mật
 
-Note: "Optional" phu thuoc rule cuoi cung trong service layer.
+- Mọi mutation quan trọng yêu cầu authenticated user.
+- Không tin `sender_id` từ client.
+- Không để viewer thao tác ghi.
+- Không expose dữ liệu user khác nếu không có quyền.
+- Upload avatar chỉ nhận image mime/extension hợp lệ.
 
-## 17. Business rules
+### 13.2 Tin cậy dữ liệu
 
-- BR-001: Workspace chi duoc tao qua mutation, khong tu tao trong GET.
-- BR-002: Workspace owner duoc tao TeamMember role owner.
-- BR-003: Project phai thuoc workspace neu user co nhieu workspace.
-- BR-004: Project name khong trung trong workspace theo contract hien tai.
-- BR-005: Viewer khong duoc tao/sua/xoa project/task/invite.
-- BR-006: Status task phai thuoc choices.
-- BR-007: Priority task phai thuoc choices.
-- BR-008: Due date nhan ISO `YYYY-MM-DD`.
-- BR-009: Schedule khong nhan start/duration/row am, duration toi thieu 0.25.
-- BR-010: Invite email phai hop le.
-- BR-011: Khong tao invitation pending trung email trong cung workspace.
-- BR-012: Chat sender phai lay tu authenticated user.
-- BR-013: Comment/attachment chi cho user co quyen trong workspace/project.
-- BR-014: Favorite la theo user, reload phai giu.
-- BR-015: Notification/activity duoc ghi cho thao tac quan trong.
-- BR-016: LocalStorage khong duoc lam source of truth cho task/project/workspace.
+- DB là nguồn dữ liệu chính.
+- Mutation nhiều bước cần transaction.
+- Optimistic update trên FE phải rollback khi API lỗi.
+- Kéo thả Kanban và timeline dùng field riêng.
 
-## 18. Main user flows
+### 13.3 Hiệu năng
 
-### 18.1 New user onboarding
+- Dashboard dùng aggregate hợp lý.
+- Endpoint list lớn cần prefetch/annotate.
+- PJAX giảm full reload.
+- Script page cũ được dọn để tránh chồng event.
 
-1. User mo `/login/`.
-2. Chon signup.
-3. Nhap full name, email, password.
-4. Tao tai khoan.
-5. He thong dua user vao dashboard.
-6. Dashboard hien empty state vi chua co workspace.
-7. User bam `Create first workspace`.
-8. Tao workspace.
-9. Tao project trong workspace.
-10. Tao task dau tien.
-11. Reload van thay workspace/project/task.
+### 13.4 Dễ dùng
 
-### 18.2 Create workspace and project
+- Nút chính tối thiểu khoảng 40px.
+- Empty state có CTA.
+- Form Add Task rút gọn.
+- Toast rõ ràng.
+- Light mode dễ đọc.
 
-1. User mo Workspaces.
-2. Bam `Add Workspace`.
-3. Nhap workspace name.
-4. Backend tao Team + TeamMember owner.
-5. UI hien workspace moi.
-6. User bam `Create Project`.
-7. Backend tao project gan active workspace.
-8. UI mo project/timeline.
+### 13.5 Bảo trì
 
-### 18.3 Task lifecycle
+- Logic nghiệp vụ nằm trong service.
+- Permission nằm trong helper.
+- API response thống nhất.
+- Test khóa các bug quan trọng.
 
-1. User mo project.
-2. Bam `Add Task`.
-3. Nhap title/status/priority/due date.
-4. Backend validate va tao task.
-5. UI hien task trong view active.
-6. User drag/drop doi status hoac schedule.
-7. FE optimistic update.
-8. Backend luu DB va ghi activity.
-9. Neu loi, FE rollback va toast `Failed, restored`.
+## 14. Acceptance Criteria Tổng
 
-### 18.4 Invite member
+### 14.1 Auth
 
-1. Owner/admin mo Team hoac Project.
-2. Bam Invite.
-3. Nhap email va role.
-4. Backend validate role/email/duplicate.
-5. Tao TeamInvitation.
-6. Tao notification/activity.
-7. UI hien invitation/member status.
+- User đăng ký thành công.
+- User đăng nhập thành công.
+- User chưa login bị redirect.
 
-### 18.5 Task detail collaboration
+### 14.2 Workspace/Project/Task
 
-1. User click task card.
-2. Modal detail load comments, attachments, activity.
-3. User them comment hoac attachment metadata.
-4. Backend validate permission.
-5. Luu DB, tao activity va notification.
-6. Reload detail van hien du lieu.
+- Tạo workspace thành công.
+- Tạo project trong workspace.
+- Tạo task trong project.
+- Reload vẫn giữ dữ liệu.
 
-### 18.6 Smooth navigation
+### 14.3 Permission
 
-1. User dang o Workspaces.
-2. Bam Dashboard/Team/Files/Settings.
-3. PJAX fetch HTML moi.
-4. Content doi voi animation nhe.
-5. URL/title/history cap nhat.
-6. User bam Back cua browser va man hinh quay lai dung.
+- Owner/admin thao tác được.
+- Viewer bị chặn.
+- Assignee update task được giao.
+- User ngoài workspace không truy cập task private.
 
-## 19. UAT scenarios
+### 14.4 Kanban/Timeline
 
-### 19.1 Auth
+- Kanban update `position`.
+- Timeline update `row`.
+- Hai field không ghi đè sai nhau.
 
-- Signup user moi.
-- Login lai user cu.
-- Logout.
-- Truy cap `/project/` khi chua login.
+### 14.5 Settings
 
-### 19.2 Workspace/project/task
+- Upload avatar hơn 12MB thành công.
+- Avatar lưu local.
+- Avatar hiển thị lại sau reload.
+- Theme sáng/tối giữ sau reload.
 
-- User moi thay empty dashboard.
-- Tao workspace dau tien.
-- Tao project dau tien.
-- Tao task bang form rut gon.
-- Reload trang va xac nhan data con.
+### 14.6 Navigation
 
-### 19.3 Permission
+- Chuyển Dashboard/Workspaces/Team/Files/Settings không full reload.
+- Browser back/forward hoạt động.
 
-- User A tao workspace/project/task.
-- User B khong co quyen khong xem/sua/xoa duoc.
-- Viewer khong tao project/task/invite.
-- Owner/admin thao tac duoc.
+## 15. UAT Checklist
 
-### 19.4 Task detail
+### UAT-01 - User mới
 
-- Them comment.
-- Them attachment metadata.
-- Xem activity.
-- Reload detail va xac nhan data con.
+1. Mở `/login/`.
+2. Đăng ký user mới.
+3. Vào dashboard.
+4. Tạo workspace.
+5. Tạo project.
+6. Tạo task.
+7. Reload và xác nhận dữ liệu còn.
 
-### 19.5 Navigation/theme
+### UAT-02 - Quyền assignee
 
-- Doi light/dark.
-- Reload va xac nhan theme giu.
-- Click qua Dashboard/Team/Files/Settings/Workspaces.
-- Back/forward browser dung.
-- Light mode text khong choi.
+1. Owner tạo task.
+2. Gán member vào task.
+3. Member đăng nhập.
+4. Member cập nhật task.
+5. Hệ thống cho phép.
 
-## 20. Regression checklist
+### UAT-03 - Kanban position
+
+1. Mở project.
+2. Kéo task trong Kanban.
+3. Reload.
+4. Thứ tự task giữ đúng.
+5. Timeline row không bị lệch.
+
+### UAT-04 - Avatar
+
+1. Mở Settings.
+2. Chọn ảnh khoảng 13MB.
+3. Upload.
+4. Preview đổi ngay.
+5. Kiểm tra file trong `media/avatars/`.
+6. Reload và xác nhận avatar còn.
+
+### UAT-05 - Viewer
+
+1. Gán user role viewer.
+2. Viewer mở workspace.
+3. Viewer thử tạo/sửa/xóa task.
+4. Hệ thống chặn.
+
+## 16. Regression Checklist
 
 Backend:
 
-- `backend/.venv/Scripts/python.exe manage.py check`
-- `backend/.venv/Scripts/python.exe manage.py makemigrations --check --dry-run`
-- `backend/.venv/Scripts/python.exe manage.py test`
+```powershell
+cd E:\htdakt\TaskManagement\backend
+$env:DB_ENGINE="django.db.backends.sqlite3"
+.\.venv\Scripts\python.exe manage.py check
+.\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run
+.\.venv\Scripts\python.exe manage.py test
+```
 
-Frontend/static:
+Frontend syntax:
 
-- `node --check frontend/static/js/core/theme.js`
-- `node --check frontend/static/js/pages/dashboard.js`
-- `node --check frontend/static/js/pages/timeline.js`
-- `node --check frontend/static/js/pages/team.js`
-- `node --check frontend/static/js/files.js`
-- `node --check frontend/static/js/settings.js`
+```powershell
+cd E:\htdakt\TaskManagement
+node --check frontend\static\js\auth.js
+node --check frontend\static\js\pages\dashboard.js
+node --check frontend\static\js\pages\timeline.js
+node --check frontend\static\js\pages\team.js
+node --check frontend\static\js\files.js
+node --check frontend\static\js\settings.js
+```
 
-Manual browser smoke:
+Browser smoke:
 
-- Login page render dung CSS.
-- Dashboard empty state.
-- Create workspace.
-- Create project.
-- Add task.
-- Drag/drop/favorite/delete.
-- Task detail comment/activity/attachment.
-- Team invite.
-- PJAX navigation.
-- Mobile viewport.
+- Login page có CSS.
+- Dashboard hiển thị đúng.
+- Workspaces mở đúng.
+- Team invite mở đúng.
+- Settings upload avatar.
+- Theme sáng/tối hoạt động.
+- PJAX không lỗi console.
 
-## 21. Release checklist
+## 17. Rủi Ro Và Giảm Thiểu
 
-- Confirm branch: `feature/backend-core`.
-- Khong commit DB local: `db.sqlite3`, `task_management`.
-- Migrations hop le va co the migrate.
-- Requirements cap nhat.
-- Static CSS/JS khong loi syntax.
-- Docs BA va structure cap nhat.
-- Browser smoke pass.
-- Push len origin.
-
-## 22. Risks and mitigation
-
-| Risk | Impact | Mitigation |
+| Rủi ro | Ảnh hưởng | Giảm thiểu |
 | --- | --- | --- |
-| DB local bi commit | Lam repo nang, lech du lieu | Khong stage `db.sqlite3` va file DB local |
-| Permission thieu case | User xem/sua du lieu sai | Them tests owner/admin/member/viewer |
-| Chat room sai quyen | Lo thong tin chat | Validate authenticated user va relationship |
-| Attachment chua storage that | User hieu nham upload file | Ghi ro hien la metadata, roadmap storage |
-| Demo/local fallback con sot | Du lieu sai voi DB | Audit localStorage/demo data |
-| Query dashboard cham | UX cham khi data lon | Prefetch/annotate/aggregate |
-| PJAX script leak | Event bi chong | Clear timer/listener, re-run script theo page |
-| Light mode contrast kem | Kho doc | Central design tokens va visual QA |
+| Commit nhầm DB local | Repo nặng, lộ dữ liệu test | Không stage `db.sqlite3`, `task_management` |
+| Permission thiếu case | User sửa dữ liệu sai quyền | Test owner/admin/member/viewer/assignee |
+| Kanban ghi nhầm row | Timeline lệch | Tách `position` và `row`, có test |
+| Avatar local quá lớn | Tốn ổ đĩa local | Giới hạn 25MB, chỉ image |
+| Attachment chưa storage thật | Người dùng hiểu nhầm upload file | Ghi rõ hiện là metadata |
+| Chat permission thiếu | Lộ hội thoại | Siết room membership |
+| UI mobile overlap | Khó thao tác | Test viewport mobile |
+| Text encoding cũ | Tài liệu/UI khó đọc | Chuẩn hóa dần file template/docs |
 
-## 23. Roadmap de xuat
+## 18. Roadmap Đề Xuất
 
-### Phase 1 - Baseline ready
+### Phase 1 - Baseline ổn định
 
-- Hoan thien service/permission cho task/project/team.
-- Hoan thien activity/notification DB.
-- Fix UI flow, light/dark, PJAX.
-- BA + project structure docs.
+- Hoàn thiện permission task/project/team.
+- Hoàn thiện Kanban position.
+- Hoàn thiện avatar local.
+- Hoàn thiện BA và project structure.
 
 ### Phase 2 - Quality hardening
 
-- Backend tests permission/validation/core API.
-- Smoke tests FE bang Playwright.
-- Query optimization.
-- Error monitoring/logging baseline.
+- Mở rộng test backend.
+- Thêm smoke test FE.
+- Chuẩn hóa error code.
+- Tối ưu query dashboard.
 
-### Phase 3 - Collaboration depth
+### Phase 3 - Collaboration
 
-- Email invitation provider.
-- File storage that.
-- Chat/presence nang cao.
-- Activity timeline nang cao.
+- Email invitation thật.
+- Notification realtime.
+- Chat permission nâng cao.
+- Activity timeline rõ hơn.
 
 ### Phase 4 - Production readiness
 
 - MySQL staging.
-- CI regression.
-- Deployment config.
+- CI/CD.
+- Logging/monitoring.
 - Backup/restore.
-- Basic analytics.
+- File storage thật.
 
-## 24. Glossary
+## 19. Open Questions
 
-- Workspace: Khong gian lam viec, map voi Team.
-- Project: Du an trong workspace.
-- Task: Cong viec trong project.
-- Owner: Nguoi so huu workspace.
-- Admin: Nguoi co quyen quan tri workspace.
-- Member: Thanh vien thao tac hang ngay.
-- Viewer: Nguoi chi xem.
-- Activity: Lich su thao tac.
-- Notification: Thong bao cho user.
-- PJAX: Cach chuyen trang bang fetch/swap content de khong full reload.
-- Source of truth: Noi du lieu chinh thuc duoc luu, trong du an nay la DB.
+- Có cần lưu avatar trong DB model profile riêng không?
+- Attachment có cần chuyển từ metadata sang file thật không?
+- Viewer có được comment task không hay chỉ xem hoàn toàn?
+- Member không phải assignee có được cập nhật task không?
+- Có cần role tùy chỉnh ngoài owner/admin/member/viewer không?
+- Có cần export report cho dashboard không?
+- Có cần realtime notification trong phiên bản đầu không?
+
+## 20. Glossary
+
+| Thuật ngữ | Ý nghĩa |
+| --- | --- |
+| Workspace | Không gian làm việc, tương ứng Team |
+| Project | Dự án trong workspace |
+| Task | Công việc |
+| Assignee | Người được giao task |
+| Kanban | Bảng kéo thả theo trạng thái/thứ tự |
+| Position | Thứ tự task trong Kanban |
+| Row | Dòng hiển thị trên timeline/Gantt |
+| Timeline | Giao diện xem task theo thời gian |
+| Activity | Lịch sử thao tác |
+| Notification | Thông báo |
+| PJAX | Chuyển trang bằng fetch/swap nội dung, không full reload |
+| Local media | File lưu trên máy chạy localhost |
+
+## 21. Kết Luận
+
+TaskFlow đã có nền tảng tốt cho một công cụ quản lý công việc theo workspace/project/task. Trọng tâm BA hiện tại là giữ dữ liệu thật, quyền đúng, thao tác dễ hiểu và test được các flow quan trọng.
+
+Các điểm đã được đưa vào baseline:
+
+- Workspace/project/task lưu DB.
+- Permission assignee được bổ sung.
+- Kanban `position` tách khỏi timeline `row`.
+- Avatar local upload 25MB.
+- Theme sáng/tối.
+- Chuyển trang mượt.
+- BA và cấu trúc dự án được tài liệu hóa.
+
+Hướng tiếp theo nên tập trung vào test, file storage thật, email invitation và production readiness.
