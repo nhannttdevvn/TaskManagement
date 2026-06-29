@@ -3,6 +3,7 @@
 
   const app = document.getElementById("teamApp");
   if (!app) return;
+  if (app.dataset.teamLayout === "compact") return;
 
   const teamApi = window.TaskFlow?.teamApi;
   const toast = window.TaskFlow?.toast;

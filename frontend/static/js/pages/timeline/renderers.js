@@ -10,7 +10,7 @@
         .slice(0, 4)
         .map(
           (member, index) => `
-            <span class="grid ${size} place-items-center rounded-full border-2 border-slate-950 bg-gradient-to-br from-cyan-300 to-violet-500 text-[0.58rem] font-black text-white ${index ? "-ml-2" : ""}">
+            <span class="grid ${size} place-items-center rounded-full border-2 border-white/80 bg-gradient-to-br from-cyan-300 to-violet-500 text-[0.58rem] font-black text-white ${index ? "-ml-2" : ""}">
               ${Timeline.helpers.escapeHtml(member)}
             </span>
           `
@@ -25,13 +25,13 @@
         ${visible
           .map(
             (member) => `
-              <span class="inline-grid h-6 w-6 place-items-center rounded-full border-2 border-slate-950 bg-gradient-to-br from-cyan-400 to-violet-500 text-[0.56rem] font-black text-white">
+              <span class="inline-grid h-6 w-6 place-items-center rounded-full border-2 border-white/80 bg-gradient-to-br from-cyan-400 to-violet-500 text-[0.56rem] font-black text-white">
                 ${Timeline.helpers.escapeHtml(member)}
               </span>
             `
           )
           .join("")}
-        ${remaining ? `<span class="inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-slate-950 bg-white/10 text-[0.56rem] font-black text-slate-200">+${remaining}</span>` : ""}
+        ${remaining ? `<span class="inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-white/80 bg-white/10 text-[0.56rem] font-black text-slate-200">+${remaining}</span>` : ""}
       `;
     },
 
@@ -44,29 +44,29 @@
           const isActive = workspace.id === Timeline.state.activeWorkspaceId;
           const count = Timeline.tasks.filter((task) => task.workspaceId === workspace.id).length;
           return `
-            <div class="rounded-2xl px-2.5 py-2 transition ${isActive ? "border border-white/12 bg-white/12 text-white shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "text-slate-300"}">
+            <div class="workspace-group rounded-xl border border-transparent px-1.5 py-1.5 transition ${isActive ? "is-active bg-gradient-to-r from-violet-600/45 to-blue-600/25 text-white shadow-[0_0_18px_rgba(34,211,238,0.08)]" : "text-slate-300 hover:bg-white/8"}">
               <button
-                class="flex w-full items-center justify-between gap-2 text-left"
+                class="flex h-7 w-full items-center justify-between gap-2 rounded-lg px-1.5 text-left"
                 type="button"
                 data-workspace-overview="${workspace.id}"
               >
-                <span class="truncate text-sm font-bold">${Timeline.helpers.escapeHtml(workspace.name)}</span>
-                <span class="rounded-full bg-slate-950/35 px-1.5 py-0.5 text-[0.58rem] font-black text-cyan-100">${count}</span>
+                <span class="truncate text-xs font-semibold">${Timeline.helpers.escapeHtml(workspace.name)}</span>
+                <span class="rounded-full bg-slate-950/30 px-1.5 py-0.5 text-[0.56rem] font-medium text-cyan-100">${count}</span>
               </button>
-              <div class="mt-2 space-y-1">
+              <div class="mt-1 space-y-0.5">
                 ${workspace.projects
                   .map((project) => {
                     const isProjectActive = Timeline.state.mode === "detail" && isActive && Timeline.helpers.activeProjectName() === project;
                     const projectCount = Timeline.tasks.filter((task) => task.workspaceId === workspace.id && task.projectName === project).length;
                     return `
                       <button
-                        class="flex w-full items-center justify-between gap-2 rounded-xl px-2 py-1.5 text-left text-[0.72rem] font-bold transition hover:bg-white/10 ${isProjectActive ? "bg-cyan-300/14 text-cyan-100" : "text-slate-400"}"
+                        class="flex h-7 w-full items-center justify-between gap-2 rounded-lg px-2 text-left text-[0.68rem] font-medium transition hover:bg-white/10 ${isProjectActive ? "bg-cyan-300/14 text-cyan-100" : "text-slate-400"}"
                         type="button"
                         data-workspace-id="${workspace.id}"
                         data-project-name="${Timeline.helpers.escapeHtml(project)}"
                       >
                         <span class="truncate">${Timeline.helpers.escapeHtml(project)}</span>
-                        <span class="text-[0.58rem] text-slate-500">${projectCount}</span>
+                        <span class="text-[0.56rem] font-medium text-slate-500">${projectCount}</span>
                       </button>
                     `;
                   })
