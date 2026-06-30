@@ -6,6 +6,7 @@ from .friends import (
     list_pending_requests,
 )
 from .auth import auth_login, auth_logout, auth_signup, users_avatar, users_me
+from .files import files_collection, files_upload, folders_collection
 from .conversations import (
     call_end,
     conversation_calls,
@@ -74,6 +75,9 @@ __all__ = [
     "dashboard_task_status",
     "invitation_accept",
     "invitation_action",
+    "files_collection",
+    "files_upload",
+    "folders_collection",
     "notification_read",
     "notifications",
     "project_calendar",

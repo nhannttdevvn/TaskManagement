@@ -14,7 +14,7 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body class="{% block body_class %}py-5{% endblock %}">
-    <div id="pjax-container" class="transition-[opacity,transform,filter] duration-200 ease-out will-change-[opacity,transform]">
+    <div id="pjax-container">
       {% block page_shell %}
       <div class="container">
         <header class="mb-4">
@@ -51,6 +51,11 @@
       </div>
       {% endblock %}
     </div>
+    <div
+      id="pjax-progress"
+      aria-hidden="true"
+      style="position:fixed;left:0;top:0;z-index:9999;height:3px;width:0;background:linear-gradient(90deg,#22d3ee,#7c3aed);box-shadow:0 0 18px rgba(34,211,238,.45);opacity:0;transition:width .18s ease,opacity .12s ease;"
+    ></div>
 
     {% block core_scripts %}
     <script src="{% static 'js/core/csrf.js' %}"></script>
@@ -157,9 +162,12 @@
           pageListeners.length = 0;
         };
 
-        // 2. Link interception and fetch page transitions.
+        // 2. Link interception and instant PJAX page swaps.
         const container = document.getElementById("pjax-container");
         if (!container) return;
+        const progress = document.getElementById("pjax-progress");
+        const pageCache = new Map();
+        const CACHE_TTL = 30000;
         let isNavigating = false;
 
         function normalizeUrl(url) {
@@ -171,8 +179,64 @@
           return target.pathname === window.location.pathname && target.search === window.location.search;
         }
 
-        function delay(ms) {
-          return new Promise(resolve => originalSetTimeout(resolve, ms));
+        function cacheKey(url) {
+          const target = normalizeUrl(url);
+          return target.pathname + target.search;
+        }
+
+        function canUsePjaxLink(link) {
+          if (!link) return false;
+          const href = link.getAttribute("href");
+          if (!href || href.startsWith("#") || link.target === "_blank" || link.hasAttribute("download")) return false;
+          const targetUrl = normalizeUrl(href);
+          if (targetUrl.origin !== window.location.origin) return false;
+          if (href.includes("logout") || href.includes("login") || href.includes("admin")) return false;
+          return true;
+        }
+
+        function showProgress() {
+          if (!progress) return;
+          progress.style.opacity = "1";
+          progress.style.width = "36%";
+          originalSetTimeout(() => {
+            if (progress.style.opacity === "1") progress.style.width = "72%";
+          }, 120);
+        }
+
+        function hideProgress() {
+          if (!progress) return;
+          progress.style.width = "100%";
+          originalSetTimeout(() => {
+            progress.style.opacity = "0";
+            progress.style.width = "0";
+          }, 120);
+        }
+
+        async function fetchPage(url) {
+          const targetUrl = normalizeUrl(url);
+          const key = cacheKey(targetUrl.href);
+          const cached = pageCache.get(key);
+          if (cached && Date.now() - cached.time < CACHE_TTL) {
+            return cached.html;
+          }
+
+          const response = await fetch(targetUrl.pathname + targetUrl.search, {
+            headers: {
+              "X-Requested-With": "TaskFlow-PJAX",
+            },
+            credentials: "same-origin",
+          });
+          if (!response.ok) throw new Error("Failed to load page");
+          const html = await response.text();
+          pageCache.set(key, { html, time: Date.now() });
+          return html;
+        }
+
+        function prefetch(url) {
+          const key = cacheKey(url);
+          const cached = pageCache.get(key);
+          if (cached && Date.now() - cached.time < CACHE_TTL) return;
+          fetchPage(url).catch(() => {});
         }
 
         async function loadScriptsSequentially(scripts) {
@@ -187,10 +251,11 @@
               if (newScript.hasAttribute("src")) {
                 newScript.onload = () => resolve();
                 newScript.onerror = () => resolve();
+                document.body.appendChild(newScript);
               } else {
+                document.body.appendChild(newScript);
                 resolve();
               }
-              document.body.appendChild(newScript);
             });
           }
         }
@@ -201,38 +266,24 @@
           isNavigating = true;
 
           const targetUrl = normalizeUrl(url);
-          const fetchPromise = fetch(targetUrl.pathname + targetUrl.search, {
-            headers: {
-              "X-Requested-With": "TaskFlow-PJAX",
-            },
-          });
-
-          container.style.opacity = "0";
-          container.style.transform = "translateY(8px) scale(0.996)";
-          container.style.filter = "blur(2px)";
+          showProgress();
           container.style.pointerEvents = "none";
 
           try {
-            await delay(110);
-            const response = await fetchPromise;
-            if (!response.ok) throw new Error("Failed to load page");
-            const html = await response.text();
-
+            const html = await fetchPage(targetUrl.href);
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
+            const newContainer = doc.getElementById("pjax-container");
+            if (!newContainer) throw new Error("Missing PJAX container");
 
             // Clean up old page state
             window.clearAllIntervals();
             window.clearAllPageListeners();
 
-            // Update DOM
-            const newContainer = doc.getElementById("pjax-container");
-            if (newContainer) {
-              container.innerHTML = newContainer.innerHTML;
-            }
-
+            // Update DOM in one immediate swap. The old page stays visible until this line.
             document.title = doc.title;
             document.body.className = doc.body.className;
+            container.innerHTML = newContainer.innerHTML;
 
             if (pushState) {
               window.history.pushState({}, "", targetUrl.pathname + targetUrl.search + targetUrl.hash);
@@ -250,31 +301,34 @@
 
             window.TaskFlow.refreshIcons();
 
-            requestAnimationFrame(() => {
-              container.style.opacity = "1";
-              container.style.transform = "translateY(0) scale(1)";
-              container.style.filter = "blur(0)";
-              container.style.pointerEvents = "";
-            });
-
           } catch (error) {
             console.error("PJAX navigation error:", error);
             window.location.href = url;
           } finally {
+            container.style.pointerEvents = "";
+            hideProgress();
             isNavigating = false;
           }
         }
+
+        originalDocumentAddEventListener.call(document, "pointerover", (e) => {
+          const link = e.target.closest("a");
+          if (!canUsePjaxLink(link)) return;
+          prefetch(link.href);
+        });
+
+        originalDocumentAddEventListener.call(document, "focusin", (e) => {
+          const link = e.target.closest("a");
+          if (!canUsePjaxLink(link)) return;
+          prefetch(link.href);
+        });
 
         originalDocumentAddEventListener.call(document, "click", (e) => {
           const link = e.target.closest("a");
           if (!link) return;
           if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-
-          const href = link.getAttribute("href");
-          if (!href || href.startsWith("#") || link.target === "_blank" || link.hasAttribute("download")) return;
-          const targetUrl = normalizeUrl(href);
-          if (targetUrl.origin !== window.location.origin) return;
-          if (href.includes("logout") || href.includes("login") || href.includes("admin")) return;
+          if (!canUsePjaxLink(link)) return;
+          const targetUrl = normalizeUrl(link.href);
 
           e.preventDefault();
           navigateTo(targetUrl.href);

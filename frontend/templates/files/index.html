@@ -23,7 +23,7 @@
 
   <aside
     id="filesSidebar"
-    class="fixed inset-y-0 left-0 z-40 flex w-48 -translate-x-full flex-col border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
+    class="fixed inset-y-0 left-0 z-40 flex w-56 -translate-x-full flex-col border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
     aria-label="Files navigation"
   >
     <div class="flex items-center gap-2 px-2">
@@ -56,10 +56,6 @@
         <i data-lucide="files" class="h-4 w-4"></i>
         <span>Files</span>
       </a>
-      <a class="files-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'updates' %}">
-        <i data-lucide="radio" class="h-4 w-4"></i>
-        <span>All Updates</span>
-      </a>
     </nav>
 
     <div class="mt-auto rounded-2xl border border-white/10 bg-white/10 p-3 shadow-glass backdrop-blur-xl">
@@ -79,7 +75,7 @@
     </div>
   </aside>
 
-  <div class="theme-content min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-48">
+  <div class="theme-content min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-56">
     <header class="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-2.5 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-5 lg:shrink-0">
       <div class="flex items-center justify-between gap-5">
         <div class="flex shrink-0 items-center gap-3">
@@ -314,5 +310,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/files.js' %}?v=20260628-3"></script>
+<script src="{% static 'js/files.js' %}?v=20260630-sidebar-fix-1"></script>
 {% endblock %}

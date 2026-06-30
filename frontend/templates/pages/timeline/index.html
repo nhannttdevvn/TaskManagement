@@ -56,6 +56,34 @@
     border-color: rgba(148, 163, 184, 0.34) !important;
   }
 
+  #timelineApp[data-theme="light"] #timelineScroll {
+    background:
+      linear-gradient(135deg, rgba(14, 165, 233, 0.08), transparent 32%),
+      linear-gradient(225deg, rgba(124, 58, 237, 0.07), transparent 30%),
+      linear-gradient(180deg, rgba(248, 250, 252, 0.94), rgba(226, 232, 240, 0.72)) !important;
+    border-color: rgba(148, 163, 184, 0.42) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 18px 48px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  #timelineApp[data-theme="light"] #timelineCanvas {
+    background:
+      linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14, 165, 233, 0.11) 1px, transparent 1px),
+      radial-gradient(circle at 18% 0%, rgba(34, 211, 238, 0.12), transparent 28%),
+      linear-gradient(180deg, rgba(248, 250, 252, 0.86), rgba(241, 245, 249, 0.72)) !important;
+    background-size: 100% 70px, 142px 100%, auto, auto !important;
+  }
+
+  #timelineApp[data-theme="light"] #timelineHeader {
+    background: rgba(248, 250, 252, 0.92) !important;
+    border-color: rgba(148, 163, 184, 0.42) !important;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  #timelineApp[data-theme="light"] #timelineGrid > div {
+    border-color: rgba(14, 165, 233, 0.16) !important;
+  }
+
   .resize-handle {
     position: absolute;
     right: 0;
@@ -82,6 +110,9 @@
   data-project-url="{% url 'api_project_data' %}"
   data-invite-url=""
   data-allow-demo-fallback="false"
+  data-user-role="{{ workspace_role|default:'viewer' }}"
+  data-user-name="{{ user.get_full_name|default:user.username }}"
+  data-user-id="{{ user.id }}"
   class="relative isolate h-screen overflow-y-auto overflow-x-hidden bg-[linear-gradient(135deg,rgba(79,70,229,0.22),transparent_30%),linear-gradient(225deg,rgba(14,165,233,0.16),transparent_34%),linear-gradient(180deg,#050816_0%,#0f172a_52%,#111827_100%)] text-slate-950 transition-colors duration-300 dark:text-white lg:overflow-hidden"
 >
   <div
@@ -93,7 +124,7 @@
 
   <aside
     id="timelineSidebar"
-    class="fixed inset-y-0 left-0 z-40 flex w-48 -translate-x-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
+    class="fixed inset-y-0 left-0 z-40 flex w-56 -translate-x-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(160deg,rgba(42,31,116,0.96),rgba(64,45,196,0.84))] px-3 py-4 shadow-[18px_0_54px_rgba(15,23,42,0.3)] backdrop-blur-3xl transition-transform duration-300 lg:translate-x-0 motion-reduce:transition-none"
     aria-label="Timeline navigation"
   >
     <div class="flex shrink-0 items-center gap-2 px-2">
@@ -126,10 +157,6 @@
         <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'files' %}">
           <i data-lucide="files" class="h-4 w-4"></i>
           <span>Files</span>
-        </a>
-        <a class="timeline-nav-link flex h-10 items-center gap-3 rounded-2xl px-3 text-sm text-slate-200/80 transition hover:translate-x-1 hover:bg-white/15 hover:text-white motion-reduce:transform-none" href="{% url 'updates' %}">
-          <i data-lucide="radio" class="h-4 w-4"></i>
-          <span>All Updates</span>
         </a>
       </nav>
 
@@ -168,7 +195,7 @@
     </div>
   </aside>
 
-  <div class="theme-content min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-48">
+  <div class="theme-content min-h-screen lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:pl-56">
     <header class="theme-panel sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-2.5 shadow-[0_20px_70px_rgba(2,6,23,0.24)] backdrop-blur-2xl sm:px-5 lg:shrink-0">
       <div class="flex items-center justify-between gap-5">
         <div class="flex shrink-0 items-center gap-3">
@@ -289,6 +316,10 @@
             <div class="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
               <span id="projectCompany" class="inline-flex items-center gap-1.5 text-[0.65rem] font-medium text-slate-400"><i data-lucide="building-2" class="h-3 w-3"></i> Fintask Inc.</span>
               <span id="projectDate" class="inline-flex items-center gap-1.5 text-[0.65rem] font-medium text-slate-400"><i data-lucide="calendar-days" class="h-3 w-3"></i> Nov 15, 2026</span>
+              <span id="projectPermissionBadge" class="inline-flex min-h-8 items-center gap-1.5 rounded-xl border border-white/10 bg-white/8 px-2.5 text-[0.65rem] font-black text-slate-300">
+                <i data-lucide="shield-check" class="h-3.5 w-3.5"></i>
+                {{ workspace_role|title }}
+              </span>
               <div id="projectMemberStack" class="-space-x-2"></div>
               <button id="workspaceInviteButton" class="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-3 text-[0.68rem] font-bold text-white shadow-[0_10px_24px_rgba(79,70,229,0.22)] transition hover:-translate-y-0.5 hover:brightness-110 motion-reduce:transform-none" type="button">
                 <i data-lucide="user-plus" class="h-3 w-3"></i>
@@ -317,8 +348,6 @@
               <div id="kanbanDayPicker" class="flex max-w-[17rem] items-center gap-1 overflow-x-auto"></div>
               <button id="clearKanbanDayFilter" class="hidden h-6 shrink-0 rounded-lg px-2 text-xs font-black text-cyan-200 hover:bg-white/10 hover:text-white" type="button">All</button>
             </div>
-            <span id="timelineStatus" class="rounded-full bg-emerald-400/15 px-2.5 py-1 font-bold text-emerald-200">Live sync</span>
-            <span id="timelineViewMeta" class="hidden sm:inline">Scale: 1h = 142px</span>
             <div class="flex items-center gap-1">
               <button id="timelineAddTask" class="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/10 transition hover:bg-white/15" type="button" aria-label="Add task">
                 <i data-lucide="plus" class="h-3.5 w-3.5"></i>
@@ -403,28 +432,20 @@
         <div id="projectsView" class="hidden flex-1 flex-col overflow-hidden rounded-[1.25rem] border border-white/[0.08] bg-slate-950/30 p-3">
           <div class="mb-2 flex shrink-0 items-center justify-between rounded-2xl border border-white/[0.06] bg-white/[0.035] p-2.5">
             <div>
-              <h3 class="text-sm font-black text-white">Workspace Projects & Schedule</h3>
-              <p class="text-[0.68rem] font-semibold text-slate-400">Overview of all active projects and their timeline in this workspace.</p>
+              <h3 class="text-sm font-black text-white">Workspace Projects</h3>
+              <p id="projectActionHint" class="text-[0.68rem] font-semibold text-slate-400">Overview of all projects and their progress in this workspace.</p>
             </div>
             <button class="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white transition hover:-translate-y-0.5 hover:brightness-110" type="button" data-create-project-in-workspace-active>
               <i data-lucide="plus" class="h-3.5 w-3.5"></i>
               Add Project
             </button>
           </div>
-          
-          <div class="min-h-0 flex-1 grid gap-3 overflow-y-auto lg:grid-cols-[1.2fr_0.8fr] pr-1">
-            <section class="rounded-2xl border border-white/10 bg-slate-950/45 p-3 flex flex-col min-h-0">
+          <div class="min-h-0 flex-1 overflow-y-auto pr-1">
+            <section class="flex min-h-full flex-col rounded-2xl border border-white/10 bg-slate-950/45 p-3">
               <h4 class="text-xs font-black uppercase tracking-[0.14em] text-cyan-200 mb-2.5 flex items-center gap-2">
-                <i data-lucide="folder-kanban" class="h-3.5 w-3.5"></i> Projects List
+                <i data-lucide="folder-kanban" class="h-3.5 w-3.5"></i> Project List
               </h4>
-              <div id="projectsListContent" class="space-y-2 overflow-y-auto flex-1 pr-1"></div>
-            </section>
-            
-            <section class="rounded-2xl border border-white/10 bg-slate-950/45 p-3 flex flex-col min-h-0">
-              <h4 class="text-xs font-black uppercase tracking-[0.14em] text-violet-200 mb-2.5 flex items-center gap-2">
-                <i data-lucide="calendar" class="h-3.5 w-3.5"></i> Project Schedule
-              </h4>
-              <div id="projectsScheduleContent" class="space-y-3 overflow-y-auto flex-1 pr-1"></div>
+              <div id="projectsListContent" class="flex flex-1 flex-col gap-3 overflow-y-auto pr-1"></div>
             </section>
           </div>
         </div>
@@ -434,7 +455,7 @@
 
   <div id="timelineTaskModal" class="fixed inset-0 z-[60] hidden place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="timelineTaskTitle">
     <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-md" data-close-task-modal></div>
-    <section class="relative max-h-[calc(100vh-2rem)] w-[min(100%,38rem)] overflow-auto rounded-2xl border border-white/10 bg-slate-950/90 p-5 shadow-[0_24px_72px_rgba(2,6,23,0.46)] backdrop-blur-2xl animate-modalIn">
+    <section class="relative max-h-[min(86vh,42rem)] w-[min(100%,46rem)] overflow-auto rounded-2xl border border-white/10 bg-slate-950/90 p-4 shadow-[0_24px_72px_rgba(2,6,23,0.46)] backdrop-blur-2xl animate-modalIn sm:p-5">
       <button class="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-xl bg-slate-400/10 text-white transition hover:bg-white/15" type="button" data-close-task-modal aria-label="Close task detail">
         <i data-lucide="x" class="h-5 w-5"></i>
       </button>
@@ -491,8 +512,11 @@
               <input class="h-10 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40" name="owner" placeholder="Assigned owner">
             </label>
             <label class="grid gap-1.5">
-              <span class="text-xs font-bold text-slate-400">Progress</span>
-              <input class="accent-cyan-300" name="progress" type="range" min="0" max="100" value="20">
+              <span class="flex items-center justify-between gap-3 text-xs font-bold text-slate-400">
+                <span>Progress</span>
+                <output id="taskProgressValue" class="shrink-0 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-0.5 text-[0.68rem] font-black text-cyan-100">0%</output>
+              </span>
+              <input id="taskProgressInput" class="h-2 w-full cursor-pointer accent-cyan-300" name="progress" type="range" min="0" max="100" value="0">
             </label>
           </div>
         </details>
@@ -630,12 +654,12 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/pages/timeline/api.js' %}?v=20260623-1"></script>
-<script src="{% static 'js/pages/timeline/core.js' %}?v=20260530-1"></script>
-<script src="{% static 'js/pages/timeline/helpers.js' %}?v=20260530-1"></script>
-<script src="{% static 'js/pages/timeline/renderers.js' %}?v=20260628-2"></script>
-<script src="{% static 'js/pages/timeline/modals.js' %}?v=20260530-1"></script>
-<script src="{% static 'js/pages/timeline/actions.js' %}?v=20260623-2"></script>
-<script src="{% static 'js/pages/timeline/interactions.js' %}?v=20260530-1"></script>
-<script src="{% static 'js/pages/timeline.js' %}?v=20260628-3"></script>
+<script src="{% static 'js/pages/timeline/api.js' %}?v=20260630-progress-1"></script>
+<script src="{% static 'js/pages/timeline/core.js' %}?v=20260630-progress-1"></script>
+<script src="{% static 'js/pages/timeline/helpers.js' %}?v=20260630-sidebar-1"></script>
+<script src="{% static 'js/pages/timeline/renderers.js' %}?v=20260630-workspace-projects-1"></script>
+<script src="{% static 'js/pages/timeline/modals.js' %}?v=20260630-compact-task-modal-1"></script>
+<script src="{% static 'js/pages/timeline/actions.js' %}?v=20260630-progress-1"></script>
+<script src="{% static 'js/pages/timeline/interactions.js' %}?v=20260630-progress-1"></script>
+<script src="{% static 'js/pages/timeline.js' %}?v=20260630-sidebar-fix-1"></script>
 {% endblock %}

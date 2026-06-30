@@ -69,7 +69,10 @@ def task_status(request, task_id):
         return error("You do not have permission to update this task.", status=403)
     data = payload(request)
     try:
-        task = apply_task_payload(task, {"status": data.get("status")}, actor=request.user, action="status_changed")
+        update = {"status": data.get("status")}
+        if "progress" in data:
+            update["progress"] = data.get("progress")
+        task = apply_task_payload(task, update, actor=request.user, action="status_changed")
     except ValidationError as exc:
         return error(exc.messages[0], status=400, code=validation_code(exc))
     return ok(task_payload(task))
@@ -83,12 +86,17 @@ def task_position(request, task_id):
     if not can_edit_task(request.user, task):
         return error("You do not have permission to update this task.", status=403)
     data = payload(request)
+    update = {
+        "position": int_value(data.get("position"), task.position),
+        "row": int_value(data.get("row"), task.row),
+    }
+    if "status" in data:
+        update["status"] = data.get("status")
+    if "progress" in data:
+        update["progress"] = data.get("progress")
     task = apply_task_payload(
         task,
-        {
-            "position": int_value(data.get("position"), task.position),
-            "row": int_value(data.get("row"), task.row),
-        },
+        update,
         actor=request.user,
         action="position_changed",
     )

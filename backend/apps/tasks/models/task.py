@@ -15,6 +15,7 @@ class Task(models.Model):
     STATUS_CHOICES = [
         ("todo", "To Do"),
         ("in_progress", "In Progress"),
+        ("review", "Review"),
         ("done", "Done"),
     ]
     PRIORITY_CHOICES = [
@@ -27,6 +28,7 @@ class Task(models.Model):
     due_date = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="todo")
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default="medium")
+    progress = models.PositiveSmallIntegerField(default=0)
 
     # Kanban and gantt properties
     position = models.PositiveIntegerField(default=0)

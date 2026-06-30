@@ -64,6 +64,10 @@ def int_value(value, default, minimum=0):
     return max(minimum, parsed)
 
 
+def progress_value(value, default=0):
+    return min(100, int_value(value, default, minimum=0))
+
+
 def apply_task_payload(task, data, actor=None, action="task_updated"):
     changed = {}
     if "title" in data:
@@ -81,6 +85,14 @@ def apply_task_payload(task, data, actor=None, action="task_updated"):
         if next_value != task.status:
             changed["status"] = [task.status, next_value]
             task.status = next_value
+    if "progress" in data:
+        next_value = progress_value(data.get("progress"), task.progress)
+        if next_value != task.progress:
+            changed["progress"] = [task.progress, next_value]
+            task.progress = next_value
+    if "status" in data and task.status == "done" and task.progress != 100:
+        changed["progress"] = [task.progress, 100]
+        task.progress = 100
     if "priority" in data:
         next_value = normalize_priority(data.get("priority"), task.priority)
         if next_value != task.priority:
@@ -120,13 +132,18 @@ def create_task(*, actor, project, data):
     title = str(data.get("title") or "New Task").strip()
     if not title:
         raise ValidationError("Task title is required.")
+    status = normalize_status(data.get("status", "todo"))
+    progress = progress_value(data.get("progress"), 0)
+    if status == "done":
+        progress = 100
     task = Task.objects.create(
         user=actor,
         project=project,
         title=title,
         description=data.get("description", data.get("subtitle", "")) or "",
-        status=normalize_status(data.get("status", "todo")),
+        status=status,
         priority=normalize_priority(data.get("priority", "medium")),
+        progress=progress,
         due_date=parse_due_date(data.get("due_date", data.get("due"))),
         start=number_value(data.get("start"), 9, minimum=0),
         duration=number_value(data.get("duration"), 1, minimum=0.25),

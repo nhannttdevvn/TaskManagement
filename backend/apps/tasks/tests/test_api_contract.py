@@ -3,6 +3,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.testing import WebsocketCommunicator
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 
@@ -134,6 +135,68 @@ class ApiContractTests(TestCase):
         self.assertTrue(TaskAttachment.objects.filter(task=task, name="brief.pdf").exists())
         self.assertGreaterEqual(TaskActivity.objects.filter(task=task).count(), 4)
         self.assertTrue(Notification.objects.filter(recipient=self.owner, target_id=str(task.id)).exists())
+
+    def test_task_progress_is_manual_until_done(self):
+        team = Team.objects.create(name="Workspace", owner=self.owner)
+        TeamMember.objects.create(team=team, user=self.owner, role=TeamMember.ROLE_OWNER)
+        project = Project.objects.create(name="Project", user=self.owner, team=team)
+        self.client.force_login(self.owner)
+
+        create_response = self.post_json(
+            reverse("api_project_tasks", args=[project.id]),
+            {"title": "Manual progress", "status": "In Progress", "progress": 58},
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        task_id = create_response.json()["data"]["id"]
+        task = Task.objects.get(id=task_id)
+        self.assertEqual(task.progress, 58)
+        self.assertEqual(create_response.json()["data"]["progress"], 58)
+
+        review_response = self.patch_json(reverse("api_task_status", args=[task_id]), {"status": "Review"})
+        task.refresh_from_db()
+        self.assertEqual(review_response.status_code, 200)
+        self.assertEqual(task.status, "review")
+        self.assertEqual(task.progress, 58)
+        self.assertEqual(review_response.json()["data"]["progress"], 58)
+
+        done_response = self.patch_json(reverse("api_task_status", args=[task_id]), {"status": "Done"})
+        task.refresh_from_db()
+        self.assertEqual(done_response.status_code, 200)
+        self.assertEqual(task.status, "done")
+        self.assertEqual(task.progress, 100)
+        self.assertEqual(done_response.json()["data"]["progress"], 100)
+
+    def test_files_api_returns_project_folders_and_recent_attachments(self):
+        project = Project.objects.create(name="Specs", user=self.owner)
+        task = Task.objects.create(user=self.owner, project=project, title="File Inbox", category="Files")
+        TaskAttachment.objects.create(task=task, user=self.owner, name="brief.pdf", size="2.00")
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("api_files"))
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()["data"]
+        self.assertEqual(data["folders"][0]["name"], "Specs")
+        self.assertEqual(data["folders"][0]["count"], 1)
+        self.assertEqual(data["recentFiles"][0]["name"], "brief.pdf")
+
+    def test_files_folder_create_and_upload_persist_metadata(self):
+        self.client.force_login(self.owner)
+
+        folder_response = self.post_json(reverse("api_file_folders"), {"name": "Design Assets"})
+
+        self.assertEqual(folder_response.status_code, 201)
+        project = Project.objects.get(name="Design Assets", user=self.owner)
+        upload = SimpleUploadedFile("mockup.png", b"fake-image", content_type="image/png")
+
+        upload_response = self.client.post(
+            reverse("api_file_upload"),
+            {"folder_id": str(project.id), "file": upload},
+        )
+
+        self.assertEqual(upload_response.status_code, 201)
+        self.assertTrue(TaskAttachment.objects.filter(task__project=project, name="mockup.png").exists())
 
 
 class ChatSocketContractTests(TransactionTestCase):

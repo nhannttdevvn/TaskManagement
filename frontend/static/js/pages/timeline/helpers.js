@@ -178,10 +178,141 @@
       return Timeline.tasks.filter((task) => task.workspaceId === workspaceId && task.projectName === projectName);
     },
 
+    statusProgress(status) {
+      return {
+        "To Do": 0,
+        "In Progress": 50,
+        Review: 75,
+        Done: 100,
+      }[status] ?? 0;
+    },
+
+    progressValue(value, fallback = 0) {
+      const parsed = Number.parseInt(value, 10);
+      if (Number.isNaN(parsed)) {
+        return Math.min(100, Math.max(0, Number.parseInt(fallback, 10) || 0));
+      }
+      return Math.min(100, Math.max(0, parsed));
+    },
+
+    taskProgress(task) {
+      if (!task) return 0;
+      if (task.status === "Done") return 100;
+      return Timeline.helpers.progressValue(task.progress, 0);
+    },
+
+    nextProgressForStatus(status, currentProgress = 0, progressWasEdited = false) {
+      if (status === "Done") return 100;
+      if (status === "To Do" && !progressWasEdited) return 0;
+      return Timeline.helpers.progressValue(currentProgress, 0);
+    },
+
+    completionMeta(items) {
+      const total = items.length;
+      const done = items.filter((task) => task.status === "Done").length;
+      return {
+        total,
+        done,
+        active: Math.max(total - done, 0),
+        progress: total ? Math.round((done / total) * 100) : 0,
+      };
+    },
+
+    projectStatusFromProgress(progress) {
+      const value = Timeline.helpers.progressValue(progress, 0);
+      if (value === 100) return "Done";
+      if (value > 0) return "In Progress";
+      return "To Do";
+    },
+
+    formatScheduleDate(value) {
+      if (!value) return "No date";
+      const date = Timeline.helpers.parseIsoDate(String(value).slice(0, 10));
+      if (!date) return "No date";
+      return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
+    },
+
+    scheduleDateRange(startDate, dueDate) {
+      const startLabel = Timeline.helpers.formatScheduleDate(startDate);
+      const dueLabel = Timeline.helpers.formatScheduleDate(dueDate);
+      if (startLabel === "No date" && dueLabel === "No date") return "No date";
+      if (startLabel === "No date") return dueLabel;
+      if (dueLabel === "No date" || startLabel === dueLabel) return startLabel;
+      return `${startLabel} - ${dueLabel}`;
+    },
+
+    projectScheduleDates(workspace, projectName, tasks = []) {
+      const schedule = workspace?.projectSchedule?.[projectName] || {};
+      let startDate = schedule.startDate || schedule.start || "";
+      let dueDate = schedule.dueDate || schedule.endDate || schedule.due || "";
+      const taskDates = tasks
+        .map((task) => task.dueDate)
+        .filter(Boolean)
+        .sort();
+
+      if (!startDate && taskDates.length) {
+        startDate = taskDates[0];
+      }
+      if (!dueDate && taskDates.length) {
+        dueDate = taskDates[taskDates.length - 1];
+      }
+
+      return {
+        startDate,
+        dueDate,
+        label: Timeline.helpers.scheduleDateRange(startDate, dueDate),
+      };
+    },
+
     completionFor(items) {
-      if (!items.length) return 0;
-      const total = items.reduce((sum, task) => sum + Number(task.progress || 0), 0);
-      return Math.round(total / items.length);
+      return Timeline.helpers.completionMeta(items).progress;
+    },
+
+    currentUserName() {
+      return String(Timeline.app.dataset.userName || "").trim().toLowerCase();
+    },
+
+    baseRole() {
+      return String(Timeline.app.dataset.userRole || "viewer").trim().toLowerCase();
+    },
+
+    workspaceRole(workspace = Timeline.helpers.activeWorkspace()) {
+      return String(workspace?.role || Timeline.helpers.baseRole() || "viewer").toLowerCase();
+    },
+
+    roleLabel(role = Timeline.helpers.workspaceRole()) {
+      return {
+        owner: "Owner",
+        admin: "Admin",
+        manager: "Manager",
+        member: "Member",
+        viewer: "Viewer",
+      }[role] || "Viewer";
+    },
+
+    roleCanManage(role = Timeline.helpers.baseRole()) {
+      return ["owner", "admin"].includes(String(role || "").toLowerCase());
+    },
+
+    canManageWorkspace(workspace = Timeline.helpers.activeWorkspace()) {
+      if (!workspace) return Timeline.helpers.roleCanManage();
+      if (typeof workspace.canManage === "boolean") return workspace.canManage;
+      return Timeline.helpers.roleCanManage(Timeline.helpers.workspaceRole(workspace));
+    },
+
+    canEditTask(task) {
+      if (!task) return false;
+      if (Timeline.helpers.canManageWorkspace()) return true;
+      const currentUserName = Timeline.helpers.currentUserName();
+      return Boolean(currentUserName && task.owner && String(task.owner).trim().toLowerCase() === currentUserName);
+    },
+
+    permissionSummary(workspace = Timeline.helpers.activeWorkspace()) {
+      const role = Timeline.helpers.roleLabel(Timeline.helpers.workspaceRole(workspace));
+      if (Timeline.helpers.canManageWorkspace(workspace)) {
+        return `${role} - can create projects, invite members, and move tasks.`;
+      }
+      return `${role} - read-only for project creation; you can only edit tasks assigned to you.`;
     }
   };
 })();

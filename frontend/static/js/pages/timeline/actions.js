@@ -154,7 +154,7 @@
       const sorters = {
         status: (a, b) => Timeline.helpers.compareFavorites(a, b) || a.status.localeCompare(b.status) || Timeline.helpers.priorityRank(b.priority) - Timeline.helpers.priorityRank(a.priority),
         priority: (a, b) => Timeline.helpers.compareFavorites(a, b) || Timeline.helpers.priorityRank(b.priority) - Timeline.helpers.priorityRank(a.priority) || a.title.localeCompare(b.title),
-        progress: (a, b) => Timeline.helpers.compareFavorites(a, b) || b.progress - a.progress,
+        progress: (a, b) => Timeline.helpers.compareFavorites(a, b) || Timeline.helpers.taskProgress(b) - Timeline.helpers.taskProgress(a),
         due: (a, b) => Timeline.helpers.compareFavorites(a, b) || String(a.due).localeCompare(String(b.due)) || a.title.localeCompare(b.title),
       };
 
@@ -162,8 +162,17 @@
       Timeline.state.filteredTasks = sorted;
       Timeline.renderers.renderTaskViews(Timeline.state.filteredTasks);
       Timeline.renderers.renderProjectOverview();
+      Timeline.renderers.renderProjectHeader();
       Timeline.renderers.renderProjectsView();
       Timeline.actions.updateFavoriteSortButton();
+    },
+
+    syncTaskProgressLabel() {
+      const progressInput = Timeline.selectors.editorForm?.elements?.progress;
+      if (!progressInput || !Timeline.selectors.editorProgressValue) return;
+      const value = Timeline.helpers.progressValue(progressInput.value, 0);
+      progressInput.value = value;
+      Timeline.selectors.editorProgressValue.textContent = `${value}%`;
     },
 
     async selectCalendarDay(day) {
@@ -292,6 +301,15 @@
         showToast("Task title is required");
         return;
       }
+      const existing = Timeline.tasks.find((task) => task.id === id);
+      if (existing && !Timeline.helpers.canEditTask(existing)) {
+        showToast("You do not have permission to edit this task.");
+        return;
+      }
+      if (!existing && !Timeline.helpers.canManageWorkspace()) {
+        showToast("Only owners and admins can create tasks.");
+        return;
+      }
       const submitButton = event.submitter || Timeline.selectors.editorForm.querySelector('button[type="submit"]');
       const originalButton = submitButton?.innerHTML || "";
       if (submitButton) {
@@ -300,17 +318,21 @@
         Timeline.renderers.refreshIcons();
       }
 
+      const status = String(formData.get("status") || "To Do");
       const payload = {
         title,
         subtitle: String(formData.get("subtitle") || "New kanban task").trim(),
-        status: String(formData.get("status") || "To Do"),
+        status,
         priority: String(formData.get("priority") || "Medium"),
         owner: String(formData.get("owner") || "Sarah Nguyen").trim(),
         due_date: String(formData.get("due_date") || "").trim(),
-        progress: Number(formData.get("progress") || 20),
+        progress: Timeline.helpers.nextProgressForStatus(
+          status,
+          formData.get("progress"),
+          Timeline.state.progressWasEdited || Boolean(existing)
+        ),
       };
 
-      const existing = Timeline.tasks.find((task) => task.id === id);
       try {
         if (existing) {
           if ((/^\d+$/).test(id)) {

@@ -52,3 +52,41 @@ class FrontendTemplateContractTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="updatesApp"')
         self.assertContains(response, "All Updates")
+
+    def test_auth_templates_are_english_only_and_not_cached(self):
+        login_response = self.client.get(reverse("login"))
+
+        self.assertEqual(login_response.status_code, 200)
+        self.assertContains(login_response, "Sign in to TaskFlow")
+        self.assertContains(login_response, "Create your TaskFlow account")
+        self.assertContains(login_response, "Forgot password?")
+        self.assertContains(login_response, "Do not have an account?")
+        self.assertEqual(login_response.headers.get("Cache-Control"), "max-age=0, no-cache, no-store, must-revalidate, private")
+
+        self.client.force_login(self.user)
+        logout_response = self.client.get(reverse("logout"))
+
+        self.assertEqual(logout_response.status_code, 200)
+        self.assertContains(logout_response, "Sign out of your account?")
+        self.assertContains(logout_response, "You are signed out")
+        self.assertEqual(logout_response.headers.get("Cache-Control"), "max-age=0, no-cache, no-store, must-revalidate, private")
+
+        blocked_words = [
+            "Đăng",
+            "đăng",
+            "Quên",
+            "Chưa",
+            "tài khoản",
+            "mật khẩu",
+            "Một nền tảng",
+            "phân cấp",
+            "Ä",
+            "Ã",
+            "á",
+            "º",
+        ]
+        login_html = login_response.content.decode("utf-8")
+        logout_html = logout_response.content.decode("utf-8")
+        for word in blocked_words:
+            self.assertNotIn(word, login_html)
+            self.assertNotIn(word, logout_html)

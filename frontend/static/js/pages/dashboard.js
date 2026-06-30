@@ -575,6 +575,7 @@
     selectors.sidebar.classList.toggle("-translate-x-full", !shouldOpen);
     selectors.sidebar.classList.toggle("translate-x-0", shouldOpen);
     selectors.sidebarOverlay.classList.toggle("hidden", !shouldOpen);
+    app.classList.toggle("taskflow-sidebar-open", shouldOpen);
   }
 
   function toggleTheme() {

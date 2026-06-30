@@ -265,20 +265,34 @@ def project_frontend_data(request):
         if not members:
             members = [user.username[:2].upper()] if user.is_authenticated else ["US"]
             
-        project_names = list(
-            team.projects.filter(visible_project_filter(user)).distinct().values_list("name", flat=True)
-        )
+        visible_projects = list(team.projects.filter(visible_project_filter(user)).distinct())
+        project_names = [project.name for project in visible_projects]
         project_ids = {
             project.name: project.id
-            for project in team.projects.filter(visible_project_filter(user)).distinct()
+            for project in visible_projects
+        }
+        project_schedule = {
+            project.name: {
+                "startDate": getattr(project, "start_date", None).isoformat()
+                if getattr(project, "start_date", None)
+                else "",
+                "dueDate": getattr(project, "due_date", None).isoformat()
+                if getattr(project, "due_date", None)
+                else "",
+            }
+            for project in visible_projects
         }
         team_tasks = [task for task in tasks if task.project and task.project.team_id == team.id]
         done_tasks = [task for task in team_tasks if task.status == "done"]
+        membership = team.members.filter(user=user).first()
+        role = TeamMember.ROLE_OWNER if team.owner_id == user.id else (membership.role if membership else TeamMember.ROLE_VIEWER)
+        can_manage = team.owner_id == user.id or role in [TeamMember.ROLE_OWNER, TeamMember.ROLE_ADMIN]
 
         projects_data.append({
             "id": str(team.id),
             "databaseId": team.id,
             "name": team.name,
+            "role": role,
             "breadcrumb": "/ Workspaces",
             "category": "Active",
             "company": "My Workspace",
@@ -286,11 +300,9 @@ def project_frontend_data(request):
             "members": members,
             "projects": project_names,
             "projectIds": project_ids,
+            "projectSchedule": project_schedule,
             "inviteUrl": f"/api/teams/{team.id}/invitations/",
-            "canManage": team.owner_id == user.id or team.members.filter(
-                user=user,
-                role__in=[TeamMember.ROLE_OWNER, TeamMember.ROLE_ADMIN],
-            ).exists(),
+            "canManage": can_manage,
             "progress": round((len(done_tasks) / len(team_tasks)) * 100) if team_tasks else 0,
             "tasks": len(team_tasks),
             "done": len(done_tasks),

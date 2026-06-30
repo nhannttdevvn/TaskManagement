@@ -5,8 +5,7 @@
   if (!app) return;
 
   /* ============================================================
-   *  Mock data – folders, recent files, storage breakdown,
-   *  activity chart.
+   *  Live data from /api/files/ with safe empty defaults.
    * ============================================================ */
   const FOLDER_PALETTE = [
     { id: "blue",    icon: "folder",          ring: "from-cyan-400 to-blue-600" },
@@ -18,25 +17,13 @@
   ];
 
   const state = {
-    folders: [
-      { id: "documents",     name: "Documents",      count: 24,    color: "blue",    icon: "folder",       members: 2, shared: true,  updatedAt: 1 },
-      { id: "music",         name: "Music",          count: 102,   color: "violet",  icon: "music",        members: 1, shared: false, updatedAt: 2 },
-      { id: "work-project",  name: "Work Project",   count: 84,    color: "emerald", icon: "briefcase",    members: 5, shared: true,  updatedAt: 0 },
-      { id: "personal",      name: "Personal Media", count: 2450,  color: "amber",   icon: "folder-open",  members: 1, shared: false, updatedAt: 3 },
-      { id: "reddingo",      name: "Reddingo Backup",count: 22,    color: "cyan",    icon: "cloud",        members: 3, shared: true,  updatedAt: 4 },
-      { id: "root",          name: "Root",           count: 105,   color: "rose",    icon: "folder-heart", members: 2, shared: false, updatedAt: 5 },
-    ],
-    recentFiles: [
-      { id: 1, name: "Proposal.docx",      size: 2.9,  modified: "Feb 25,2022", members: 4, icon: "file-text",   accent: "bg-blue-400/20 text-blue-200" },
-      { id: 2, name: "Background.jpg",     size: 3.5,  modified: "Feb 24,2022", members: 3, icon: "image",       accent: "bg-emerald-400/20 text-emerald-200" },
-      { id: 3, name: "Apex website.fig",   size: 23.5, modified: "Feb 22,2022", members: 5, icon: "pen-tool",    accent: "bg-violet-400/20 text-violet-200" },
-      { id: 4, name: "Illustration.ai",    size: 7.2,  modified: "Feb 20,2022", members: 2, icon: "palette",     accent: "bg-amber-400/20 text-amber-200" },
-    ],
+    folders: [],
+    recentFiles: [],
     storageBreakdown: [
-      { label: "Images",    used: 86,  total: 120, icon: "image",      color: "from-cyan-400 to-blue-500"     },
-      { label: "Documents", used: 26,  total: 80,  icon: "file-text",  color: "from-amber-400 to-rose-500"    },
-      { label: "Videos",    used: 10,  total: 60,  icon: "film",       color: "from-rose-400 to-fuchsia-500"  },
-      { label: "Other",     used: 18,  total: 70,  icon: "file",       color: "from-emerald-400 to-cyan-500"  },
+      { label: "Images", used: 0, total: 1, icon: "image", color: "from-cyan-400 to-blue-500" },
+      { label: "Documents", used: 0, total: 1, icon: "file-text", color: "from-amber-400 to-rose-500" },
+      { label: "Videos", used: 0, total: 1, icon: "film", color: "from-rose-400 to-fuchsia-500" },
+      { label: "Other", used: 0, total: 1, icon: "file", color: "from-emerald-400 to-cyan-500" },
     ],
     folderFilter: "all",
     activeFolderId: null,
@@ -68,6 +55,11 @@
     return `<div class="flex -space-x-2">${list.map((a) => `<img class="h-6 w-6 rounded-full border-2 border-slate-900 object-cover" src="${a}" alt="">`).join("")}${count > list.length ? `<span class="grid h-6 w-6 place-items-center rounded-full border-2 border-slate-900 bg-white/10 text-[10px] font-bold text-white">+${count - list.length}</span>` : ""}</div>`;
   }
 
+  function formatGb(value) {
+    const number = Number(value || 0);
+    return Number.isInteger(number) ? String(number) : number.toFixed(2);
+  }
+
   /* ============================================================
    *  Sidebar mobile toggle
    * ============================================================ */
@@ -75,11 +67,15 @@
   const overlay = document.getElementById("filesSidebarOverlay");
   document.getElementById("filesSidebarToggle")?.addEventListener("click", () => {
     sidebar.classList.remove("-translate-x-full");
+    sidebar.classList.add("translate-x-0");
     overlay.classList.remove("hidden");
+    app.classList.add("taskflow-sidebar-open");
   });
   overlay?.addEventListener("click", () => {
     sidebar.classList.add("-translate-x-full");
+    sidebar.classList.remove("translate-x-0");
     overlay.classList.add("hidden");
+    app.classList.remove("taskflow-sidebar-open");
   });
 
   /* ============================================================
@@ -101,7 +97,7 @@
   document.getElementById("filesThemeToggle")?.addEventListener("click", () => {
     const now = app.dataset.theme === "light" ? "dark" : "light";
     applyTheme(now);
-    showToast(now === "dark" ? "Dark mode đã bật" : "Light mode đã bật");
+    showToast(now === "dark" ? "Dark mode on" : "Light mode on");
   });
 
   /* ============================================================
@@ -120,6 +116,19 @@
     if (!grid) return;
     const list = visibleFolders();
     document.getElementById("folderCount").textContent = `${list.length} folders`;
+
+    if (!list.length) {
+      grid.innerHTML = `
+        <button class="js-create-folder-inline col-span-full flex min-h-[11rem] w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-cyan-300/40 bg-cyan-300/5 p-6 text-center transition hover:border-cyan-200/70 hover:bg-cyan-300/10" type="button">
+          <span class="grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-white/10 text-cyan-100">
+            <i data-lucide="folder-plus" class="h-6 w-6"></i>
+          </span>
+          <span class="text-sm font-black text-white">Create your first folder</span>
+          <span class="max-w-sm text-xs font-semibold text-slate-400">Folders are saved as real projects, so they stay visible after reload or navigation.</span>
+        </button>`;
+      refreshIcons();
+      return;
+    }
 
     grid.innerHTML = list.map((f) => {
       const palette = FOLDER_PALETTE.find((p) => p.id === f.color) || FOLDER_PALETTE[0];
@@ -154,12 +163,16 @@
   });
 
   document.getElementById("folderGrid")?.addEventListener("click", (e) => {
+    if (e.target.closest(".js-create-folder-inline")) {
+      toggleFolderModal(true);
+      return;
+    }
     const btn = e.target.closest(".js-folder-card");
     if (!btn) return;
     const folder = state.folders.find((f) => f.id === btn.dataset.id);
     if (folder) {
       state.activeFolderId = folder.id;
-      showToast(`Đã chọn folder: ${folder.name}`);
+      showToast(`Selected folder: ${folder.name}`);
     }
   });
 
@@ -192,6 +205,23 @@
       }
     });
 
+    if (!sorted.length) {
+      tbody.innerHTML = `
+        <tr class="border-t border-white/5">
+          <td class="px-2 py-8 text-center" colspan="5">
+            <div class="mx-auto flex max-w-sm flex-col items-center gap-3">
+              <span class="grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-white/10 text-cyan-100">
+                <i data-lucide="upload-cloud" class="h-6 w-6"></i>
+              </span>
+              <span class="text-sm font-black text-white">No uploaded files yet</span>
+              <span class="text-xs font-semibold text-slate-400">Choose a folder, then upload a file. The attachment metadata will be saved in the database.</span>
+            </div>
+          </td>
+        </tr>`;
+      refreshIcons();
+      return;
+    }
+
     tbody.innerHTML = sorted.map((f) => `
       <tr class="border-t border-white/5 hover:bg-white/5" data-id="${f.id}">
         <td class="px-2 py-2.5">
@@ -222,7 +252,7 @@
         state.sort.dir = "asc";
       }
       renderRecent();
-      showToast(`Sắp xếp theo ${key} (${state.sort.dir})`);
+      showToast(`Sorted by ${key} (${state.sort.dir})`);
     });
   });
 
@@ -233,15 +263,15 @@
     const file = state.recentFiles.find((f) => String(f.id) === String(fileId));
     if (!file) return;
 
-    if (confirm(`Bạn có chắc muốn xoá file "${file.name}"?`)) {
+    if (confirm(`Delete file "${file.name}"?`)) {
       try {
         await window.TaskFlow.api.delete(`/api/attachments/${fileId}/`, { root: btn });
         state.recentFiles = state.recentFiles.filter((f) => String(f.id) !== String(fileId));
         renderRecent();
         await loadFilesData();
-        showToast("Đã xoá file thành công");
+        showToast("File deleted");
       } catch (err) {
-        showToast(err.message || "Lỗi khi xoá file");
+        showToast(err.message || "Could not delete file");
       }
     }
   });
@@ -250,20 +280,22 @@
    *  Storage breakdown
    * ============================================================ */
   function renderStorage() {
-    const used = state.storageBreakdown.reduce((s, x) => s + x.used, 0);
-    const total = state.storageBreakdown.reduce((s, x) => s + x.total, 0);
-    const pct = Math.round((used / total) * 100);
+    const used = state.storageBreakdown.reduce((s, x) => s + Number(x.used || 0), 0);
+    const total = state.storageBreakdown.reduce((s, x) => s + Number(x.total || 0), 0);
+    const pct = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
 
     document.getElementById("storagePercent").textContent = pct + "%";
-    document.getElementById("storageUsed").textContent = used + "GB";
-    document.getElementById("storageTotal").textContent = total + "GB";
+    document.getElementById("storageUsed").textContent = formatGb(used) + "GB";
+    document.getElementById("storageTotal").textContent = formatGb(total) + "GB";
     const circle = document.getElementById("storageCircle");
     if (circle) circle.setAttribute("stroke-dashoffset", String(100 - pct));
 
     const list = document.getElementById("storageBreakdown");
     if (!list) return;
     list.innerHTML = state.storageBreakdown.map((b) => {
-      const p = Math.round((b.used / b.total) * 100);
+      const itemUsed = Number(b.used || 0);
+      const itemTotal = Number(b.total || 0);
+      const p = itemTotal > 0 ? Math.min(100, Math.round((itemUsed / itemTotal) * 100)) : 0;
       return `
         <li class="rounded-2xl border border-white/10 bg-slate-950/35 p-3">
           <div class="flex items-center justify-between text-xs">
@@ -271,7 +303,7 @@
               <i data-lucide="${b.icon}" class="h-4 w-4 text-cyan-200"></i>
               ${b.label}
             </span>
-            <span class="font-bold text-slate-300">${b.used} / ${b.total} GB</span>
+            <span class="font-bold text-slate-300">${formatGb(itemUsed)} / ${formatGb(itemTotal)} GB</span>
           </div>
           <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div class="h-full rounded-full bg-gradient-to-r ${b.color}" style="width:${p}%"></div>
@@ -403,13 +435,13 @@
         throw new Error(response.message || "Failed to create folder");
       }
       
-      state.folders.unshift(response.data);
-      renderFolders();
+      state.activeFolderId = response.data.id;
+      await loadFilesData();
       toggleFolderModal(false);
       e.target.reset();
-      showToast(`Đã tạo folder "${name}"`);
+      showToast(`Created folder "${name}"`);
     } catch (err) {
-      showToast(err.message || "Lỗi tạo folder");
+      showToast(err.message || "Could not create folder");
     }
   });
 
@@ -424,7 +456,7 @@
       const file = e.target.files ? e.target.files[0] : null;
       if (!file) return;
 
-      showToast(`Đang upload ${file.name}...`);
+      showToast(`Uploading ${file.name}...`);
 
       const formData = new FormData();
       formData.append("file", file);
@@ -439,9 +471,9 @@
         }
         
         await loadFilesData();
-        showToast("Upload thành công!");
+        showToast("Upload complete");
       } catch (err) {
-        showToast(err.message || "Lỗi khi upload file");
+        showToast(err.message || "Could not upload file");
       }
     });
     input.click();
@@ -471,9 +503,9 @@
   const notifDrop = document.getElementById("filesNotificationDropdown");
   const notifList = document.getElementById("filesNotificationList");
   const notifications = [
-    { icon: "upload-cloud",  color: "text-cyan-200 bg-cyan-400/15",      title: "Upload thành công",  body: "Background.jpg đã được lưu" },
-    { icon: "user-plus",     color: "text-violet-200 bg-violet-400/15",  title: "Chia sẻ mới",        body: "Sarah đã share folder Work Project" },
-    { icon: "trash-2",       color: "text-rose-200 bg-rose-400/15",      title: "File đã xoá",        body: "Old archive.zip · vừa xong" },
+    { icon: "upload-cloud", color: "text-cyan-200 bg-cyan-400/15", title: "Upload complete", body: "The file metadata was saved" },
+    { icon: "user-plus", color: "text-violet-200 bg-violet-400/15", title: "Shared folder", body: "A teammate shared a project folder" },
+    { icon: "trash-2", color: "text-rose-200 bg-rose-400/15", title: "File deleted", body: "Old archive.zip was removed" },
   ];
   if (notifList) {
     notifList.innerHTML = notifications.map((n) => `
@@ -511,24 +543,32 @@
   /* ============================================================
    *  Bootstrap render
    * ============================================================ */
+  function renderAll() {
+    renderFolders();
+    renderRecent();
+    renderStorage();
+    refreshIcons();
+  }
+
   async function loadFilesData() {
     try {
       const response = await window.TaskFlow.api.get("/api/files/");
-      if (response && response.ok) {
-        state.folders = response.data.folders;
-        state.recentFiles = response.data.recentFiles;
-        state.storageBreakdown = response.data.storageBreakdown;
-        
-        renderFolders();
-        renderRecent();
-        renderStorage();
+      if (response && response.ok && response.data) {
+        state.folders = Array.isArray(response.data.folders) ? response.data.folders : [];
+        state.recentFiles = Array.isArray(response.data.recentFiles) ? response.data.recentFiles : [];
+        state.storageBreakdown = Array.isArray(response.data.storageBreakdown)
+          ? response.data.storageBreakdown
+          : state.storageBreakdown;
+        renderAll();
       }
     } catch (err) {
       console.error("Error loading files data:", err);
-      showToast("Lỗi tải dữ liệu files từ server.");
+      renderAll();
+      showToast("Could not load files from server.");
     }
   }
 
+  renderAll();
   loadFilesData();
   renderChart("week");
 })();

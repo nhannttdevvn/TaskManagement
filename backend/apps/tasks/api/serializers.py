@@ -79,12 +79,13 @@ def task_priority_label(task):
 
 
 def task_progress(task):
-    return {
-        "todo": 12,
-        "in_progress": 58,
-        "review": 82,
-        "done": 100,
-    }.get(task.status, 0)
+    try:
+        value = int(getattr(task, "progress", 0) or 0)
+    except (TypeError, ValueError):
+        value = 0
+    if task.status == "done":
+        return 100
+    return max(0, min(100, value))
 
 
 def due_label(task):

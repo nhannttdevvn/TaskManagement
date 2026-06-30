@@ -15,12 +15,7 @@
         const item = Timeline.tasks.find((t) => t.id === taskId);
         if (!item) return;
 
-        const userRole = (Timeline.app.dataset.userRole || "viewer").toLowerCase();
-        const userName = (Timeline.app.dataset.userName || "").toLowerCase();
-        const isManager = ["owner", "admin", "manager"].includes(userRole);
-        const isOwner = item.owner && item.owner.toLowerCase() === userName;
-
-        if (!isManager && !isOwner) {
+        if (!Timeline.helpers.canEditTask(item)) {
           event.preventDefault();
           Timeline.actions.showToast("You do not have permission to move this task.");
           return;
@@ -55,30 +50,37 @@
         if (!task) return;
 
         const originalStatus = task.status;
+        const originalProgress = task.progress;
         const newStatus = dropzone.dataset.dropStatus;
 
         task.status = newStatus;
+        task.progress = Timeline.helpers.nextProgressForStatus(newStatus, task.progress, true);
         dropzone.closest(".kanban-column").classList.remove("border-cyan-300/35", "bg-cyan-300/[0.045]");
         Timeline.actions.applyTaskFilters();
 
         if ((/^\d+$/).test(taskId)) {
-          Timeline.timelineApi.updateTaskStatus(taskId, newStatus, Timeline.app)
+          Timeline.timelineApi.updateTaskStatus(taskId, newStatus, Timeline.app, { progress: task.progress })
             .then((res) => {
               if (!res.ok) {
                 task.status = originalStatus;
+                task.progress = originalProgress;
                 Timeline.actions.applyTaskFilters();
                 Timeline.actions.showToast(res.message || "Failed, restored");
               } else {
+                Object.assign(task, res.data || {});
+                Timeline.actions.applyTaskFilters();
                 Timeline.actions.showToast(`Moved to ${newStatus}`);
               }
             })
             .catch((err) => {
               task.status = originalStatus;
+              task.progress = originalProgress;
               Timeline.actions.applyTaskFilters();
               Timeline.actions.showToast("Failed, restored");
             });
         } else {
           task.status = originalStatus;
+          task.progress = originalProgress;
           Timeline.actions.applyTaskFilters();
           Timeline.actions.showToast("Task must be saved before moving.");
         }
@@ -103,12 +105,7 @@
         const task = Timeline.tasks.find((t) => t.id === taskId);
         if (!task) return;
 
-        const userRole = (Timeline.app.dataset.userRole || "viewer").toLowerCase();
-        const userName = (Timeline.app.dataset.userName || "").toLowerCase();
-        const isManager = ["owner", "admin", "manager"].includes(userRole);
-        const isOwner = task.owner && task.owner.toLowerCase() === userName;
-
-        if (!isManager && !isOwner) {
+        if (!Timeline.helpers.canEditTask(task)) {
           Timeline.actions.showToast("You do not have permission to edit this task.");
           return;
         }

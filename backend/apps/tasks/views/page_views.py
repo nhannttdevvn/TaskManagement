@@ -1,5 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.views import View
 from django.views.generic import TemplateView
 
@@ -11,6 +13,7 @@ class RootRedirectView(View):
         return redirect("login")
 
 
+@method_decorator(never_cache, name="dispatch")
 class LoginPageView(TemplateView):
     template_name = "auth/login.html"
 
@@ -20,6 +23,7 @@ class LoginPageView(TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
 
+@method_decorator(never_cache, name="dispatch")
 class LogoutPageView(LoginRequiredMixin, TemplateView):
     template_name = "auth/logout.html"
     login_url = "/login/"

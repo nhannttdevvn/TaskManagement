@@ -44,6 +44,8 @@
           const isActive = workspace.id === Timeline.state.activeWorkspaceId;
           const count = Timeline.tasks.filter((task) => task.workspaceId === workspace.id).length;
           const projects = Array.isArray(workspace.projects) ? workspace.projects : [];
+          const canManage = Timeline.helpers.canManageWorkspace(workspace);
+          const roleLabel = Timeline.helpers.roleLabel(Timeline.helpers.workspaceRole(workspace));
           return `
             <div class="rounded-2xl px-2.5 py-2 transition ${isActive ? "border border-white/12 bg-white/12 text-white shadow-[0_0_20px_rgba(34,211,238,0.08)]" : "text-slate-300"}">
               <button
@@ -54,6 +56,10 @@
                 <span class="truncate text-sm font-bold">${Timeline.helpers.escapeHtml(workspace.name)}</span>
                 <span class="rounded-full bg-slate-950/35 px-1.5 py-0.5 text-[0.58rem] font-black text-cyan-100">${count}</span>
               </button>
+              <div class="ml-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[0.56rem] font-black uppercase tracking-wide ${canManage ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100" : "border-white/10 bg-white/[0.04] text-slate-400"}">
+                <i data-lucide="${canManage ? "shield-check" : "lock"}" class="h-3 w-3"></i>
+                ${Timeline.helpers.escapeHtml(roleLabel)}
+              </div>
               <div class="mt-2 space-y-1">
                 ${projects
                   .map((project) => {
@@ -116,14 +122,40 @@
         Timeline.selectors.projectTitle.textContent = "No Project";
         Timeline.selectors.projectCompany.textContent = "";
         Timeline.selectors.projectDate.textContent = "";
+        if (Timeline.selectors.projectPermissionBadge) {
+          Timeline.selectors.projectPermissionBadge.className = "inline-flex min-h-8 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-2.5 text-[0.65rem] font-black text-slate-300";
+          Timeline.selectors.projectPermissionBadge.innerHTML = `<i data-lucide="shield" class="h-3.5 w-3.5"></i> ${Timeline.helpers.roleLabel()}`;
+        }
+        if (Timeline.selectors.timelinePermissionHint) {
+          Timeline.selectors.timelinePermissionHint.textContent = "Select a workspace";
+        }
         Timeline.selectors.projectMemberStack.innerHTML = Timeline.renderers.renderWorkspaceMembers([]);
+        Timeline.renderers.refreshIcons();
         return;
       }
+      const canManage = Timeline.helpers.canManageWorkspace(workspace);
+      const roleLabel = Timeline.helpers.roleLabel(Timeline.helpers.workspaceRole(workspace));
       Timeline.selectors.projectBreadcrumb.textContent = `${workspace.breadcrumb} / ${workspace.name}`;
       Timeline.selectors.projectCategory.textContent = workspace.category;
       Timeline.selectors.projectTitle.textContent = projectName;
       Timeline.selectors.projectCompany.innerHTML = `<i data-lucide="building-2" class="h-3 w-3"></i> ${Timeline.helpers.escapeHtml(workspace.company)}`;
       Timeline.selectors.projectDate.innerHTML = `<i data-lucide="calendar-days" class="h-3 w-3"></i> ${Timeline.helpers.escapeHtml(workspace.date)}`;
+      if (Timeline.selectors.projectPermissionBadge) {
+        Timeline.selectors.projectPermissionBadge.className = `inline-flex min-h-8 items-center gap-1.5 rounded-xl border px-2.5 text-[0.65rem] font-black ${canManage ? "border-emerald-300/20 bg-emerald-400/12 text-emerald-100" : "border-amber-300/20 bg-amber-400/10 text-amber-100"}`;
+        Timeline.selectors.projectPermissionBadge.innerHTML = `<i data-lucide="${canManage ? "shield-check" : "lock"}" class="h-3.5 w-3.5"></i> ${Timeline.helpers.escapeHtml(roleLabel)}`;
+        Timeline.selectors.projectPermissionBadge.title = Timeline.helpers.permissionSummary(workspace);
+      }
+      if (Timeline.selectors.timelinePermissionHint) {
+        Timeline.selectors.timelinePermissionHint.textContent = canManage ? "Can manage workspace" : "Limited access";
+        Timeline.selectors.timelinePermissionHint.className = `rounded-full border px-2.5 py-1 font-bold ${canManage ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-200" : "border-amber-300/20 bg-amber-400/10 text-amber-200"}`;
+        Timeline.selectors.timelinePermissionHint.title = Timeline.helpers.permissionSummary(workspace);
+      }
+      if (Timeline.selectors.workspaceInviteButton) {
+        Timeline.selectors.workspaceInviteButton.disabled = !canManage;
+        Timeline.selectors.workspaceInviteButton.classList.toggle("opacity-45", !canManage);
+        Timeline.selectors.workspaceInviteButton.classList.toggle("cursor-not-allowed", !canManage);
+        Timeline.selectors.workspaceInviteButton.title = canManage ? "Invite members" : "Only owners and admins can invite members";
+      }
       Timeline.selectors.projectMemberStack.innerHTML = Timeline.renderers.renderWorkspaceMembers(workspace.members);
       Timeline.renderers.refreshIcons();
     },
@@ -187,21 +219,36 @@
       Timeline.selectors.projectOverviewCards.innerHTML = workspacesToRender
         .map((workspace) => {
           const items = Timeline.helpers.workspaceTasks(workspace.id);
-          const progress = Timeline.helpers.completionFor(items);
+          const meta = Timeline.helpers.completionMeta(items);
+          const progress = meta.progress;
+          const canManage = Timeline.helpers.canManageWorkspace(workspace);
+          const addProjectButton = `
+            <button
+              class="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition ${canManage ? "hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-white" : "cursor-not-allowed opacity-45"}"
+              type="button"
+              data-create-project-in-workspace="${workspace.id}"
+              title="${canManage ? "Add Project to Workspace" : "Only owners and admins can add projects"}"
+              ${canManage ? "" : "disabled"}
+            >
+              <i data-lucide="${canManage ? "plus" : "lock"}" class="h-3.5 w-3.5"></i>
+            </button>
+          `;
           return `
             <article class="rounded-xl border border-white/10 bg-white/[0.052] p-2.5 transition hover:-translate-y-0.5 hover:border-cyan-300/25 hover:bg-white/[0.075] motion-reduce:transform-none">
               <div class="flex items-start justify-between gap-2">
                 <div class="min-w-0 cursor-pointer select-none group/ws" data-workspace-card-select="${workspace.id}" title="Filter by this workspace">
                   <p class="text-[0.6rem] font-black uppercase tracking-[0.14em] text-cyan-200 group-hover/ws:text-cyan-300 transition-colors">${Timeline.helpers.escapeHtml(workspace.category)}</p>
                   <h3 class="mt-0.5 truncate text-sm font-black text-white group-hover/ws:text-cyan-100 transition-colors">${Timeline.helpers.escapeHtml(workspace.name)}</h3>
-                  <p class="mt-0.5 truncate text-[0.66rem] font-semibold text-slate-400 group-hover/ws:text-slate-300 transition-colors">${Timeline.helpers.escapeHtml(workspace.company)} · ${Timeline.helpers.escapeHtml(workspace.date)}</p>
+                  <p class="mt-0.5 truncate text-[0.66rem] font-semibold text-slate-400 group-hover/ws:text-slate-300 transition-colors">${Timeline.helpers.escapeHtml(workspace.company)} &middot; ${Timeline.helpers.escapeHtml(workspace.date)}</p>
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0">
-                  <button class="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-white" type="button" data-create-project-in-workspace="${workspace.id}" title="Add Project to Workspace">
-                    <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                  </button>
+                  ${addProjectButton}
                   <div class="-space-x-2 whitespace-nowrap scale-90 origin-right">${Timeline.renderers.renderWorkspaceMembers(workspace.members)}</div>
                 </div>
+              </div>
+              <div class="mt-2 flex items-center justify-between text-[0.64rem] font-black text-slate-400">
+                <span>${meta.done}/${meta.total} done</span>
+                <span class="${progress === 100 ? "text-emerald-200" : "text-cyan-200"}">${progress}%</span>
               </div>
               <div class="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
                 <span class="block h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-500 transition-all duration-700" style="width:${progress}%"></span>
@@ -222,9 +269,14 @@
                   : `
                       <div class="mt-1 text-center py-3.5 px-2 rounded-xl border border-dashed border-white/12 bg-slate-950/20">
                         <p class="text-[0.66rem] font-bold text-slate-400 mb-2">No projects in this workspace</p>
-                        <button class="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-cyan-500 px-3 text-[0.68rem] font-bold text-white transition hover:brightness-110" type="button" data-create-project-in-workspace="${workspace.id}">
-                          <i data-lucide="plus" class="h-3 w-3"></i>
-                          Create Project
+                        <button
+                          class="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-3 text-[0.68rem] font-bold text-white transition ${canManage ? "bg-gradient-to-r from-violet-600 to-cyan-500 hover:brightness-110" : "cursor-not-allowed bg-white/10 opacity-55"}"
+                          type="button"
+                          data-create-project-in-workspace="${workspace.id}"
+                          ${canManage ? "" : "disabled"}
+                        >
+                          <i data-lucide="${canManage ? "plus" : "lock"}" class="h-3 w-3"></i>
+                          ${canManage ? "Create Project" : "No create access"}
                         </button>
                       </div>
                     `
@@ -262,22 +314,25 @@
 
       const workspace = Timeline.helpers.activeWorkspace();
       if (!workspace) return;
+      const canManage = Timeline.helpers.canManageWorkspace(workspace);
 
       const projectsListContent = document.getElementById("projectsListContent");
-      const projectsScheduleContent = document.getElementById("projectsScheduleContent");
+      if (!projectsListContent) return;
 
       if (!workspace.projects || workspace.projects.length === 0) {
         projectsListContent.innerHTML = `
-          <div class="text-center py-8">
+          <div class="rounded-2xl border border-dashed border-white/12 bg-white/[0.025] px-4 py-10 text-center">
             <p class="text-xs text-slate-400 font-bold mb-3">No projects in this workspace yet</p>
-            <button class="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white" type="button" data-create-project-in-workspace="${workspace.id}">
-              <i data-lucide="plus" class="h-4 w-4"></i> Create First Project
+            <button class="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl px-4 text-xs font-black text-white transition ${canManage ? "bg-gradient-to-r from-violet-600 to-cyan-500 hover:brightness-110" : "cursor-not-allowed bg-white/10 opacity-55"}" type="button" data-create-project-in-workspace="${workspace.id}" ${canManage ? "" : "disabled"}>
+              <i data-lucide="${canManage ? "plus" : "lock"}" class="h-4 w-4"></i> ${canManage ? "Create First Project" : "No create access"}
             </button>
           </div>
         `;
-        projectsScheduleContent.innerHTML = `
-          <p class="text-center text-xs text-slate-500 py-8">No schedule data available.</p>
-        `;
+        if (Timeline.selectors.projectActionHint) {
+          Timeline.selectors.projectActionHint.textContent = canManage
+            ? "Overview of all projects and their progress in this workspace."
+            : "Read-only view. Ask an owner/admin to create projects.";
+        }
         Timeline.renderers.refreshIcons();
         return;
       }
@@ -285,74 +340,72 @@
       // Render projects list
       projectsListContent.innerHTML = workspace.projects
         .map((project) => {
-          const tasks = Timeline.helpers.projectTasks(workspace.id, project);
-          const progress = Timeline.helpers.completionFor(tasks);
-          const doneCount = tasks.filter(t => t.status === "Done").length;
-          const members = Array.from(new Set(tasks.flatMap(t => t.members || [])));
+          const projectName = typeof project === "object" && project
+            ? (project.title || project.name || project.label || "Untitled Project")
+            : String(project || "Untitled Project");
+          const projectMembers = typeof project === "object" && project && Array.isArray(project.members)
+            ? project.members
+            : [];
+          const tasks = Timeline.helpers.projectTasks(workspace.id, projectName);
+          const meta = Timeline.helpers.completionMeta(tasks);
+          const progress = meta.progress;
+          const doneCount = meta.done;
+          const projectStatus = Timeline.helpers.projectStatusFromProgress(progress);
+          const dateRange = Timeline.helpers.projectScheduleDates(workspace, projectName, tasks).label;
+          const members = Array.from(new Set([
+            ...tasks.flatMap((task) => task.members || []),
+            ...projectMembers,
+            ...(workspace.members || []),
+          ])).slice(0, 6);
+          const taskLabel = `${tasks.length} ${tasks.length === 1 ? "Task" : "Tasks"}`;
+          const completedLabel = `${doneCount} Completed`;
 
           return `
-            <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex flex-col gap-2">
-              <div class="flex items-start justify-between gap-2">
-                <div>
-                  <h5 class="text-sm font-black text-white">${Timeline.helpers.escapeHtml(project)}</h5>
-                  <p class="text-[0.66rem] font-semibold text-slate-400 mt-0.5">${tasks.length} tasks · ${doneCount} completed</p>
+            <article class="flex min-h-[11rem] flex-col justify-between rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-cyan-300/[0.035] p-4 shadow-[0_14px_34px_rgba(2,6,23,0.18)] transition hover:border-cyan-300/20 hover:bg-white/[0.06] sm:p-5">
+              <div class="flex min-w-0 items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <h5 class="truncate text-base font-black text-white sm:text-lg">${Timeline.helpers.escapeHtml(projectName)}</h5>
+                  <div class="mt-2 flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-[0.62rem] font-extrabold ${Timeline.helpers.statusTone(projectStatus)}">${projectStatus} &middot; ${progress}%</span>
+                  </div>
                 </div>
-                <span class="rounded-full bg-cyan-400/15 px-2 py-0.5 text-[0.62rem] font-extrabold text-cyan-200">Active</span>
+                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-slate-950/30 px-3 py-1.5 text-[0.72rem] font-black text-slate-300">
+                  <i data-lucide="calendar-days" class="h-3.5 w-3.5 text-cyan-200"></i>
+                  ${Timeline.helpers.escapeHtml(dateRange)}
+                </span>
               </div>
-              <div>
-                <div class="flex items-center justify-between text-[0.66rem] font-bold text-slate-400 mb-1">
-                  <span>Progress</span>
-                  <span class="text-white">${progress}%</span>
+              <div class="mt-4">
+                <div class="mb-2 flex items-center justify-between gap-3 text-[0.74rem] font-bold text-slate-400">
+                  <span>${taskLabel} &bull; ${completedLabel}</span>
+                  <span class="hidden text-white sm:inline">${progress}%</span>
                 </div>
-                <div class="h-1 rounded-full bg-white/10 overflow-hidden">
-                  <div class="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-500" style="width:${progress}%"></div>
+                <div class="h-2.5 overflow-hidden rounded-full border border-white/[0.06] bg-white/10">
+                  <div class="h-full rounded-full bg-gradient-to-r ${progress === 100 ? "from-emerald-300 to-cyan-300" : "from-cyan-300 to-violet-500"} shadow-[0_0_18px_rgba(34,211,238,0.22)] transition-all duration-700" style="width:${progress}%"></div>
                 </div>
               </div>
-              <div class="flex items-center justify-between gap-2 pt-1">
-                <div class="-space-x-1.5 flex origin-left scale-90">${Timeline.renderers.renderWorkspaceMembers(members)}</div>
-                <button class="min-h-10 rounded-lg border border-white/10 bg-white/5 px-3 text-[0.66rem] font-bold text-slate-300 hover:bg-white/10 hover:text-white" type="button" data-workspace-id="${workspace.id}" data-project-name="${Timeline.helpers.escapeHtml(project)}">
+              <div class="mt-4 flex items-center justify-between gap-3">
+                <div class="-space-x-1.5 flex min-w-0 items-center">${Timeline.renderers.renderWorkspaceMembers(members)}</div>
+                <button class="min-h-10 shrink-0 rounded-xl border border-white/10 bg-white/5 px-4 text-[0.68rem] font-bold text-slate-300 transition hover:bg-white/10 hover:text-white" type="button" data-workspace-id="${workspace.id}" data-project-name="${Timeline.helpers.escapeHtml(projectName)}">
                   View Tasks
                 </button>
               </div>
-            </div>
+            </article>
           `;
         })
         .join("");
 
-      // Render Gantt-like project schedule timeline track
-      projectsScheduleContent.innerHTML = workspace.projects
-        .map((project) => {
-          const tasks = Timeline.helpers.projectTasks(workspace.id, project);
-          let startDay = 12;
-          let durationDays = 5;
-          let dateStr = "Nov 12 - Nov 17";
-
-          if (tasks.length > 0) {
-            const minStart = Math.min(...tasks.map(t => t.start || 12));
-            const maxEnd = Math.max(...tasks.map(t => (t.start || 12) + (t.duration || 2)));
-            startDay = Math.round(minStart);
-            durationDays = Math.max(Math.round(maxEnd - minStart), 1);
-            dateStr = `Nov ${startDay} - Nov ${startDay + durationDays}`;
-          }
-
-          const leftPercent = Math.min(Math.max((startDay - 9) * 8, 0), 80);
-          const widthPercent = Math.min(Math.max(durationDays * 8, 10), 100 - leftPercent);
-
-          return `
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between text-[0.72rem] font-bold">
-                <span class="text-white">${Timeline.helpers.escapeHtml(project)}</span>
-                <span class="text-slate-400 font-semibold">${dateStr}</span>
-              </div>
-              <div class="relative h-6 rounded-lg bg-slate-950/60 border border-white/5 overflow-hidden">
-                <div class="absolute h-full bg-gradient-to-r from-violet-500/20 to-cyan-500/20 border-l border-r border-cyan-400/40" style="left:${leftPercent}%; width:${widthPercent}%;">
-                  <span class="absolute inset-y-0 left-2 flex items-center text-[0.58rem] font-bold text-cyan-200 uppercase tracking-wider">In Progress</span>
-                </div>
-              </div>
-            </div>
-          `;
-        })
-        .join("");
+      const activeCreateButton = document.querySelector("[data-create-project-in-workspace-active]");
+      if (activeCreateButton) {
+        activeCreateButton.disabled = !canManage;
+        activeCreateButton.classList.toggle("opacity-45", !canManage);
+        activeCreateButton.classList.toggle("cursor-not-allowed", !canManage);
+        activeCreateButton.title = canManage ? "Add project" : "Only owners and admins can add projects";
+      }
+      if (Timeline.selectors.projectActionHint) {
+        Timeline.selectors.projectActionHint.textContent = canManage
+          ? "Overview of all projects and their progress in this workspace."
+          : "Read-only view. Ask an owner/admin to create projects or invite members.";
+      }
 
       Timeline.renderers.refreshIcons();
     },
@@ -425,6 +478,7 @@
             const width = task.duration * Timeline.scale;
             const top = task.row * 70 + 8;
             const avatars = Timeline.renderers.renderAvatarStack(task.members);
+            const taskProgress = Timeline.helpers.taskProgress(task);
             const featuredMeta = task.featured
               ? `
               <div class="mt-3 flex flex-wrap items-center gap-1.5">
@@ -454,6 +508,12 @@
               <div class="mt-2.5 flex items-center justify-between gap-3">
                 <div class="flex items-center">${avatars}</div>
                 <span class="text-[0.68rem] font-black opacity-65 timeline-task-time">${Timeline.helpers.timeLabel(task.start)}</span>
+              </div>
+              <div class="mt-2 flex items-center gap-1.5">
+                <div class="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-950/20">
+                  <span class="block h-full rounded-full bg-cyan-300/70 transition-all duration-700" style="width:${taskProgress}%"></span>
+                </div>
+                <span class="shrink-0 text-[0.6rem] font-black opacity-70">${taskProgress}%</span>
               </div>
               ${featuredMeta}
               <div class="resize-handle"></div>
@@ -488,6 +548,7 @@
       Timeline.selectors.kanbanColumns.innerHTML = columns
         .map((column) => {
           const columnTasks = items.filter((task) => task.status === column.name);
+          const canManageWorkspace = Timeline.helpers.canManageWorkspace();
           return `
             <section class="kanban-column flex min-h-0 flex-col rounded-2xl border border-white/[0.07] bg-white/[0.032] p-2.5 transition duration-200" data-column-status="${column.name}">
               <div class="mb-2.5 flex items-center justify-between">
@@ -499,8 +560,8 @@
                 </div>
                 <div class="flex items-center gap-1">
                   <span class="rounded-full bg-white/10 px-2 py-0.5 text-[0.65rem] font-black text-slate-300">${columnTasks.length}</span>
-                  <button class="grid h-10 w-10 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-add-status="${column.name}" aria-label="Add task to ${column.name}" title="Add task">
-                    <i data-lucide="plus" class="h-4 w-4"></i>
+                  <button class="grid h-10 w-10 place-items-center rounded-xl text-slate-400 transition ${canManageWorkspace ? "hover:bg-white/10 hover:text-white" : "cursor-not-allowed opacity-45"}" type="button" data-add-status="${column.name}" aria-label="Add task to ${column.name}" title="${canManageWorkspace ? "Add task" : "Only owners and admins can add tasks"}" ${canManageWorkspace ? "" : "disabled"}>
+                    <i data-lucide="${canManageWorkspace ? "plus" : "lock"}" class="h-4 w-4"></i>
                   </button>
                   <button class="grid h-10 w-10 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" data-column-menu="${column.name}" aria-label="${column.name} actions" title="Column actions">
                     <i data-lucide="more-horizontal" class="h-4 w-4"></i>
@@ -512,18 +573,15 @@
               ? columnTasks
                 .map(
                   (task) => {
-                    const userRole = (Timeline.app.dataset.userRole || "viewer").toLowerCase();
-                    const userName = (Timeline.app.dataset.userName || "").toLowerCase();
-                    const isManager = ["owner", "admin", "manager"].includes(userRole);
-                    const isOwner = task.owner && task.owner.toLowerCase() === userName;
-                    const canDrag = isManager || isOwner;
+                    const canDrag = Timeline.helpers.canEditTask(task);
+                    const taskProgress = Timeline.helpers.taskProgress(task);
 
                     const dragAttr = canDrag ? 'draggable="true"' : 'draggable="false" style="cursor: not-allowed;"';
                     const padlockIcon = canDrag ? '' : '<i data-lucide="lock" class="h-3.5 w-3.5 text-slate-400/80 mr-1 inline-block align-middle shrink-0"></i>';
 
                     return `
                       <article
-                        class="group w-full rounded-xl border border-white/[0.07] bg-slate-950/35 p-2.5 text-left shadow-[0_6px_18px_rgba(2,6,23,0.12)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300/20 hover:bg-white/[0.055] motion-reduce:transform-none"
+                        class="group w-full min-w-0 rounded-xl border border-white/[0.07] bg-slate-950/35 p-2.5 text-left shadow-[0_6px_18px_rgba(2,6,23,0.12)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300/20 hover:bg-white/[0.055] motion-reduce:transform-none"
                         role="button"
                         tabindex="0"
                         ${dragAttr}
@@ -531,7 +589,7 @@
                       >
                         <div class="flex items-start justify-between gap-2">
                           <div class="min-w-0 flex-1">
-                            <h4 class="truncate text-[0.82rem] font-black text-white flex items-center gap-1">${padlockIcon}${Timeline.helpers.escapeHtml(task.title)}</h4>
+                            <h4 class="flex min-w-0 items-center gap-1 truncate text-[0.82rem] font-black text-white">${padlockIcon}<span class="truncate">${Timeline.helpers.escapeHtml(task.title)}</span></h4>
                             <p class="mt-0.5 truncate text-[0.68rem] font-semibold text-slate-400">${Timeline.helpers.escapeHtml(task.subtitle)}</p>
                           </div>
                           <div class="flex shrink-0 items-center gap-1">
@@ -542,14 +600,18 @@
                           </div>
                         </div>
                         <div class="mt-2.5 h-1 overflow-hidden rounded-full bg-white/[0.07]">
-                          <span class="block h-full rounded-full bg-cyan-300/55 transition-all duration-700" style="width:${task.progress}%"></span>
+                          <span class="block h-full rounded-full bg-cyan-300/55 transition-all duration-700" style="width:${taskProgress}%"></span>
+                        </div>
+                        <div class="mt-1 flex items-center justify-between gap-2 text-[0.6rem] font-black text-slate-500">
+                          <span>Progress</span>
+                          <span class="text-cyan-100">${taskProgress}%</span>
                         </div>
                         <div class="mt-2.5 flex items-center justify-between gap-2">
                           <div class="flex items-center">${Timeline.renderers.renderAvatarStack(task.members, "h-4 w-4")}</div>
-                          <div class="flex items-center gap-2 text-[0.62rem] font-bold text-slate-500">
+                          <div class="min-w-0 flex items-center gap-2 text-[0.62rem] font-bold text-slate-500">
                             <span class="inline-flex items-center gap-1"><i data-lucide="message-square" class="h-3 w-3"></i>${task.comments}</span>
                             <span class="inline-flex items-center gap-1"><i data-lucide="paperclip" class="h-3 w-3"></i>${task.attachments}</span>
-                            <span>${Timeline.helpers.escapeHtml(task.due)}</span>
+                            <span class="truncate">${Timeline.helpers.escapeHtml(task.due)}</span>
                           </div>
                         </div>
                       </article>
@@ -559,9 +621,9 @@
                 .join("")
               : `<div class="rounded-2xl border border-dashed border-white/10 p-4 text-center text-xs font-semibold text-slate-500">
                   <p>No tasks</p>
-                  <button class="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/8 px-3 text-xs font-black text-cyan-100 transition hover:bg-white/12" type="button" data-add-status="${column.name}">
-                    <i data-lucide="plus" class="h-4 w-4"></i>
-                    Add task
+                  <button class="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/15 px-3 text-xs font-black transition ${canManageWorkspace ? "bg-white/8 text-cyan-100 hover:bg-white/12" : "cursor-not-allowed bg-white/5 text-slate-500 opacity-60"}" type="button" data-add-status="${column.name}" ${canManageWorkspace ? "" : "disabled"}>
+                    <i data-lucide="${canManageWorkspace ? "plus" : "lock"}" class="h-4 w-4"></i>
+                    ${canManageWorkspace ? "Add task" : "Read only"}
                   </button>
                 </div>`
             }}
@@ -575,10 +637,13 @@
     },
 
     renderList(items = Timeline.state.filteredTasks) {
+      const canManage = Timeline.helpers.canManageWorkspace();
       Timeline.selectors.listRows.innerHTML = items.length
         ? items
           .map(
-            (task) => `
+            (task) => {
+              const taskProgress = Timeline.helpers.taskProgress(task);
+              return `
                 <article
                   class="mb-1.5 grid w-full grid-cols-1 items-center gap-2 rounded-xl border border-white/[0.065] bg-white/[0.032] px-3 py-2 text-left transition duration-200 hover:-translate-y-px hover:border-cyan-300/20 hover:bg-white/[0.06] hover:shadow-[0_8px_20px_rgba(2,6,23,0.12)] motion-reduce:transform-none lg:grid-cols-[minmax(340px,2.2fr)_minmax(150px,0.8fr)_minmax(120px,0.65fr)_minmax(150px,0.75fr)_minmax(90px,0.45fr)] lg:gap-4"
                   role="button"
@@ -611,21 +676,22 @@
                   </div>
                   <div class="flex items-center justify-between gap-3 lg:block">
                     <span class="text-xs font-bold text-slate-500 lg:hidden">Schedule</span>
-                    <span class="text-[0.72rem] font-bold text-slate-300">${Timeline.helpers.escapeHtml(task.due)} · ${Timeline.helpers.timeLabel(task.start)}</span>
+                    <span class="text-[0.72rem] font-bold text-slate-300">${Timeline.helpers.escapeHtml(task.due)} &middot; ${Timeline.helpers.timeLabel(task.start)}</span>
                   </div>
                   <div class="flex items-center justify-between gap-3 lg:justify-end">
                     <span class="text-xs font-bold text-slate-500 lg:hidden">Progress</span>
-                    <span class="text-right text-[0.82rem] font-black text-white">${task.progress}%</span>
+                    <span class="text-right text-[0.82rem] font-black text-white">${taskProgress}%</span>
                   </div>
                 </article>
-              `
+              `;
+            }
           )
           .join("")
         : `<div class="rounded-2xl border border-dashed border-white/10 p-6 text-center text-sm font-semibold text-slate-500">
             <p>No list tasks match your filter.</p>
-            <button class="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/15 bg-gradient-to-r from-violet-600 to-cyan-500 px-4 text-xs font-black text-white" type="button" data-add-status="To Do">
-              <i data-lucide="plus" class="h-4 w-4"></i>
-              Add first task
+            <button class="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/15 px-4 text-xs font-black transition ${canManage ? "bg-gradient-to-r from-violet-600 to-cyan-500 text-white hover:brightness-110" : "cursor-not-allowed bg-white/5 text-slate-500 opacity-60"}" type="button" data-add-status="To Do" ${canManage ? "" : "disabled"}>
+              <i data-lucide="${canManage ? "plus" : "lock"}" class="h-4 w-4"></i>
+              ${canManage ? "Add first task" : "Read only"}
             </button>
           </div>`;
 

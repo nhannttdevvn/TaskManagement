@@ -94,11 +94,15 @@
   const sidebarToggle = document.getElementById("settingsSidebarToggle");
   function openSidebar() {
     sidebar.classList.remove("-translate-x-full");
+    sidebar.classList.add("translate-x-0");
     overlay.classList.remove("hidden");
+    app.classList.add("taskflow-sidebar-open");
   }
   function closeSidebar() {
     sidebar.classList.add("-translate-x-full");
+    sidebar.classList.remove("translate-x-0");
     overlay.classList.add("hidden");
+    app.classList.remove("taskflow-sidebar-open");
   }
   sidebarToggle && sidebarToggle.addEventListener("click", openSidebar);
   overlay && overlay.addEventListener("click", closeSidebar);
@@ -176,13 +180,17 @@
     const now = app.dataset.theme === "light" ? "dark" : "light";
     applyTheme(now);
     if (prefThemeSwitch) prefThemeSwitch.checked = now === "dark";
-    showToast(now === "dark" ? "Dark mode đã bật" : "Light mode đã bật");
+    showToast(now === "dark" ? "Dark mode on" : "Light mode on");
   });
   // Nếu Preferences tab có theme switch, đồng bộ ngược về body class
   const prefThemeSwitch = document.getElementById("prefThemeSwitch");
+  if (prefThemeSwitch) {
+    prefThemeSwitch.checked = app.dataset.theme !== "light";
+  }
   prefThemeSwitch && prefThemeSwitch.addEventListener("change", (e) => {
     const t = e.target.checked ? "dark" : "light";
     applyTheme(t);
+    showToast(t === "dark" ? "Dark mode on" : "Light mode on");
   });
 
   /* ============================================================
@@ -194,7 +202,7 @@
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     if (file.size > 1024 * 1024) {
-      showToast("Ảnh vượt quá 1MB. Vui lòng chọn ảnh khác.");
+      showToast("The image is larger than 1MB. Please choose another image.");
       e.target.value = "";
       return;
     }
@@ -206,9 +214,65 @@
   const localAvatarInput = document.getElementById("profileAvatarInput");
   const localAvatarStatus = document.getElementById("profileAvatarStatus");
   const maxAvatarBytes = Number(app.dataset.avatarMaxBytes || 25 * 1024 * 1024);
+  const userInitials = getInitials(
+    document.querySelector('input[name="full_name"]')?.value ||
+    document.querySelector("[data-profile-dropdown] p")?.textContent ||
+    "User"
+  ) || "US";
+
+  function fallbackAvatarDataUrl() {
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+        <defs>
+          <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#22d3ee"/>
+            <stop offset="1" stop-color="#7c3aed"/>
+          </linearGradient>
+        </defs>
+        <rect width="128" height="128" rx="26" fill="url(#g)"/>
+        <text x="64" y="72" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="800" fill="#fff">${userInitials}</text>
+      </svg>
+    `;
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  }
+
+  function cacheBustAvatarUrl(src) {
+    if (!src) return "";
+    if (src.startsWith("blob:") || src.startsWith("data:")) return src;
+    return `${src}${src.includes("?") ? "&" : "?"}v=${Date.now()}`;
+  }
+
+  function renderFallbackAvatar(shell) {
+    shell.textContent = userInitials;
+    shell.classList.add("bg-gradient-to-br", "from-violet-600", "to-indigo-500", "text-white");
+  }
+
+  function buildAvatarImage(src) {
+    const img = document.createElement("img");
+    img.className = "h-full w-full rounded-xl object-cover";
+    img.alt = "Profile avatar";
+    img.src = src;
+    img.addEventListener("error", () => {
+      const shell = img.closest("[data-user-avatar-shell]");
+      if (shell) renderFallbackAvatar(shell);
+    }, { once: true });
+    return img;
+  }
+
   function updateUserAvatarShells(src) {
     document.querySelectorAll("[data-user-avatar-shell]").forEach((shell) => {
-      shell.innerHTML = `<img class="h-full w-full rounded-xl object-cover" src="${src}" alt="Profile avatar">`;
+      shell.textContent = "";
+      if (src) {
+        shell.appendChild(buildAvatarImage(src));
+      } else {
+        renderFallbackAvatar(shell);
+      }
+    });
+  }
+  if (avatarPreview) {
+    avatarPreview.addEventListener("error", () => {
+      avatarPreview.src = fallbackAvatarDataUrl();
+      updateUserAvatarShells("");
     });
   }
   if (localAvatarInput && avatarPreview) {
@@ -235,7 +299,7 @@
       window.TaskFlow.api.post("/api/users/me/avatar/", formData, { root: profileForm || app })
         .then((response) => {
           const avatarUrl = response?.data?.avatar || previewUrl;
-          const freshAvatarUrl = `${avatarUrl}?v=${Date.now()}`;
+          const freshAvatarUrl = cacheBustAvatarUrl(avatarUrl);
           avatarPreview.src = freshAvatarUrl;
           updateUserAvatarShells(freshAvatarUrl);
           if (localAvatarStatus) localAvatarStatus.textContent = `${file.name} saved locally`;
@@ -275,7 +339,7 @@
       window.TaskFlow.api.patch("/api/users/me/", payload, { root: profileForm })
         .then(() => {
           dirtyBadge?.classList.add("hidden");
-          showToast("Profile đã được cập nhật thành công");
+          showToast("Profile updated successfully");
           const curPwdInput = profileForm.querySelector('input[name="current_password"]');
           const newPwdInput = profileForm.querySelector('input[name="new_password"]');
           if (curPwdInput) curPwdInput.value = "";
@@ -283,7 +347,7 @@
           setTimeout(() => location.reload(), 1000);
         })
         .catch((err) => {
-          showToast(err.message || "Lỗi cập nhật profile");
+          showToast(err.message || "Profile update failed");
         });
     });
     profileForm.addEventListener("reset", () => {
@@ -297,7 +361,7 @@
   const preferencesForm = document.getElementById("preferencesForm");
   preferencesForm && preferencesForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    showToast("Preferences đã lưu");
+    showToast("Preferences saved");
   });
 
   /* ============================================================
@@ -310,7 +374,7 @@
     if (!li) return;
     li.classList.add("opacity-0");
     setTimeout(() => li.remove(), 180);
-    showToast("Đã thu hồi quyền truy cập thiết bị");
+    showToast("Device access has been revoked");
   });
 
   const confirmModal = document.getElementById("confirmDeleteModal");
@@ -339,13 +403,13 @@
   });
   document.getElementById("confirmDeleteFinal")?.addEventListener("click", () => {
     toggleConfirm(false);
-    showToast("Yêu cầu xoá tài khoản đã gửi tới Admin");
+    showToast("Account deletion request has been sent to an Admin");
   });
 
   const accountForm = document.getElementById("accountForm");
   accountForm && accountForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    showToast("Cài đặt tài khoản đã được cập nhật");
+    showToast("Account settings have been updated");
   });
 
   /* ============================================================
@@ -382,7 +446,7 @@
   function renderMembers() {
     if (!memberList) return;
     if (state.members.length === 0) {
-      memberList.innerHTML = `<p class="p-4 text-center text-sm text-slate-400">Chưa có thành viên nào.</p>`;
+      memberList.innerHTML = `<p class="p-4 text-center text-sm text-slate-400">No members yet.</p>`;
       return;
     }
     memberList.innerHTML = state.members.map((m) => {
@@ -436,10 +500,10 @@
           m.role = updated.role;
         }
         renderMembers();
-        showToast("Đã cập nhật vai trò thành công");
+        showToast("Role updated successfully");
       })
       .catch((err) => {
-        showToast(err.message || "Không thể cập nhật vai trò");
+        showToast(err.message || "Could not update role");
         fetchTeamData();
       });
   });
@@ -450,15 +514,15 @@
     const row = btn.closest(".js-member-row");
     const id = row?.dataset.id;
 
-    if (confirm("Bạn có chắc muốn xóa thành viên này khỏi workspace?")) {
+    if (confirm("Are you sure you want to remove this member from the workspace?")) {
       window.TaskFlow.api.delete(`/api/teams/${state.activeTeamId}/members/${id}/`, { root: memberList })
         .then(() => {
           state.members = state.members.filter((x) => String(x.id) !== String(id));
           renderMembers();
-          showToast("Đã xoá thành viên thành công");
+          showToast("Member removed successfully");
         })
         .catch((err) => {
-          showToast(err.message || "Không thể xóa thành viên");
+          showToast(err.message || "Could not remove member");
         });
     }
   });
@@ -468,7 +532,7 @@
   function toggleInvite(open) {
     if (!inviteModal) return;
     if (!isAuthorized && open) {
-      showToast("Chỉ Owner hoặc Admin mới có quyền gửi lời mời.");
+      showToast("Only Owners or Admins can send invitations.");
       return;
     }
     if (open) {
@@ -505,23 +569,23 @@
       .then(() => {
         toggleInvite(false);
         e.target.reset();
-        showToast(`Đã mời ${email} với vai trò ${role} thành công`);
+        showToast(`Invited ${email} as ${role} successfully`);
       })
       .catch((err) => {
-        showToast(err.message || "Lỗi gửi lời mời");
+        showToast(err.message || "Invitation failed");
       });
   });
 
   document.getElementById("teamPermissionsForm")?.addEventListener("submit", (e) => {
     e.preventDefault();
-    showToast("Cài đặt phân quyền team đã được lưu");
+    showToast("Team permission settings saved");
   });
 
   /* ============================================================
    *  Save All
    * ============================================================ */
   document.getElementById("settingsSaveAllButton")?.addEventListener("click", () => {
-    showToast("Đã lưu toàn bộ thay đổi của 4 tab");
+    showToast("All changes across 4 tabs have been saved");
     dirtyBadge?.classList.add("hidden");
   });
 
@@ -548,8 +612,8 @@
   const notifDrop = document.getElementById("settingsNotificationDropdown");
   const notifList = document.getElementById("settingsNotificationList");
   const notifications = [
-    { icon: "shield-check", color: "text-cyan-200 bg-cyan-400/15", title: "Phiên đăng nhập mới", body: "MacBook Pro · 2 phút trước" },
-    { icon: "user-plus", color: "text-violet-200 bg-violet-400/15", title: "Lời mời tham gia", body: "Alex Morgan đã chấp nhận lời mời" },
+    { icon: "shield-check", color: "text-cyan-200 bg-cyan-400/15", title: "New sign-in session", body: "MacBook Pro - 2 minutes ago" },
+    { icon: "user-plus", color: "text-violet-200 bg-violet-400/15", title: "Workspace invitation", body: "Alex Morgan accepted the invitation" },
   ];
   if (notifList) {
     notifList.innerHTML = notifications.map((n) => `

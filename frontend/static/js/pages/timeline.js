@@ -13,6 +13,7 @@
     selectors.sidebar.classList.toggle("-translate-x-full", !shouldOpen);
     selectors.sidebar.classList.toggle("translate-x-0", shouldOpen);
     selectors.sidebarOverlay.classList.toggle("hidden", !shouldOpen);
+    app.classList.toggle("taskflow-sidebar-open", shouldOpen);
   }
 
   function setTheme(theme) {
@@ -160,7 +161,13 @@
       Timeline.actions.switchWorkspace(projectButton.dataset.workspaceId, projectButton.dataset.projectName || "");
     });
 
-    selectors.workspaceInviteButton.addEventListener("click", Timeline.modals.openProjectInviteModal);
+    selectors.workspaceInviteButton.addEventListener("click", () => {
+      if (!Timeline.helpers.canManageWorkspace()) {
+        Timeline.actions.showToast("Only owners and admins can invite members.");
+        return;
+      }
+      Timeline.modals.openProjectInviteModal();
+    });
     selectors.projectInviteForm.addEventListener("submit", Timeline.actions.sendProjectInvite);
 
     selectors.helpToggle.addEventListener("click", Timeline.modals.openHelpModal);
@@ -219,6 +226,22 @@
 
     selectors.addTaskButton.addEventListener("click", () => Timeline.modals.openTaskEditor("To Do"));
     selectors.kanbanAddTask.addEventListener("click", () => Timeline.modals.openTaskEditor("To Do"));
+    selectors.editorForm.elements.status.addEventListener("change", () => {
+      const status = selectors.editorForm.elements.status.value;
+      selectors.editorForm.elements.progress.value = Timeline.helpers.nextProgressForStatus(
+        status,
+        selectors.editorForm.elements.progress.value,
+        Timeline.state.progressWasEdited
+      );
+      Timeline.actions.syncTaskProgressLabel();
+    });
+    selectors.editorForm.elements.progress.addEventListener("input", () => {
+      if (selectors.editorForm.elements.status.value === "Done") {
+        selectors.editorForm.elements.progress.value = 100;
+      }
+      Timeline.state.progressWasEdited = true;
+      Timeline.actions.syncTaskProgressLabel();
+    });
     selectors.editorForm.addEventListener("submit", Timeline.actions.saveTaskFromEditor);
     document.addEventListener("submit", async (event) => {
       const attachmentForm = event.target.closest("[data-attachment-form]");
@@ -283,6 +306,10 @@
 
       const addStatus = event.target.closest("[data-add-status]");
       if (addStatus) {
+        if (!Timeline.helpers.canManageWorkspace()) {
+          Timeline.actions.showToast("Only owners and admins can create tasks.");
+          return;
+        }
         Timeline.modals.openTaskEditor(addStatus.dataset.addStatus);
         return;
       }
@@ -295,6 +322,11 @@
 
       const editTask = event.target.closest("[data-edit-task]");
       if (editTask) {
+        const task = Timeline.tasks.find((item) => item.id === editTask.dataset.editTask);
+        if (!Timeline.helpers.canEditTask(task)) {
+          Timeline.actions.showToast("You do not have permission to edit this task.");
+          return;
+        }
         Timeline.modals.closeTaskModal();
         Timeline.modals.openTaskEditor("To Do", editTask.dataset.editTask);
         return;
@@ -302,6 +334,11 @@
 
       const deleteTaskButton = event.target.closest("[data-delete-task]");
       if (deleteTaskButton) {
+        const task = Timeline.tasks.find((item) => item.id === deleteTaskButton.dataset.deleteTask);
+        if (!Timeline.helpers.canEditTask(task)) {
+          Timeline.actions.showToast("You do not have permission to delete this task.");
+          return;
+        }
         Timeline.modals.showDeleteConfirm(deleteTaskButton.dataset.deleteTask);
         return;
       }
@@ -330,6 +367,11 @@
 
       const createProjectInWorkspace = event.target.closest("[data-create-project-in-workspace]");
       if (createProjectInWorkspace) {
+        const workspace = Timeline.workspaces.find((item) => String(item.id) === String(createProjectInWorkspace.dataset.createProjectInWorkspace));
+        if (!Timeline.helpers.canManageWorkspace(workspace)) {
+          Timeline.actions.showToast("Only owners and admins can create projects.");
+          return;
+        }
         Timeline.modals.openProjectEditor(createProjectInWorkspace.dataset.createProjectInWorkspace);
         return;
       }
@@ -337,6 +379,11 @@
       const createActiveProj = event.target.closest("[data-create-project-in-workspace-active]");
       if (createActiveProj) {
         const activeWs = Timeline.state.activeWorkspaceId;
+        const workspace = Timeline.helpers.activeWorkspace();
+        if (!Timeline.helpers.canManageWorkspace(workspace)) {
+          Timeline.actions.showToast("Only owners and admins can create projects.");
+          return;
+        }
         Timeline.modals.openProjectEditor(activeWs);
         return;
       }
@@ -426,7 +473,9 @@
     });
 
     selectors.viewTitle.textContent = viewConfig[view].title;
-    selectors.viewMeta.textContent = viewConfig[view].meta;
+    if (selectors.viewMeta) {
+      selectors.viewMeta.textContent = viewConfig[view].meta;
+    }
     selectors.skeleton.classList.add("hidden");
     selectors.scroll.classList.toggle("hidden", view !== "calendar");
     if (view === "calendar") {
@@ -446,13 +495,16 @@
     if (view === "projects") {
       Timeline.renderers.renderProjectsView();
     }
+    Timeline.renderers.renderProjectHeader();
 
     Timeline.actions.showToast(`${viewConfig[view].title} enabled`);
   }
 
   function startRealtimeStatus() {
     window.setInterval(() => {
-      selectors.status.textContent = "Updated now";
+      if (selectors.status) {
+        selectors.status.textContent = "Updated now";
+      }
       Timeline.setProgressLine();
     }, 10000);
 
@@ -463,7 +515,9 @@
           Timeline.tasks = result.data.tasks;
           Timeline.actions.normalizeWorkspaceTasks();
           Timeline.actions.applyTaskFilters();
-          selectors.status.textContent = "Synced now";
+          if (selectors.status) {
+            selectors.status.textContent = "Synced now";
+          }
         }
       } catch (err) {
         console.warn("Background auto-sync failed:", err);

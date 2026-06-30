@@ -20,12 +20,10 @@
     aria-hidden="true"
   ></div>
 
-  {# floating orbs #}
   <div class="pointer-events-none fixed -left-24 top-1/4 h-72 w-72 rounded-full bg-violet-600/30 blur-3xl animate-pulseLine" aria-hidden="true"></div>
   <div class="pointer-events-none fixed -right-24 bottom-1/4 h-80 w-80 rounded-full bg-cyan-500/20 blur-3xl animate-pulseLine" aria-hidden="true"></div>
 
   <main class="relative grid min-h-screen grid-cols-1 lg:grid-cols-2">
-    {# ============= LEFT HERO ============= #}
     <section class="hidden flex-col justify-between px-10 py-12 lg:flex">
       <a href="{% url 'login' %}" class="flex items-center gap-3">
         <div class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/80 to-violet-500 text-sm font-black text-white shadow-[0_18px_44px_rgba(124,77,255,0.45)]">{% include "partials/logo_mark.html" %}</div>
@@ -41,30 +39,28 @@
           Get more done with <span class="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">TaskFlow</span>.
         </h2>
         <p class="mt-4 text-sm text-slate-300">
-          Một nền tảng tập trung cho mọi project, task, file và team — với dashboard
-          analytics theo thời gian thực và quy trình collaboration cực gọn.
+          A focused workspace for projects, tasks, files, and teams with live dashboards and clean collaboration flows.
         </p>
 
         <div class="mt-8 space-y-3">
           <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
             <span class="grid h-9 w-9 place-items-center rounded-xl bg-cyan-400/15 text-cyan-200"><i data-lucide="layout-dashboard" class="h-4 w-4"></i></span>
-            <p class="text-sm text-slate-200">Workspace ➔ Project ➔ Task ➔ User — phân cấp rõ ràng</p>
+            <p class="text-sm text-slate-200">Workspace to project to task hierarchy that stays easy to scan</p>
           </div>
           <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
             <span class="grid h-9 w-9 place-items-center rounded-xl bg-violet-400/15 text-violet-200"><i data-lucide="bar-chart-3" class="h-4 w-4"></i></span>
-            <p class="text-sm text-slate-200">Dashboard analytics + biểu đồ tròn phân bổ trạng thái task</p>
+            <p class="text-sm text-slate-200">Dashboard analytics for workload, status, and progress</p>
           </div>
           <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
             <span class="grid h-9 w-9 place-items-center rounded-xl bg-emerald-400/15 text-emerald-200"><i data-lucide="bell-ring" class="h-4 w-4"></i></span>
-            <p class="text-sm text-slate-200">Real-time notifications cho mọi thay đổi trong project</p>
+            <p class="text-sm text-slate-200">Notifications for important project and team updates</p>
           </div>
         </div>
       </div>
 
-      <p class="text-xs text-slate-400">&copy; 2026 TaskFlow · Designed for high performance teams.</p>
+      <p class="text-xs text-slate-400">&copy; 2026 TaskFlow - Designed for high-performance teams.</p>
     </section>
 
-    {# ============= RIGHT FORM ============= #}
     <section class="flex items-center justify-center px-4 py-10 sm:px-10">
       <div class="w-full max-w-md">
         <a href="{% url 'login' %}" class="mb-6 inline-flex items-center gap-2 lg:hidden">
@@ -79,16 +75,15 @@
               <span class="js-signup-only hidden">Sign up</span>
             </p>
             <h2 class="mt-1 text-2xl font-black text-white">
-              <span class="js-signin-only">Đăng nhập vào TaskFlow</span>
-              <span class="js-signup-only hidden">Tạo tài khoản TaskFlow</span>
+              <span class="js-signin-only">Sign in to TaskFlow</span>
+              <span class="js-signup-only hidden">Create your TaskFlow account</span>
             </h2>
             <p class="mt-1 text-sm text-slate-400">
-              <span class="js-signin-only">Quản lý dự án, theo dõi task và cộng tác với team mọi lúc.</span>
-              <span class="js-signup-only hidden">Tạo workspace đầu tiên để bắt đầu quản lý project và team.</span>
+              <span class="js-signin-only">Manage projects, track tasks, and collaborate with your team.</span>
+              <span class="js-signup-only hidden">Create your first workspace and start organizing work.</span>
             </p>
           </header>
 
-          {# Tab Sign in / Sign up #}
           <nav class="mt-6 inline-flex w-full rounded-2xl border border-white/10 bg-slate-950/60 p-1 text-sm font-bold" role="tablist" aria-label="Auth mode">
             <button class="js-auth-tab flex-1 rounded-xl bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-3 py-2 text-white shadow-[0_8px_24px_rgba(79,70,229,0.28)]" type="button" data-mode="signin" aria-selected="true">Sign in</button>
             <button class="js-auth-tab flex-1 rounded-xl px-3 py-2 text-slate-400 transition hover:text-white" type="button" data-mode="signup" aria-selected="false">Sign up</button>
@@ -102,7 +97,7 @@
                 <i data-lucide="user-round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
                 <input name="full_name" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="text" placeholder="Nguyen Van A">
               </div>
-              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="full_name">Họ và tên là bắt buộc</p>
+              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="full_name">Full name is required</p>
             </div>
 
             <label class="grid gap-2">
@@ -111,22 +106,22 @@
                 <i data-lucide="mail" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
                 <input id="loginEmail" name="email" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="email" placeholder="name@example.com" required autocomplete="email">
               </div>
-              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="email">Email không hợp lệ</p>
+              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="email">Enter a valid email address</p>
             </label>
 
             <label class="grid gap-2">
               <div class="flex items-center justify-between">
                 <span class="text-sm font-extrabold text-slate-400">Password</span>
-                <a class="js-signin-only text-xs font-bold text-cyan-200 hover:text-cyan-100" href="#forgot">Quên mật khẩu?</a>
+                <a class="js-signin-only text-xs font-bold text-cyan-200 hover:text-cyan-100" href="#forgot">Forgot password?</a>
               </div>
               <div class="relative">
                 <i data-lucide="lock" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
-                <input id="loginPassword" name="password" class="js-password w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="password" placeholder="••••••••" required minlength="8" autocomplete="current-password">
+                <input id="loginPassword" name="password" class="js-password w-full rounded-2xl border border-white/10 bg-slate-900/60 py-3 pl-10 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50 focus:ring-4 focus:ring-cyan-300/10" type="password" placeholder="********" required minlength="8" autocomplete="current-password">
                 <button class="js-toggle-password absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white" type="button" aria-label="Show password">
                   <i data-lucide="eye" class="h-4 w-4"></i>
                 </button>
               </div>
-              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="password">Mật khẩu tối thiểu 8 ký tự</p>
+              <p class="js-error hidden text-xs font-bold text-rose-300" data-error-for="password">Password must be at least 8 characters</p>
             </label>
 
             <div class="flex items-center justify-between text-xs">
@@ -168,10 +163,10 @@
         </div>
 
         <p class="mt-6 text-center text-sm text-slate-400">
-          <span class="js-signin-only">Chưa có tài khoản?
-            <button class="js-auth-tab font-bold text-cyan-200 hover:text-cyan-100" data-mode="signup" type="button">Tạo tài khoản miễn phí</button>
+          <span class="js-signin-only">Do not have an account?
+            <button class="js-auth-tab font-bold text-cyan-200 hover:text-cyan-100" data-mode="signup" type="button">Create a free account</button>
           </span>
-          <span class="js-signup-only hidden">Đã có tài khoản?
+          <span class="js-signup-only hidden">Already have an account?
             <button class="js-auth-tab font-bold text-cyan-200 hover:text-cyan-100" data-mode="signin" type="button">Sign in</button>
           </span>
         </p>
@@ -188,5 +183,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/auth.js' %}?v=20260523-1"></script>
+<script src="{% static 'js/auth.js' %}?v=20260630-english-auth-1"></script>
 {% endblock %}

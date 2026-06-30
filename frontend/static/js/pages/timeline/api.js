@@ -26,8 +26,8 @@
     createTask(projectId, payload, root) {
       return window.TaskFlow.api.post(`/api/projects/${projectId}/tasks/`, payload, { root });
     },
-    updateTaskStatus(taskId, status, root) {
-      return window.TaskFlow.api.patch(`/api/tasks/${taskId}/status/`, { status }, { root });
+    updateTaskStatus(taskId, status, root, extra = {}) {
+      return window.TaskFlow.api.patch(`/api/tasks/${taskId}/status/`, { status, ...extra }, { root });
     },
     updateTask(taskId, payload, root) {
       return window.TaskFlow.api.patch(`/api/tasks/${taskId}/`, payload, { root });

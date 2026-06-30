@@ -1,9 +1,35 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/app.css' %}?v=20260628-2">
+<link rel="stylesheet" href="{% static 'css/app.css' %}?v=20260630-4">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp) {
+    --taskflow-sidebar-width: 14rem;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp) :is(#sidebar, #timelineSidebar, #teamSidebar, #filesSidebar, #settingsSidebar) {
+    width: var(--taskflow-sidebar-width) !important;
+    min-width: var(--taskflow-sidebar-width) !important;
+    max-width: var(--taskflow-sidebar-width) !important;
+  }
+
+  @media (min-width: 1024px) {
+    :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp) .theme-content {
+      padding-left: var(--taskflow-sidebar-width) !important;
+    }
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp).taskflow-sidebar-open .theme-content {
+    padding-left: var(--taskflow-sidebar-width) !important;
+  }
+
+  @media (max-width: 1023.98px) {
+    :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp):not(.taskflow-sidebar-open) .theme-content {
+      padding-left: 0 !important;
+    }
+  }
+
   #dashboardApp[data-theme="light"],
   #timelineApp[data-theme="light"],
   #teamApp[data-theme="light"],
@@ -182,5 +208,100 @@
 
   #teamApp[data-theme="light"] .team-message:hover {
     background-color: rgba(99, 102, 241, 0.06) !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] :is(#notificationDropdown, #timelineNotificationDropdown, #teamNotificationDropdown, #filesNotificationDropdown, #settingsNotificationDropdown) {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-color: rgba(148, 163, 184, 0.38) !important;
+    color: #172033 !important;
+    box-shadow: 0 22px 58px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.84) inset !important;
+    backdrop-filter: blur(18px) saturate(1.08) !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] :is(#notificationDropdown, #timelineNotificationDropdown, #teamNotificationDropdown, #filesNotificationDropdown, #settingsNotificationDropdown) :is(h3, p, span) {
+    color: #172033 !important;
+  }
+
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] :is(#notificationDropdown, #timelineNotificationDropdown, #teamNotificationDropdown, #filesNotificationDropdown, #settingsNotificationDropdown) [class*="bg-white/5"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] :is(#notificationDropdown, #timelineNotificationDropdown, #teamNotificationDropdown, #filesNotificationDropdown, #settingsNotificationDropdown) [class*="bg-white/10"],
+  :is(#dashboardApp, #timelineApp, #teamApp, #filesApp, #settingsApp)[data-theme="light"] :is(#notificationDropdown, #timelineNotificationDropdown, #teamNotificationDropdown, #filesNotificationDropdown, #settingsNotificationDropdown) [class*="bg-slate-900"] {
+    background: rgba(241, 245, 249, 0.94) !important;
+    border-color: rgba(148, 163, 184, 0.28) !important;
+  }
+
+  #settingsApp[data-theme="light"] > [aria-hidden="true"] {
+    background:
+      radial-gradient(circle at 18% 8%, rgba(79, 70, 229, 0.12), transparent 24%),
+      radial-gradient(circle at 82% 0%, rgba(14, 165, 233, 0.12), transparent 22%),
+      linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px) !important;
+    opacity: 0.75;
+  }
+
+  #settingsApp[data-theme="light"] .glass-panel {
+    background: rgba(255, 255, 255, 0.86) !important;
+    border-color: rgba(148, 163, 184, 0.34) !important;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  #settingsApp[data-theme="light"] .theme-content :is(h1, h2, h3, h4, h5, p, span, label, button, a).text-white,
+  #settingsApp[data-theme="light"] .theme-content .text-slate-200,
+  #settingsApp[data-theme="light"] .theme-content .text-slate-200\/80,
+  #settingsApp[data-theme="light"] .theme-content .text-slate-300 {
+    color: #172033 !important;
+  }
+
+  #settingsApp[data-theme="light"] .theme-content :is(input, select, textarea).text-white {
+    color: #172033 !important;
+  }
+
+  #settingsApp[data-theme="light"] .theme-content :is(input, select, textarea) {
+    background-color: rgba(255, 255, 255, 0.78) !important;
+    border-color: rgba(148, 163, 184, 0.34) !important;
+  }
+
+  #settingsApp[data-theme="light"] .theme-content form > div,
+  #settingsApp[data-theme="light"] .theme-content .settings-panel > form > div {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border-color: rgba(148, 163, 184, 0.34) !important;
+  }
+
+  #settingsApp[data-theme="light"] .theme-content :is([class*="bg-gradient-to-r"], [class*="bg-gradient-to-br"], [data-user-avatar-shell], #settingsSaveAllButton, [type="submit"], #deleteAccountButton, #confirmDeleteFinal) {
+    color: #ffffff !important;
+  }
+
+  #settingsApp[data-theme="light"] .theme-content :is([class*="bg-gradient-to-r"], [class*="bg-gradient-to-br"], [data-user-avatar-shell], #settingsSaveAllButton, [type="submit"], #deleteAccountButton, #confirmDeleteFinal) :is(span, p, i) {
+    color: #ffffff !important;
+  }
+
+  #settingsApp[data-theme="light"] [data-profile-dropdown],
+  #settingsApp[data-theme="light"] #settingsNotificationDropdown,
+  #settingsApp[data-theme="light"] #settingsToast {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(148, 163, 184, 0.34) !important;
+    color: #172033 !important;
+    box-shadow: 0 22px 64px rgba(15, 23, 42, 0.16) !important;
+  }
+
+  #settingsApp[data-theme="light"] [data-profile-dropdown] a,
+  #settingsApp[data-theme="light"] #settingsNotificationDropdown p,
+  #settingsApp[data-theme="light"] #settingsToast {
+    color: #172033 !important;
+  }
+
+  #settingsApp[data-theme="light"] .settings-tab[aria-selected="true"] {
+    background: linear-gradient(90deg, rgba(14, 165, 233, 0.14), rgba(124, 58, 237, 0.12)) !important;
+    border-color: rgba(14, 165, 233, 0.24) !important;
+    color: #0f172a !important;
+  }
+
+  #settingsApp[data-theme="light"] input::placeholder,
+  #settingsApp[data-theme="light"] textarea::placeholder {
+    color: #64748b !important;
+  }
+
+  #settingsApp[data-theme="light"] option {
+    background: #ffffff;
+    color: #0f172a;
   }
 </style>

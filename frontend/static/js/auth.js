@@ -12,36 +12,26 @@
   }
   refreshIcons();
 
-  /* ============================================================
-   *  Theme — auth pages giữ dark theme là chính, nhưng vẫn tôn
-   *  trọng preference đã lưu để đồng bộ với các trang khác.
-   * ============================================================ */
   const THEME_KEY = "taskflow-theme";
   document.documentElement.classList.toggle(
     "dark",
     (localStorage.getItem(THEME_KEY) || "dark") !== "light",
   );
 
-  /* ============================================================
-   *  Password eye toggle (chung cho cả login + logout)
-   * ============================================================ */
   document.querySelectorAll(".js-toggle-password").forEach((btn) => {
     btn.addEventListener("click", () => {
       const input = btn.parentElement.querySelector("input");
       if (!input) return;
-      const isPwd = input.type === "password";
-      input.type = isPwd ? "text" : "password";
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
       const icon = btn.querySelector("[data-lucide]");
       if (icon) {
-        icon.setAttribute("data-lucide", isPwd ? "eye-off" : "eye");
+        icon.setAttribute("data-lucide", isPassword ? "eye-off" : "eye");
         refreshIcons();
       }
     });
   });
 
-  /* ============================================================
-   *  Toast helper
-   * ============================================================ */
   function showToast(targetId, message) {
     const el = document.getElementById(targetId);
     if (!el) return;
@@ -51,9 +41,6 @@
     el._timer = setTimeout(() => el.classList.add("hidden"), 2400);
   }
 
-  /* ============================================================
-   *  LOGIN PAGE
-   * ============================================================ */
   if (loginApp) {
     const form = document.getElementById("loginForm");
     const submitBtn = document.getElementById("loginSubmit");
@@ -61,23 +48,19 @@
     const passwordInput = document.getElementById("loginPassword");
     const fullNameInput = form?.querySelector('input[name="full_name"]');
 
-    // Tab Sign in / Sign up
     const tabs = document.querySelectorAll(".js-auth-tab");
     function setMode(mode) {
       const nextMode = mode === "signup" ? "signup" : "signin";
-      tabs.forEach((t) => {
-        const isActive = t.dataset.mode === nextMode;
-        t.setAttribute("aria-selected", isActive ? "true" : "false");
-        t.classList.toggle("bg-gradient-to-r", isActive);
-        t.classList.toggle("from-violet-600", isActive);
-        t.classList.toggle("via-blue-600", isActive);
-        t.classList.toggle("to-cyan-500", isActive);
-        t.classList.toggle("text-white", isActive);
-        t.classList.toggle(
-          "shadow-[0_8px_24px_rgba(79,70,229,0.28)]",
-          isActive,
-        );
-        t.classList.toggle("text-slate-400", !isActive);
+      tabs.forEach((tab) => {
+        const isActive = tab.dataset.mode === nextMode;
+        tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        tab.classList.toggle("bg-gradient-to-r", isActive);
+        tab.classList.toggle("from-violet-600", isActive);
+        tab.classList.toggle("via-blue-600", isActive);
+        tab.classList.toggle("to-cyan-500", isActive);
+        tab.classList.toggle("text-white", isActive);
+        tab.classList.toggle("shadow-[0_8px_24px_rgba(79,70,229,0.28)]", isActive);
+        tab.classList.toggle("text-slate-400", !isActive);
       });
       document
         .querySelectorAll(".js-signin-only")
@@ -91,27 +74,29 @@
       );
       form && form.setAttribute("data-mode", nextMode);
     }
-    tabs.forEach((t) =>
-      t.addEventListener("click", () => setMode(t.dataset.mode)),
+
+    tabs.forEach((tab) =>
+      tab.addEventListener("click", () => setMode(tab.dataset.mode)),
     );
     setMode(new URLSearchParams(window.location.search).get("mode"));
 
-    // Validation helpers
-    function showError(name, msg) {
+    function showError(name, message) {
       const el = form.querySelector(`[data-error-for="${name}"]`);
       if (el) {
-        el.textContent = msg;
+        el.textContent = message;
         el.classList.remove("hidden");
       }
     }
+
     function clearErrors() {
       form
         .querySelectorAll(".js-error")
-        .forEach((e) => e.classList.add("hidden"));
+        .forEach((el) => el.classList.add("hidden"));
     }
+
     form &&
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
         clearErrors();
         const mode = form.getAttribute("data-mode") || "signin";
 
@@ -122,15 +107,15 @@
         let valid = true;
 
         if (!/^[\w.+-]+@[\w.-]+\.[a-z]{2,}$/i.test(email)) {
-          showError("email", "Email không hợp lệ");
+          showError("email", "Enter a valid email address");
           valid = false;
         }
         if (password.length < 8) {
-          showError("password", "Mật khẩu tối thiểu 8 ký tự");
+          showError("password", "Password must be at least 8 characters");
           valid = false;
         }
         if (mode === "signup" && !fullName) {
-          showError("full_name", "Họ và tên là bắt buộc");
+          showError("full_name", "Full name is required");
           valid = false;
         }
         if (!valid) return;
@@ -139,7 +124,7 @@
         const original = submitBtn.innerHTML;
         submitBtn.innerHTML =
           '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> ' +
-          (mode === "signin" ? "Đang đăng nhập..." : "Đang tạo tài khoản...");
+          (mode === "signin" ? "Signing in..." : "Creating account...");
         refreshIcons();
 
         const url =
@@ -155,8 +140,8 @@
             showToast(
               "authToast",
               mode === "signin"
-                ? "Đăng nhập thành công, đang chuyển..."
-                : "Tạo tài khoản thành công",
+                ? "Signed in successfully. Redirecting..."
+                : "Account created successfully",
             );
             const queryNext = new URLSearchParams(window.location.search).get(
               "next",
@@ -174,25 +159,17 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = original;
             refreshIcons();
-            showToast("authToast", err.message || "Có lỗi xảy ra");
-            if (
-              err.message.includes("Email") ||
-              err.message.includes("tài khoản")
-            ) {
-              showError("email", err.message);
-            } else if (
-              err.message.includes("mật khẩu") ||
-              err.message.includes("Mật khẩu")
-            ) {
-              showError("password", err.message);
+            const message = err.message || "Something went wrong";
+            showToast("authToast", message);
+            if (message.toLowerCase().includes("email") || message.toLowerCase().includes("account")) {
+              showError("email", message);
+            } else if (message.toLowerCase().includes("password")) {
+              showError("password", message);
             }
           });
       });
   }
 
-  /* ============================================================
-   *  LOGOUT PAGE
-   * ============================================================ */
   if (logoutApp) {
     const form = document.getElementById("logoutForm");
     const submitBtn = document.getElementById("logoutSubmit");
@@ -201,12 +178,12 @@
     const countdownEl = document.getElementById("logoutCountdown");
 
     form &&
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
         submitBtn.disabled = true;
         const original = submitBtn.innerHTML;
         submitBtn.innerHTML =
-          '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Đang đăng xuất...';
+          '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Signing out...';
         refreshIcons();
 
         const allDevices = document.getElementById("logoutAllDevices")?.checked;
@@ -219,16 +196,15 @@
             showToast(
               "logoutToast",
               allDevices
-                ? "Đã đăng xuất khỏi tất cả thiết bị"
-                : "Đã đăng xuất khỏi thiết bị này",
+                ? "Signed out from all devices"
+                : "Signed out from this device",
             );
 
-            // Countdown auto redirect
-            let s = 5;
+            let seconds = 5;
             const tick = setInterval(() => {
-              s -= 1;
-              if (countdownEl) countdownEl.textContent = String(s);
-              if (s <= 0) {
+              seconds -= 1;
+              if (countdownEl) countdownEl.textContent = String(seconds);
+              if (seconds <= 0) {
                 clearInterval(tick);
                 const next =
                   window.TF_LOGIN_URL ||
@@ -242,7 +218,7 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = original;
             refreshIcons();
-            showToast("logoutToast", err.message || "Lỗi đăng xuất");
+            showToast("logoutToast", err.message || "Sign out failed");
           });
       });
   }
